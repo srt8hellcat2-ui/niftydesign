@@ -1,0 +1,27 @@
+{"empty": true}
+{"method": "engine.execute", "params": {"command": "file.open", "params": {"path": "/workspace/sample-inputs/apache-poi-publisher-bf7c9b6a1490/Sample2.pub"}}, "response": ".builder/clean-sample2/open.json"}
+{"method": "ui.set", "params": {"page": 1, "fit": "page", "dockExpanded": true, "controlBar": true, "frameEdges": true, "rulers": true}}
+{"method": "engine.execute", "params": {"command": "document.inspect", "params": {}}, "response": ".builder/clean-sample2/before.json"}
+{"method": "engine.execute", "params": {"command": "story.get", "params": {"story": 10}}, "response": ".builder/clean-sample2/story-before.json"}
+{"method": "engine.execute", "params": {"command": "preflight.run", "params": {}}, "response": ".builder/clean-sample2/preflight-before.json"}
+{"shot": ".builder/clean-sample2/01-open.png"}
+{"method": "ui.dialog.cancel", "params": {}}
+{"method": "engine.execute", "params": {"command": "selection.set", "params": {"ids": [9]}}}
+{"method": "ui.drag", "params": {"x": 590, "y": 280, "toX": 604, "toY": 286, "steps": 8}}
+{"steps": 20}
+{"method": "engine.execute", "params": {"command": "document.inspect", "params": {}}, "response": ".builder/clean-sample2/moved.json"}
+{"shot": ".builder/clean-sample2/02-moved.png"}
+{"method": "engine.execute", "params": {"command": "transform.set", "params": {"ids": [9], "width": 420, "height": 90, "ref": 0}}}
+{"method": "engine.execute", "params": {"command": "document.inspect", "params": {}}, "response": ".builder/clean-sample2/resized.json"}
+{"shot": ".builder/clean-sample2/03-resized.png"}
+{"method": "engine.execute", "params": {"command": "story.replaceRange", "params": {"story": 10, "start": 0, "end": 35, "text": "NiftyDesign clean-file editing check."}}}
+{"method": "engine.execute", "params": {"command": "story.get", "params": {"story": 10}}, "response": ".builder/clean-sample2/story-edited.json"}
+{"shot": ".builder/clean-sample2/04-edited-text.png"}
+{"method": "engine.execute", "params": {"command": "file.saveAs", "params": {"path": ".builder/clean-sample2/edited.designcraft"}}, "response": ".builder/clean-sample2/save.json"}
+{"method": "engine.execute", "params": {"command": "file.open", "params": {"path": ".builder/clean-sample2/edited.designcraft"}}, "response": ".builder/clean-sample2/same-open.json"}
+{"method": "ui.set", "params": {"page": 1, "fit": "page", "dockExpanded": true, "controlBar": true, "frameEdges": true, "rulers": true}}
+{"method": "ui.dialog.cancel", "params": {}}
+{"steps": 30}
+{"method": "engine.execute", "params": {"command": "document.inspect", "params": {}}, "response": ".builder/clean-sample2/same-reopened.json"}
+{"method": "engine.execute", "params": {"command": "story.get", "params": {"story": 10}}, "response": ".builder/clean-sample2/same-story.json"}
+{"shot": ".builder/clean-sample2/05-same-session-reopened.png"}

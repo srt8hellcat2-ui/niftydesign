@@ -1,0 +1,43 @@
+# Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0
+name: A file failed to open
+description: A .pub file would not open, or opened with wrong results. Reports go here, never to ArtCraft.
+labels: ["file-failed-to-open"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        NiftyDesign is an unofficial alpha based on DesignCraft by the ArtCraft team. It is not supported by ArtCraft. **Report here, never to the ArtCraft repositories.** Publisher 97, 98 and 2000 files are refused on purpose (see Known limitations).
+
+        **Do NOT attach the file or any file containing names, addresses, phone numbers or photos of people.** Offer the file privately only after the maintainer asks.
+  - type: input
+    id: version
+    attributes:
+      label: NiftyDesign version
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+    validations:
+      required: true
+  - type: input
+    id: publisher
+    attributes:
+      label: Publisher version that made the file (if you know)
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps (how you tried to open it)
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened. Paste the exact error (starts with "import:") or the warning list; describe what is missing or wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: missing
+    attributes:
+      label: What did you look for and not find, compared with Microsoft Publisher?

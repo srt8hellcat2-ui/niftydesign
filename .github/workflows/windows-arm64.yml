@@ -1,0 +1,80 @@
+# Windows on ARM: package the ARM64 release the way release.yml does (cross-compiled on an x64
+# runner, unsigned here), then install that MSI on a Windows 11 ARM64 runner, check the installed
+# binaries are ARM64, run the CLI natively, and uninstall. (A native ARM64 `cargo test` job is left
+# out for now: PdfCraft saw an intermittent access violation in egui UI tests there.)
+name: Windows ARM64
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: windows-arm64-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  package:
+    name: package (cross-compiled on x64)
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Rust and WiX
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal --no-self-update
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          rustup override set 1.95.0
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          rustup target add aarch64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet tool install --global wix --version 5.0.2
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Check branding/version contract
+        run: python -m unittest discover -s packaging -p "test_*.py"
+      - name: Build and package (unsigned)
+        shell: pwsh
+        env:
+          DIST: ${{ github.workspace }}\dist\arm64
+        run: ./packaging/windows/package.ps1 -Arch arm64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: niftydesign-windows-arm64
+          path: dist/arm64/*
+          if-no-files-found: error
+          retention-days: 7
+
+  install:
+    name: install and run on ARM64
+    needs: package
+    runs-on: windows-11-arm
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: niftydesign-windows-arm64
+          path: dist
+      - name: Install, check branding/registry, run, and uninstall
+        shell: pwsh
+        run: ./packaging/windows/test-arm64-install.ps1 -Dist dist
+      - name: Upload installer logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: niftydesign-arm64-install-logs
+          path: '*install.log'
+          if-no-files-found: ignore
+          retention-days: 7

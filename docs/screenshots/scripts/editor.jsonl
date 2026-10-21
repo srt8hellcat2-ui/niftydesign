@@ -1,0 +1,14 @@
+{"empty": true}
+{"method": "engine.execute", "params": {"command": "file.open", "params": {"path": "crates/pub/tests/data/hello-nifty.pub"}}}
+{"method": "ui.set", "params": {"dockExpanded": true, "controlBar": true, "rulers": true, "frameEdges": true, "fit": "page"}}
+{"shot": "docs/screenshots/02-hello-editor.png"}
+{"method": "engine.execute", "params": {"command": "story.get", "params": {"story": 8}}}
+{"method": "engine.execute", "params": {"command": "story.replaceRange", "params": {"story": 8, "start": 0, "end": 22, "text": "Sunday service at 10:00\nWelcome to NiftyDesign."}}}
+{"method": "engine.execute", "params": {"command": "story.get", "params": {"story": 8}}}
+{"shot": "docs/screenshots/04-edited-text.png"}
+{"method": "engine.execute", "params": {"command": "file.exportPdf", "params": {"path": "docs/screenshots/edited-hello.pdf"}}}
+{"method": "ui.menu.invoke", "params": {"command": "app.exportPdf"}}
+{"shot": "docs/screenshots/06-export-pdf-dialog.png"}
+{"method": "ui.dialog.cancel", "params": {}}
+{"method": "ui.click", "params": {"x": 67, "y": 26}}
+{"shot": "docs/screenshots/05-file-menu.png"}

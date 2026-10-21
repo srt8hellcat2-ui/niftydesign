@@ -1,0 +1,10 @@
+Demo images (assets/demo/) - provenance
+All three images were generated with ChatGPT (OpenAI image generation) by the project owner on 2026-10-21. They are AI-generated, not hand drawn.
+Terms: OpenAI Terms of Use (effective 2026-01-01): as between the user and OpenAI, and to the extent permitted by applicable law, the user owns the Output and OpenAI assigns its rights in it; outputs may not be unique. Copyright protection for AI-generated images is unsettled in some countries.
+Use: demo content for NiftyDesign screenshots and sample documents only. Fictional business "Maple Street Bakery". No real people, no logos, no brand names, no text inside the images.
+Files and prompts (exact prompts as given to the tool):
+1. bakery-background.png - Abstract warm background for a bakery flyer: soft overlapping circles and gentle gradients in cream, peach and golden yellow, flat vector style, subtle and uncluttered with plenty of empty space for text, portrait orientation 8.5 by 11 inches, no text, no letters, no logos, no people, no real brands.
+2. croissant.png - Flat illustration of a single croissant, simple shapes and warm browns on a plain light background, centered, no text, no logos.
+3. coffee-cup.png - Flat illustration of a steaming coffee cup on a saucer, simple shapes, warm colours, plain light background, centered, no text, no logos.
+Record these in ASSETS.md as AI-generated (author: project owner via ChatGPT; license: owner-owned output under the OpenAI terms; project use).
+Update 2026-10-21: croissant.png and coffee-cup.png were regenerated with ChatGPT using the same prompts plus a request for a fully transparent background (PNG with alpha channel, no background, no ground shadow). The versions with cream backgrounds are superseded; they remain in git history only.

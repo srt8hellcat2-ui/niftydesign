@@ -1,0 +1,76 @@
+# Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0
+name: NiftyDesign Windows x64 alpha
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: '-C target-feature=+crt-static'
+  DESIGNCRAFT_REQUIRE_WINRES: 1
+
+jobs:
+  alpha:
+    runs-on: windows-2022
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned Rust
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal --no-self-update
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          rustup target add --toolchain 1.95.0 x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Test packaging helpers
+        run: python -m unittest discover -s packaging -p "test_*.py"
+      - name: Build full app and CLI (unsigned)
+        run: cargo +1.95.0 build --locked --release --target x86_64-pc-windows-msvc -p designcraft -p designcraft-cli
+      - name: Check Windows x64 executables and alpha identity
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $bin = 'target/x86_64-pc-windows-msvc/release'
+          foreach ($name in 'designcraft.exe', 'designcraft-cli.exe') {
+            $bytes = [IO.File]::ReadAllBytes((Join-Path $bin $name))
+            $pe = [BitConverter]::ToInt32($bytes, 0x3C)
+            if ([BitConverter]::ToUInt16($bytes, $pe + 4) -ne 0x8664) { throw "$name is not x64" }
+          }
+          $meta = (Get-Item (Join-Path $bin 'designcraft.exe')).VersionInfo
+          if ($meta.ProductName -ne 'NiftyDesign' -or $meta.ProductVersion -ne '0.9.0-nifty-alpha.1' -or $meta.FileVersion -ne '0.9.0-nifty-alpha.1') {
+            throw 'Wrong app name or alpha version metadata'
+          }
+          $version = & (Join-Path $bin 'designcraft-cli.exe') --version
+          if ($LASTEXITCODE -ne 0 -or $version -ne 'NiftyDesign CLI 0.9.0-nifty-alpha.1') { throw 'Wrong CLI alpha version' }
+      - name: Stage legal files, assets and README (branding check must pass)
+        run: python packaging/alpha_windows.py stage target/x86_64-pc-windows-msvc/release dist/niftydesign-alpha
+      - name: Headless hello-nifty save, PDF and PNG smoke
+        run: python packaging/alpha_windows.py smoke dist/niftydesign-alpha/designcraft-cli.exe dist/alpha-smoke
+      - name: Check branding and hashes, then zip
+        run: python packaging/alpha_windows.py zip dist/niftydesign-alpha dist/niftydesign-0.9.0-nifty-alpha.1-windows-x64.zip
+      - name: Upload alpha zip and its checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: niftydesign-alpha-windows-x64
+          path: |
+            dist/niftydesign-0.9.0-nifty-alpha.1-windows-x64.zip
+            dist/niftydesign-0.9.0-nifty-alpha.1-windows-x64.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload headless smoke PNG and PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: niftydesign-alpha-smoke
+          path: |
+            dist/alpha-smoke/hello-nifty-page-1.png
+            dist/alpha-smoke/hello-nifty.pdf
+          if-no-files-found: error
+          retention-days: 14

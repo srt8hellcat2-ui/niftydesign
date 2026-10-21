@@ -1,0 +1,39 @@
+# Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0
+"""Run with python3 -m unittest discover -s packaging -p test_branding.py."""
+import hashlib
+import importlib.util
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+spec = importlib.util.spec_from_file_location('branding', Path(__file__).with_name('check-branding.py'))
+branding = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(branding)
+
+
+class PackageBranding(unittest.TestCase):
+    def test_legal_files_kept_but_marks_rejected_even_renamed(self):
+        with tempfile.TemporaryDirectory() as d:
+            dest = Path(d)
+            branding.stage_legal(dest)
+            self.assertEqual(branding.check(dest), [])
+            # No upstream artwork is needed for the content-hash regression test.
+            mark = b'synthetic branding-test bytes, not a logo'
+            self.assertIn('artcraft-mark.png', branding.KNOWN_MARKS)
+            with patch.dict(branding.KNOWN_MARKS, {'synthetic-mark.png': (len(mark), hashlib.sha256(mark).hexdigest())}):
+                self.check_marks(dest, mark)
+            (dest / 'NOTICE').unlink()
+            self.assertIn('missing or changed legal file: NOTICE', branding.check(dest))
+
+    def check_marks(self, dest, mark):
+        for name in ['artcraft-mark.png', 'renamed.png', 'docs/brand/unexpected.bin']:
+            target = dest / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(mark)
+            self.assertTrue(branding.check(dest), name)
+            target.unlink()
+
+
+if __name__ == '__main__':
+    unittest.main()

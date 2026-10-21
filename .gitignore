@@ -1,0 +1,18 @@
+*~
+plan/
+/target
+/dist
+/corpus
+/log
+/outputs/
+.DS_Store
+/.claude/
+/target-*/
+/craft-fonts/
+
+# Local import/scoring reports and downloaded sample evidence are never source.
+/.builder/
+
+# Generated Python bytecode is not source.
+__pycache__/
+*.py[cod]

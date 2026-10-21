@@ -1,0 +1,39 @@
+# Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0
+name: Bug report
+description: Something in NiftyDesign (unofficial alpha) does not work. Reports go here, never to ArtCraft.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        NiftyDesign is an unofficial alpha based on DesignCraft by the ArtCraft team. It is not supported by ArtCraft. **Report problems here, never to the ArtCraft repositories.** Please check the Known limitations page first.
+
+        **Do NOT attach files containing names, addresses, phone numbers or photos of people.** Do not attach your .pub at first; offer it privately only after the maintainer asks.
+  - type: input
+    id: version
+    attributes:
+      label: NiftyDesign version
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened (and what you expected). Include exact warning or error text; say if it crashed.
+    validations:
+      required: true
+  - type: textarea
+    id: missing
+    attributes:
+      label: What did you look for and not find, compared with Microsoft Publisher?

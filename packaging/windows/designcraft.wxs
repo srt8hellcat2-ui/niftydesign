@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  NiftyDesign MSI (WiX Toolset v5: `dotnet tool install -g wix`). Built by package.ps1:
+
+    wix build designcraft.wxs installer-ui.wxs -arch x64 -d Version=0.9.0 -d DisplayVersion=0.9.0-nifty-alpha.1 -d BinDir=... -d IconPath=... -o out.msi
+
+  Per-machine install into Program Files, a Start Menu shortcut, `.designcraft` owned by
+  NiftyDesign, and NiftyDesign offered under "Open with" for IDML (without taking over the user's
+  default app for it).
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+      Name="NiftyDesign $(var.DisplayVersion)"
+      Manufacturer="NiftyDesign (unofficial)"
+      Version="$(var.Version)"
+      UpgradeCode="49E87D30-BB68-4896-AA1D-F45C833CFC3C"
+      Scope="perMachine"
+      Compressed="yes"
+      Language="1033">
+    <SummaryInformation Description="NiftyDesign page layout and publishing" Manufacturer="NiftyDesign (unofficial)" />
+    <!-- Same-version upgrades let successive pre-releases of one X.Y.Z replace each other
+         (MSI versions are numeric, so 1.2.3-rc.1 and 1.2.3-rc.2 are both 1.2.3). -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+        DowngradeErrorMessage="A newer version of NiftyDesign is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="DesigncraftIcon.ico" SourceFile="$(var.IconPath)" />
+    <Property Id="ARPPRODUCTICON" Value="DesigncraftIcon.ico" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/srt8hellcat2-ui/designcraft-pub" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/srt8hellcat2-ui/designcraft-pub" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/srt8hellcat2-ui/designcraft-pub/issues" />
+
+    <!-- Shared native setup UI, including install/uninstall completion. -->
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="NiftyDesign">
+        <Directory Id="LegalDocs" Name="docs"><Directory Id="BrandTerms" Name="brand" /></Directory>
+        <Directory Id="LegalAssets" Name="assets">
+          <Directory Id="FontTerms" Name="fonts" />
+          <Directory Id="IconTerms" Name="app-icon" />
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+
+    <Feature Id="Main" Title="NiftyDesign" Level="1">
+      <ComponentGroupRef Id="DesigncraftFiles" />
+      <ComponentGroupRef Id="CraftInstallerSettings" />
+    </Feature>
+    <!-- Shared full UI; app installation policy remains below. -->
+    <UIRef Id="CraftInstallerUI" />
+  </Package>
+
+  <Fragment>
+    <ComponentGroup Id="DesigncraftFiles" Directory="INSTALLFOLDER">
+      <Component Id="DesigncraftApp" Guid="DE018EF3-EE87-4E36-9F76-0B7B060A195E">
+        <File Id="DesigncraftExe" Source="$(var.BinDir)\designcraft.exe" KeyPath="yes">
+          <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="NiftyDesign"
+              Description="NiftyDesign page layout and publishing" WorkingDirectory="INSTALLFOLDER" Advertise="yes"
+              Icon="DesigncraftIcon.ico" IconIndex="0" />
+        </File>
+
+        <!-- .designcraft: NiftyDesign's own format; NiftyDesign is its default app. -->
+        <ProgId Id="Designcraft.Document" Description="NiftyDesign Document" Icon="DesigncraftExe" IconIndex="0">
+          <Extension Id="designcraft" ContentType="application/x-designcraft">
+            <Verb Id="open" Command="Open" TargetFile="DesigncraftExe" Argument="&quot;%1&quot;" />
+          </Extension>
+        </ProgId>
+        <!-- IDML: offered under "Open with", never forced as the default. -->
+        <ProgId Id="Designcraft.Idml" Description="IDML Document" Icon="DesigncraftExe" IconIndex="0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\Designcraft.Idml\shell\open\command" Value="&quot;[#DesigncraftExe]&quot; &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.idml\OpenWithProgids" Name="Designcraft.Idml" Value="" Type="string" />
+
+        <!-- "Open with" app list and the Run dialog (Win+R "designcraft"). -->
+        <RegistryValue Root="HKLM" Key="Software\Classes\Applications\designcraft.exe" Name="FriendlyAppName" Value="NiftyDesign" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\Applications\designcraft.exe\shell\open\command" Value="&quot;[#DesigncraftExe]&quot; &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\Applications\designcraft.exe\SupportedTypes" Name=".designcraft" Value="" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\Applications\designcraft.exe\SupportedTypes" Name=".idml" Value="" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\App Paths\designcraft.exe" Value="[#DesigncraftExe]" Type="string" />
+      </Component>
+
+      <Component Id="Legal0" Directory="INSTALLFOLDER"><File Id="LegalFile0" Source="$(var.BinDir)\NOTICE" KeyPath="yes" /></Component>
+      <Component Id="Legal1" Directory="INSTALLFOLDER"><File Id="LegalFile1" Source="$(var.BinDir)\LICENSE-MIT" KeyPath="yes" /></Component>
+      <Component Id="Legal2" Directory="INSTALLFOLDER"><File Id="LegalFile2" Source="$(var.BinDir)\LICENSE-APACHE" KeyPath="yes" /></Component>
+      <Component Id="Legal3" Directory="INSTALLFOLDER"><File Id="LegalFile3" Source="$(var.BinDir)\ASSETS.md" KeyPath="yes" /></Component>
+      <Component Id="Legal4" Directory="BrandTerms"><File Id="LegalFile4" Source="$(var.BinDir)\docs\brand\LICENSE-brand.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal5" Directory="IconTerms"><File Id="LegalFile5" Source="$(var.BinDir)\assets\app-icon\LICENSE.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal6" Directory="FontTerms"><File Id="LegalFile6" Source="$(var.BinDir)\assets\fonts\OFL-SourceSans3.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal7" Directory="FontTerms"><File Id="LegalFile7" Source="$(var.BinDir)\assets\fonts\OFL-JetBrainsMono.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal8" Directory="FontTerms"><File Id="LegalFile8" Source="$(var.BinDir)\assets\fonts\OFL-SourceSerif4.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal9" Directory="FontTerms"><File Id="LegalFile9" Source="$(var.BinDir)\assets\fonts\OFL-Inter.txt" KeyPath="yes" /></Component>
+      <Component Id="DesigncraftCli">
+        <File Id="DesigncraftCliExe" Source="$(var.BinDir)\designcraft-cli.exe" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

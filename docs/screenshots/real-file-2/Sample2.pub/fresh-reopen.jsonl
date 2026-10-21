@@ -1,0 +1,10 @@
+{"empty": true}
+{"method": "engine.execute", "params": {"command": "file.open", "params": {"path": ".builder/clean-sample2/edited.designcraft"}}, "response": ".builder/clean-sample2/fresh-open.json"}
+{"method": "ui.set", "params": {"page": 1, "fit": "page", "dockExpanded": true, "controlBar": true, "frameEdges": true, "rulers": true}}
+{"method": "ui.dialog.cancel", "params": {}}
+{"steps": 30}
+{"method": "engine.execute", "params": {"command": "document.inspect", "params": {}}, "response": ".builder/clean-sample2/fresh-reopened.json"}
+{"method": "engine.execute", "params": {"command": "story.get", "params": {"story": 10}}, "response": ".builder/clean-sample2/fresh-story.json"}
+{"method": "engine.execute", "params": {"command": "preflight.run", "params": {}}, "response": ".builder/clean-sample2/preflight-after.json"}
+{"shot": ".builder/clean-sample2/06-fresh-session-reopened.png"}
+{"method": "engine.execute", "params": {"command": "file.exportPdf", "params": {"path": ".builder/clean-sample2/edited.pdf"}}, "response": ".builder/clean-sample2/pdf.json"}
