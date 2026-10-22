@@ -1,0 +1,131 @@
+# Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0
+name: NiftyDesign Windows alpha draft release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Alpha version matching Cargo.toml (e.g. 0.9.0-nifty-alpha.1)'
+        type: string
+        required: true
+      draft_release:
+        description: 'Create a draft prerelease after the build (never publish)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: niftydesign-alpha-draft-${{ inputs.version }}
+  cancel-in-progress: false
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: '-C target-feature=+crt-static'
+  DESIGNCRAFT_REQUIRE_WINRES: 1
+  ALPHA_VERSION: ${{ inputs.version }}
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate version before building
+        shell: pwsh
+        run: python packaging/windows_alpha_release.py validate "$env:ALPHA_VERSION"
+      - name: Install pinned Rust
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal --no-self-update
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          rustup target add --toolchain 1.95.0 x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Test packaging helpers
+        run: python -m unittest discover -s packaging -p "test_*.py"
+      - name: Build unsigned desktop app and headless CLI
+        run: cargo +1.95.0 build --locked --release --target x86_64-pc-windows-msvc -p designcraft -p designcraft-cli
+      - name: Check x64 identity and version
+        shell: pwsh
+        run: |
+          $bin = 'target/x86_64-pc-windows-msvc/release'
+          foreach ($name in @('designcraft.exe', 'designcraft-cli.exe')) {
+            $bytes = [IO.File]::ReadAllBytes((Join-Path $bin $name))
+            $pe = [BitConverter]::ToInt32($bytes, 0x3C)
+            if ([BitConverter]::ToUInt16($bytes, $pe + 4) -ne 0x8664) { throw "$name is not x64" }
+          }
+          $meta = (Get-Item (Join-Path $bin 'designcraft.exe')).VersionInfo
+          if ($meta.ProductName -ne 'NiftyDesign' -or $meta.ProductVersion -ne $env:ALPHA_VERSION -or $meta.FileVersion -ne $env:ALPHA_VERSION) {
+            throw 'App identity/version differs from requested alpha'
+          }
+          $version = & (Join-Path $bin 'designcraft-cli.exe') --version
+          if ($LASTEXITCODE -ne 0 -or $version -ne "NiftyDesign CLI $env:ALPHA_VERSION") { throw 'CLI version differs' }
+      - name: Open controlled sample and export PDF with headless CLI
+        timeout-minutes: 10
+        run: python packaging/alpha_windows.py smoke target/x86_64-pc-windows-msvc/release/designcraft-cli.exe "${{ runner.temp }}/alpha-release-smoke"
+      - name: Stop and verify app and CLI process trees before packaging
+        if: always()
+        shell: pwsh
+        run: |
+          $apps = @(Get-Process -Name designcraft, designcraft-cli -ErrorAction SilentlyContinue)
+          foreach ($app in $apps) { taskkill /PID $app.Id /T /F }
+          $deadline = (Get-Date).AddSeconds(30)
+          do {
+            $remaining = @(Get-Process -Name designcraft, designcraft-cli -ErrorAction SilentlyContinue)
+            if (-not $remaining.Count) { break }
+            Start-Sleep -Milliseconds 200
+          } while ((Get-Date) -lt $deadline)
+          if ($remaining.Count) { throw 'App/CLI processes are still running; do not package/upload' }
+          Write-Host 'No app or CLI processes remain.'
+          exit 0
+      - name: Package and copy closed files into fresh upload folder
+        shell: pwsh
+        run: |
+          python packaging/windows_alpha_release.py package "$env:ALPHA_VERSION" target/x86_64-pc-windows-msvc/release "$env:RUNNER_TEMP/alpha-release-work" "$env:RUNNER_TEMP/alpha-release-upload"
+          exit $LASTEXITCODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: niftydesign-alpha-release-assets
+          path: ${{ runner.temp }}/alpha-release-upload
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    needs: build
+    if: ${{ inputs.draft_release }}
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: niftydesign-alpha-release-assets
+          path: release-assets
+      - name: Create draft prerelease only
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          $tag = "v$env:ALPHA_VERSION"
+          git show-ref --verify --quiet "refs/tags/$tag"
+          if ($LASTEXITCODE -eq 0) { throw 'Tag already exists; refusing to reuse a tag from another build' }
+          if ($LASTEXITCODE -ne 1) { throw 'Could not check existing tags' }
+          $zip = "NiftyDesign-$env:ALPHA_VERSION-windows-x64.zip"
+          $hash, $filename = (Get-Content -LiteralPath "release-assets/$zip.sha256").Trim() -split '  ', 2
+          if ($filename -ne $zip -or $hash -notmatch '^[0-9a-fA-F]{64}$' -or (Get-FileHash -Algorithm SHA256 -LiteralPath "release-assets/$zip").Hash -ne $hash) {
+            throw 'Downloaded release asset does not match its checksum'
+          }
+          gh release create $tag "release-assets/$zip" "release-assets/$zip.sha256" --draft --prerelease --target "$env:RELEASE_SHA" --title "NiftyDesign $env:ALPHA_VERSION (unsigned alpha)" --notes-file docs/RELEASE-NOTES.md
+          exit $LASTEXITCODE
