@@ -1,7 +1,7 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # NiftyDesign unsigned alpha: release notes
 
-NiftyDesign is an unofficial alpha that opens older Microsoft Publisher (.pub) files, lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.9.0 by the ArtCraft team, with a Publisher importer added. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
+NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer, lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.9.0 by the ArtCraft team, with a Publisher importer added. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
 
 ## This is a test build, and we need your help
 
