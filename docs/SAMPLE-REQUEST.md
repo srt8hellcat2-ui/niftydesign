@@ -7,7 +7,7 @@ Microsoft Publisher is going away. We are building a way to open `.pub` files in
 
 To find out whether it works on real files, we need real files. If you have Publisher files that **contain nothing private**, would you share a copy?
 
-**Good candidates:** church or club bulletins, flyers and posters, calendars, brochures, newsletters, anything with tables, numbered lists, tab stops, or fancy (curved or styled) titles. Files from Publisher 97, 98 or 2000 are especially welcome.
+**Good candidates:** church or club bulletins, flyers and posters, calendars, brochures, newsletters, anything with tables, numbered lists, tab stops, or fancy (curved or styled) titles. Files from Publisher 2002 and newer are what NiftyDesign can open today. Files from Publisher 97, 98 or 2000 are also welcome: we cannot open them yet, but they help us decide whether to add support.
 
 **Please don't send:** anything with names, addresses, phone numbers, emails, photos of people who haven't agreed, financial details, or anything you wouldn't put on a public notice board. If a file mixes public and private content, remove the private part from a copy first, or leave the file out.
 
