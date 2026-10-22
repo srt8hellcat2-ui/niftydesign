@@ -32,9 +32,9 @@ Thanks for trying this. NiftyDesign is an early, unofficial alpha. It opens Micr
 - **Subscript and strikethrough** are not recognised.
 - **PICT pictures** show as an empty frame. Crops to non-rectangular shapes and some clip art (WMF/EMF) may look wrong.
 - **Pattern and texture fills** keep only their first colour.
-- **Fonts.** If a Microsoft font is not found, a substitute is used and text can shift or be cut off. Whether Windows system fonts are picked up is not verified.
+- **Fonts.** If a Microsoft font is not found, a substitute is used and text can shift or be cut off. On one Windows test PC, installed fonts such as Arial and Times New Roman were found.
 - **Soft effects in PDF.** Objects with shadows are exported as images. They look the same but are softer when enlarged. The editable copy keeps the shadow.
-- **Printing** is not verified on a real printer. Export a PDF if you need to print.
+- **Printing** worked on one Windows PC with one inkjet printer. Other printers are untested. Export a PDF if you need to print.
 - **No side-by-side check against Publisher** has been done yet, so small differences in colour, gradient direction or spacing are possible.
 
 ## What the warnings mean
