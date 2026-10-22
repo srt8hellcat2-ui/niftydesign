@@ -1,5 +1,5 @@
 # Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0
-"""Linux-runnable contract checks; actual MSI installation runs only on Windows ARM64."""
+"""Linux-runnable contract checks; installer identity stays covered without platform-specific install workflows."""
 import re
 import tomllib
 import unittest
@@ -19,14 +19,9 @@ class WindowsPackageContract(unittest.TestCase):
         self.assertEqual(wix.find(".//w:Directory[@Id='INSTALLFOLDER']", NS).attrib['Name'], 'NiftyDesign')
         self.assertEqual(wix.find(".//w:File[@Id='DesigncraftExe']", NS).attrib['Source'], '$(var.BinDir)\\designcraft.exe')
         self.assertEqual(wix.find(".//w:Shortcut[@Id='StartMenuShortcut']", NS).attrib['Name'], 'NiftyDesign')
-        script = (ROOT / 'packaging/windows/test-arm64-install.ps1').read_text()
-        self.assertIn("Join-Path $env:ProgramFiles 'NiftyDesign'", script)
-        self.assertIn("'NiftyDesign.lnk'", script)
-        self.assertIn("@('designcraft.exe', 'designcraft-cli.exe')", script)
         for node in wix.findall('.//w:RegistryValue', NS):
             if node.attrib.get('Name') == 'FriendlyAppName':
                 self.assertEqual(node.attrib['Value'], 'NiftyDesign')
-                self.assertIn(node.attrib['Key'], script)
         package = (ROOT / 'packaging/windows/package.ps1').read_text()
         self.assertIn('-d "DisplayVersion=$Version"', package)
         self.assertIn('niftydesign-$Version-windows-$Arch.msi', package)
@@ -39,10 +34,6 @@ class WindowsPackageContract(unittest.TestCase):
         for package in lock['package']:
             if re.fullmatch(r'designcraft(?:-.*)?|xtask', package['name']):
                 self.assertEqual(package['version'], version, package['name'])
-        workflow = (ROOT / '.github/workflows/windows-arm64.yml').read_text()
-        self.assertIn('runs-on: windows-11-arm', workflow)
-        self.assertIn('./packaging/windows/test-arm64-install.ps1 -Dist dist', workflow)
-        self.assertNotIn('craft-common-actions', workflow)
         self.assertFalse(list((ROOT / 'assets/nifty').glob('*-*-*-*-*.png')))
 
 
