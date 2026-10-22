@@ -7,15 +7,15 @@ Microsoft Publisher is going away. We are building a way to open `.pub` files in
 
 To find out whether it works on real files, we need real files. If you have Publisher files that **contain nothing private**, would you share a copy?
 
-**Good candidates:** church or club bulletins, flyers and posters, calendars, brochures, newsletters, anything with tables or fancy (curved or styled) titles.
+**Good candidates:** church or club bulletins, flyers and posters, calendars, brochures, newsletters, anything with tables, numbered lists, tab stops, or fancy (curved or styled) titles. Files from Publisher 97, 98 or 2000 are especially welcome.
 
 **Please don't send:** anything with names, addresses, phone numbers, emails, photos of people who haven't agreed, financial details, or anything you wouldn't put on a public notice board. If a file mixes public and private content, remove the private part from a copy first, or leave the file out.
 
 **What happens to your file:**
-- It is used only to test that NiftyDesign opens, edits, saves, exports and prints Publisher files.
-- It is kept on our test machines, not published and not added to the public code.
-- Tell us if you want it deleted afterwards and we will.
+- It is used only to test that NiftyDesign opens, edits, saves and exports Publisher files.
+- Issues on GitHub are public, so an attached file can be seen by everyone. Only attach a file you are happy to make public.
+- It will not be added to the code in the repository. If you want an attachment removed, ask and we will remove it.
 
-**To send one:** reply here or contact [OWNER TO FILL IN: contact method]. Please tell us which Publisher version made it, if you know, and what the file is for. Saving a copy in Publisher 2002 or later is fine for old files, but we would like the original too if you have it.
+**To send one:** open an issue at https://github.com/srt8hellcat2-ui/niftydesign/issues using the "A file failed to open" form or a plain issue, and attach the file. Please tell us which Publisher version made it, if you know, and what the file is for. A PDF exported from Publisher of the same file is a big help. If you cannot share the file, you can still help: tell us what NiftyDesign does when you open it, and include the warning text.
 
 Thank you!
