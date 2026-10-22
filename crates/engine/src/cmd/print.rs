@@ -90,15 +90,18 @@ mod tests {
     use super::*;
 
     // PDF timestamps and document IDs vary between exports; compare the actual printed pages.
-    fn assert_same_pdf_pages(actual: &[u8], expected: &[u8]) {
-        let pages = designcraft_render::pdf_page_count(expected).unwrap();
+    fn assert_same_pdf_pages(actual: &[u8], expected: &[u8]) -> std::result::Result<(), String> {
+        let pages = designcraft_render::pdf_page_count(expected).ok_or_else(|| "expected PDF has no readable page count".to_string())?;
         assert_eq!(designcraft_render::pdf_page_count(actual), Some(pages));
         for page in 0..pages {
             assert_eq!(designcraft_render::pdf_page_size(actual, page), designcraft_render::pdf_page_size(expected, page));
-            let actual = designcraft_render::pdf_page_png(actual, page, 512, &[], None).unwrap();
-            let expected = designcraft_render::pdf_page_png(expected, page, 512, &[], None).unwrap();
+            let actual = designcraft_render::pdf_page_png(actual, page, 512, &[], None)
+                .ok_or_else(|| format!("could not render actual PDF page {}", page + 1))?;
+            let expected = designcraft_render::pdf_page_png(expected, page, 512, &[], None)
+                .ok_or_else(|| format!("could not render expected PDF page {}", page + 1))?;
             assert!(actual == expected, "print and export differ on page {}", page + 1);
         }
+        Ok(())
     }
 
     #[test]
@@ -161,7 +164,7 @@ mod tests {
             &json!({"systemDialog": true}),
             |_, _| panic!("no duplicate spool"),
             |pdf, _| {
-                assert_same_pdf_pages(pdf, &expected);
+                assert_same_pdf_pages(pdf, &expected)?;
                 Ok(true)
             },
         )
@@ -197,7 +200,7 @@ mod tests {
         let expected = super::super::base64_decode(exported["base64"].as_str().unwrap());
         let r = print_with(&mut s, &params, |pdf, job| {
             // The production export options and full bytes reach the shared spooler boundary.
-            assert_same_pdf_pages(pdf, &expected);
+            assert_same_pdf_pages(pdf, &expected).map_err(craft_print::Error::Spool)?;
             assert!(pdf.starts_with(b"%PDF-"));
             assert_eq!(job.printer.as_deref(), Some("Office (east)"));
             assert_eq!(job.copies, 2);
