@@ -1,6 +1,7 @@
 # Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0
 """Draft-only workflow and exact release asset contract; no GitHub calls."""
 import hashlib
+import io
 from pathlib import Path
 import tempfile
 import unittest
@@ -42,6 +43,34 @@ class AlphaRelease(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'fresh'):
                 release.package(release.alpha.VERSION, binaries, root / 'other-work', upload)
             self.assertFalse((root / 'other-work').exists())
+
+    def test_package_rejects_private_repo_and_placeholders_in_text_and_executables(self):
+        for token in release.FORBIDDEN_STRINGS:
+            for encoding in ('utf-8', 'utf-16-le', 'utf-16-be'):
+                for name in ('README-ALPHA.txt', 'designcraft.exe', 'designcraft-cli.exe'):
+                    with self.subTest(token=token, encoding=encoding, name=name):
+                        with tempfile.TemporaryDirectory() as temp:
+                            path = Path(temp) / 'bad.zip'
+                            with zipfile.ZipFile(path, 'w') as archive:
+                                archive.writestr(name, b'prefix' + token.upper().encode(encoding) + b'suffix')
+                            with self.assertRaisesRegex(ValueError, 'forbidden package string'):
+                                release.check_archive_strings(path)
+        # A token crossing the read boundary is also rejected.
+        with self.assertRaises(ValueError):
+            release.reject_forbidden_strings(io.BytesIO(b'x' * (1024 * 1024 - 3) +
+                                                        release.FORBIDDEN_STRINGS[0].encode()), 'boundary.exe')
+        release.reject_forbidden_strings(io.BytesIO(b'https://github.com/srt8hellcat2-ui/niftydesign'), 'good.txt')
+
+    def test_bad_executable_never_reaches_upload(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); binaries = root / 'bin'; binaries.mkdir()
+            for name in ('designcraft.exe', 'designcraft-cli.exe'):
+                (binaries / name).write_bytes(b'https://github.com/srt8hellcat2-ui/' +
+                                            release.FORBIDDEN_STRINGS[0].encode())
+            with self.assertRaisesRegex(ValueError, 'forbidden package string'):
+                release.package(release.alpha.VERSION, binaries, root / 'work', root / 'upload')
+            self.assertFalse((root / 'upload').exists())
+            self.assertFalse(list((root / 'work').glob('*.zip*')))
 
     def test_workflow_is_manual_draft_only_and_write_is_release_scoped(self):
         text = (release.alpha.ROOT / '.github/workflows/windows-alpha-release.yml').read_text()

@@ -7,9 +7,8 @@ Based on DesignCraft by the ArtCraft team. Unofficial build; not supported by
 ArtCraft or Microsoft. This is not a Microsoft Publisher release.
 
 UNSIGNED BUILD: expect Windows SmartScreen to warn about this downloaded app.
-The exact SmartScreen prompt and launch experience are UNVERIFIED on a real
-desktop for this build. Extract the whole zip to a folder before running
- designcraft.exe. The command-line tool is designcraft-cli.exe.
+The exact SmartScreen prompt is UNVERIFIED. Extract the whole zip to a folder
+before running designcraft.exe. The command-line tool is designcraft-cli.exe.
 
 Verify the zip before extracting. Download both the zip and its separate
 niftydesign-0.9.0-nifty-alpha.1-windows-x64.zip.sha256 file into the same folder.
@@ -33,9 +32,13 @@ of who sent the files. Obtain the zip and checksum through a trusted channel.
 
 Headless tests cover .pub import, saving/reopening .designcraft, PDF export and
 page rendering. Imported objects are editable in the document model.
-UNVERIFIED ON A REAL DESKTOP: the desktop GUI, interactive editing, file dialogs,
-and the native print dialog and physical printing. The web file picker is also
-UNVERIFIED; this Windows package does not include the web app.
+The maintainer ran the Windows desktop app on ONE Windows 11 PC: launch,
+opening a .pub, editing, save and reopen, PDF export, printing to one inkjet
+printer, and Arial and Times New Roman from Windows system fonts worked on
+that PC.
+NOT VERIFIED: other PCs, other printers, the native print dialog, and file
+dialogs. The web file picker is also UNVERIFIED; this Windows package does not
+include the web app.
 
 Known gaps: numbered lists and custom tab stops are unsupported; table cell
 shading and borders are not decoded; merged-cell text is unconfirmed;
@@ -45,12 +48,12 @@ In the eight Apache test tables, rows and columns import but cell text is not sh
 
 The earlier same-session picture disappearance was a screenshot-timing bug in the app's ui.screenshot command, now fixed. No document or image data was lost.
 
-File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on macOS and Linux, and a Windows PDF raster spooler. Printing on a real printer is UNVERIFIED. The web build cannot print; export a PDF instead. Export to PDF works (automated checks).
+File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on macOS and Linux, and a Windows PDF raster spooler. Printing worked for the maintainer on one inkjet printer on that Windows 11 PC; other printers and the native print dialog are NOT VERIFIED. The web build cannot print; export a PDF instead. Export to PDF works (automated checks).
 
 Screenshots are interface renderings from the app's own test renderer on Linux, not a Windows desktop capture.
 
 The demo flyer's background, croissant and coffee-cup pictures are AI-generated.
-See ASSETS.md and the source tree's assets/demo/NOTES.txt.
+See ASSETS.md for their provenance.
 
 Other unsupported features can produce warnings or different-looking output.
 Keep the original .pub and check any exported PDF carefully.
@@ -62,8 +65,8 @@ These are test files, including deliberately damaged inputs, not a representativ
 survey of real users' publications. A warning is not a promise of visual accuracy.
 
 Report problems using GitHub Issues on the project owner's NiftyDesign repo:
-REPO_URL_HERE
-The owner must fill in that URL before sharing. Never report this unofficial
+https://github.com/srt8hellcat2-ui/niftydesign/issues
+Never report this unofficial
 build to the ArtCraft repositories. Include the version, Windows version, steps,
 error/warning text and report.csv if available. Do not attach files, screenshots
 or reports containing personal information; remove private content first.

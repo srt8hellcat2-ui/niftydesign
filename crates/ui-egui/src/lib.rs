@@ -785,6 +785,17 @@ impl DesignApp {
 
     /// THE entry point for every action (menus, shortcuts, palette, panels, control channel).
     pub fn run(&mut self, id: &str, params: Value) -> Result<Value, String> {
+        // A command's transient status must not outlive the next action. UI commands may
+        // supply a fresh success message; failures replace it with their current error.
+        self.ui.status.clear();
+        let result = self.run_action(id, params);
+        if let Err(error) = &result {
+            self.status(error.clone());
+        }
+        result
+    }
+
+    fn run_action(&mut self, id: &str, params: Value) -> Result<Value, String> {
         if let Some(r) = menus::run_ui(self, id, &params) {
             return r;
         }
@@ -2476,6 +2487,19 @@ mod tests {
         let e = app.open_dropped(&notes.to_string_lossy()).unwrap_err();
         let _ = std::fs::remove_file(&notes);
         assert_eq!(alert(&app), ("Can't Place the File".to_string(), e));
+    }
+
+    #[test]
+    fn successful_commands_clear_the_previous_transient_error() {
+        let mut app = DesignApp::new(Session::new(), Services::default());
+        assert!(app.run("ui.screenshot", json!({})).is_err());
+        assert!(app.ui.status.contains("unknown command"));
+        app.run("file.new", json!({})).unwrap();
+        assert!(app.ui.status.is_empty());
+        assert!(app.run("no.such.command", json!({})).is_err());
+        assert!(app.ui.status.contains("no.such.command"));
+        app.run("app.palette", json!({})).unwrap();
+        assert!(!app.ui.status.contains("no.such.command"));
     }
 
     #[test]

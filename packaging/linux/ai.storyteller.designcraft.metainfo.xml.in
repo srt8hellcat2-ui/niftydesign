@@ -18,9 +18,9 @@
   <launchable type="desktop-id">ai.storyteller.designcraft.desktop</launchable>
   <icon type="stock">ai.storyteller.designcraft</icon>
   <!-- Only url types known to appstream 0.15 (Ubuntu 22.04, where CI validates): no vcs-browser. -->
-  <url type="homepage">https://github.com/srt8hellcat2-ui/designcraft-pub</url>
-  <url type="bugtracker">https://github.com/srt8hellcat2-ui/designcraft-pub/issues</url>
-  <url type="help">https://github.com/srt8hellcat2-ui/designcraft-pub</url>
+  <url type="homepage">https://github.com/srt8hellcat2-ui/niftydesign</url>
+  <url type="bugtracker">https://github.com/srt8hellcat2-ui/niftydesign/issues</url>
+  <url type="help">https://github.com/srt8hellcat2-ui/niftydesign</url>
   <categories>
     <category>Graphics</category>
     <category>RasterGraphics</category>

@@ -278,7 +278,7 @@ pub const UI_COMMANDS: &[(&str, &str, Option<&str>, &str)] = &[
         "{on?: bool, at?: [x, y] (points from the canvas's top-left)} — the Contextual Task Bar stays where it is (or at `at`) instead of following the selection; with neither, toggles",
     ),
     ("window.taskBarReset", "Reset Bar Position", None, "{} — the Contextual Task Bar follows the selection again, under it"),
-    ("help.github", "NiftyDesign on GitHub…", None, "{} — opens https://github.com/srt8hellcat2-ui/designcraft-pub"),
+    ("help.github", "NiftyDesign on GitHub…", None, "{} — opens https://github.com/srt8hellcat2-ui/niftydesign"),
     ("help.issues", "Report an Issue…", None, "{} — opens the GitHub issue tracker"),
     (
         "help.about",

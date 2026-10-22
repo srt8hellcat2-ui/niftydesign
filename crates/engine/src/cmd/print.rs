@@ -58,13 +58,13 @@ fn print_with_dialog(
     submit: impl FnOnce(&[u8], &craft_print::Job) -> std::result::Result<String, craft_print::Error>,
     dialog: impl FnOnce(&[u8], &str) -> std::result::Result<bool, String>,
 ) -> Result<Value> {
-    let d = &s.doc()?.doc;
+    let title = s.doc()?.title();
     let copies = p.get("copies").and_then(Value::as_u64).unwrap_or(1).clamp(1, 999) as u32;
     let job = craft_print::Job {
         printer: str_param(p, "printer").map(str::to_string),
         copies,
         scaling: craft_print::Scaling::ShrinkToFit,
-        title: d.title.clone(),
+        title,
         ..craft_print::Job::default()
     };
     let dry = p.get("dryRun").and_then(Value::as_bool).unwrap_or(false);
@@ -170,6 +170,22 @@ mod tests {
         )
         .unwrap();
         assert_eq!(r["warnings"], exported["warnings"]);
+    }
+
+    #[test]
+    fn print_uses_the_current_display_title_after_save_as() -> crate::Result<()> {
+        let mut s = Session::new();
+        s.execute("file.new", &json!({"title": "Original"}))?;
+        let dir = tempfile::tempdir().map_err(|e| crate::EngineError::Other(e.to_string()))?;
+        let path = dir.path().join("Coffee Shop.designcraft");
+        s.execute("file.saveAs", &json!({"path": path.to_string_lossy()}))?;
+        // The persisted document title can still be the original name. The UI title is current.
+        assert_eq!(s.doc()?.doc.title, "Original");
+        print_with(&mut s, &json!({}), |_, job| {
+            assert_eq!(job.title, "Coffee Shop.designcraft");
+            Ok("submitted".into())
+        })?;
+        Ok(())
     }
 
     #[test]

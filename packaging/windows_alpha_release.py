@@ -6,8 +6,36 @@ from pathlib import Path
 import re
 import shutil
 import tomllib
+import zipfile
 
 import alpha_windows as alpha
+
+
+# These tokens are prohibited in distributed text and executable strings, including
+# UTF-16 Windows resource strings. Historical source records and crate names are
+# not package inputs.
+FORBIDDEN_STRINGS = ('designcraft-pub', 'REPO_URL_HERE', 'OWNER TO FILL', 'owner must fill')
+
+
+def reject_forbidden_strings(stream, label):
+    patterns = [(text, text.lower().encode(encoding))
+                for text in FORBIDDEN_STRINGS for encoding in ('utf-8', 'utf-16-le', 'utf-16-be')]
+    overlap = max(len(pattern) for _, pattern in patterns) - 1
+    tail = b''
+    while chunk := stream.read(1024 * 1024):
+        data = (tail + chunk).lower()
+        for text, pattern in patterns:
+            if pattern in data:
+                raise ValueError(f'forbidden package string {text!r} in {label}')
+        tail = data[-overlap:]
+
+
+def check_archive_strings(path):
+    with zipfile.ZipFile(path) as archive:
+        for member in archive.infolist():
+            if not member.is_dir():
+                with archive.open(member) as stream:
+                    reject_forbidden_strings(stream, member.filename)
 
 
 def validate_version(version):
@@ -36,6 +64,12 @@ def package(version, binaries, work, upload):
         encoding='utf-8', newline='\n')
     archive = work / name
     alpha.archive(stage, archive)  # checks branding/inventory, closes ZIP, writes sidecar
+    try:
+        check_archive_strings(archive)
+    except ValueError:
+        archive.unlink()
+        archive.with_name(name + '.sha256').unlink()
+        raise
     upload.mkdir(parents=True, exist_ok=False)
     for source in (archive, archive.with_name(name + '.sha256')):
         target = upload / source.name

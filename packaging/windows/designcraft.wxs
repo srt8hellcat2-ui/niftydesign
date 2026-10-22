@@ -26,9 +26,9 @@
 
     <Icon Id="DesigncraftIcon.ico" SourceFile="$(var.IconPath)" />
     <Property Id="ARPPRODUCTICON" Value="DesigncraftIcon.ico" />
-    <Property Id="ARPURLINFOABOUT" Value="https://github.com/srt8hellcat2-ui/designcraft-pub" />
-    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/srt8hellcat2-ui/designcraft-pub" />
-    <Property Id="ARPHELPLINK" Value="https://github.com/srt8hellcat2-ui/designcraft-pub/issues" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/srt8hellcat2-ui/niftydesign" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/srt8hellcat2-ui/niftydesign" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/srt8hellcat2-ui/niftydesign/issues" />
 
     <!-- Shared native setup UI, including install/uninstall completion. -->
 
