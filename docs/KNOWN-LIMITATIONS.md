@@ -64,7 +64,7 @@ File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on m
 - **The web file picker** / browser version: a headless test opens a sample in a browser-style build, but dropping or picking a file in a real browser is unverified.
 - **The SmartScreen / unsigned warning** wording and steps.
 - **That files stay on your computer** (no network use): not stated or tested in the docs.
-- Behaviour on Windows versions other than the one the owner tests. `[owner fills in]`
+- Behaviour on Windows versions other than the one we test on. Please tell us which version you use if something goes wrong.
 
 ## Crashes
 
