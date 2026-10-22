@@ -20,7 +20,7 @@ Weighted score = sum of (weight x status value) / sum of weights.
 | P2 | 14 | 2 | 4 | 8 | (2 + 0.5 x 4) x 1 = 4 of 14 x 1 = 14 | 28.6% |
 | **All** | 60 | 34 | 12 | 14 | 58.5 + 33 + 4 = 95.5 of 63 + 50 + 14 = 127 | **75.2%** |
 
-What changed from the first pass (76.8%, 96 of 125): the "Save as .designcraft and reopen" row went from D to P (pictures missing in the interface after a same-session reopen), which takes 1.5 points off P0. The "Missing-font substitution" row went from unscored to P (P1, 1 point), which adds 1 to the earned and 2 to the possible points. Net: earned 96 - 1.5 + 1 = 95.5, possible 125 + 2 = 127. 95.5 / 127 = 75.2%. The new unscored row "Text wrap around pictures" is not counted.
+What changed from the first pass (76.8%, 96 of 125): the "Save as .designcraft and reopen" row went from D to P (pictures missing in the interface after a same-session reopen), which takes 1.5 points off P0. That picture observation was later traced to a screenshot-timing bug in `ui.screenshot`, now fixed, with no data lost. The P status remains conservative because a real desktop round trip is UNVERIFIED. The "Missing-font substitution" row went from unscored to P (P1, 1 point), which adds 1 to the earned and 2 to the possible points. Net: earned 96 - 1.5 + 1 = 95.5, possible 125 + 2 = 127. 95.5 / 127 = 75.2%. The new unscored row "Text wrap around pictures" is not counted.
 
 By area (earned weighted points of possible weighted points over the scored rows in that area):
 
@@ -97,7 +97,7 @@ The area table sums to the same totals (earned 95.5, possible 127). Open P0 item
 | Pictures | Text inside WMF pictures | P2 | M | Left out, warned. |
 | Pictures | PICT pictures | P2 | M | Empty frame keeps the place. |
 | Pictures | Placement accuracy of pictures | P0 | unscored | 41 of 152 objects are image-only in the reference data. |
-| Tables | Tables: rows, columns, sizes, editable cell text | P0 | P | Real tables; the 8 earlier failures now open. Table cell text placement is not decoded. The headless table sample rendered blank because the importer lost the host story's frame linkage (docs/gallery/README.md, REPORTS.md). |
+| Tables | Tables: rows, columns, sizes, editable cell text | P0 | P | In the eight Apache test tables, rows and columns import but cell text is not shown yet. The synthetic 2x2 table now draws A1, B1, A2 and B2. Cell fills, borders and uncertain merged-cell text remain unsupported. |
 | Tables | Merged cells | P1 | P | Text in merged cells that cannot be placed is kept after the table, warned. |
 | Tables | Cell shading and borders | P1 | M | Not decoded, warned. |
 | Tables | Cell padding | P2 | M | Not decoded, warned. |
@@ -106,9 +106,9 @@ The area table sums to the same totals (earned 95.5, possible 127). Open P0 item
 | WordArt | Stretch-to-fill of the box | P2 | M | Lost. |
 | Groups and layout | Groups with rotation and flips | P0 | D | group__*. |
 | Groups and layout | Layers, stacking order, guides | P1 | unscored | Not mentioned in the documents. |
-| Save and export | Save as .designcraft and reopen | P0 | P | Engine round trip passes over all 142 samples and on two real files (automated). But after reopening a saved file in the SAME session, two pictures were missing in the interface (newsletter test); the PDF and a fresh reopen kept them. Cause not found (screenshots/real-file/README.md). |
+| Save and export | Save as .designcraft and reopen | P0 | P | Engine round trip passes over all 142 samples and on two real files (automated). The earlier apparent picture disappearance was a screenshot-timing bug in `ui.screenshot`, now fixed, with no data lost. A real desktop round trip remains UNVERIFIED. |
 | Save and export | Export PDF | P0 | D | All 142 export, page counts match; not yet checked by hand or against Publisher. |
-| Save and export | Export page images (CLI) | P2 | D | Gallery PNGs; the headless table sample came out blank (cause above). |
+| Save and export | Export page images (CLI) | P2 | D | Gallery PNGs; the synthetic 2x2 table now draws its cell text. The eight Apache test tables still show no cell text. |
 | Save and export | Batch folder conversion | P2 | D | designcraft-cli batch-convert. |
 | Save and export | Save back to .pub | P2 | M | Not offered. |
 | Editing in the app | Select, move and resize imported items | P0 | D | Engine workflow test, and two real files (newsletter, Sample2.pub) with engine-checked bounds; the desktop GUI itself is UNVERIFIED. |
@@ -117,7 +117,7 @@ The area table sums to the same totals (earned 95.5, possible 127). Open P0 item
 | Editing in the app | Using all of the above in a real desktop window | P0 | unscored | UNVERIFIED: screenshots come from a test renderer, not a desktop. |
 | Editing in the app | Editing table cells or master pages of an imported file | P1 | unscored | Not mentioned in the documents. |
 | Editing in the app | Text wrap around pictures; text flow between frames in a real file | P1 | unscored | Reported not working in the newsletter test. The docs record only that clip art overlaps body text there, cause not isolated. No check is recorded, so no status. |
-| Printing | In-app File > Print | P1 | P | The File menu now has Print... (Ctrl+P), an existing engine command exposed in the menu. Automated tests check the engine side. Whether it works on a real Windows desktop and printer is UNVERIFIED. Export to PDF works (automated checks). |
+| Printing | In-app File > Print | P1 | P | File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on macOS and Linux, and a Windows PDF raster spooler. Printing on a real printer is **UNVERIFIED**. The web build cannot print; export a PDF instead. Export to PDF works (automated checks). |
 | Printing | Physical printing and the native print dialog | P1 | unscored | UNVERIFIED: never observed on a desktop. |
 
 ## Unscored
@@ -189,3 +189,11 @@ The summary above is higher than the real-file results justify. Rows were scored
 - **Fonts.** The Liberation Sans/Serif replacement comes from the task instructions; no doc in docs/ records it. Please confirm it.
 - **Do you want priorities changed?** P0, P1 and P2 are my judgement, not from the docs.
 - **Real files.** Step 1 above needs files from you or testers.
+
+## Screenshot and demo evidence
+
+The earlier same-session picture disappearance was a screenshot-timing bug in the app's `ui.screenshot` command, now fixed. No document or image data was lost.
+
+Screenshots are interface renderings from the app's own test renderer on Linux, not a Windows desktop capture.
+
+The demo flyer's background, croissant and coffee-cup pictures are AI-generated; see [ASSETS.md](../ASSETS.md) and [assets/demo/NOTES.txt](../assets/demo/NOTES.txt).

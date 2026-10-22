@@ -38,9 +38,20 @@ and the native print dialog and physical printing. The web file picker is also
 UNVERIFIED; this Windows package does not include the web app.
 
 Known gaps: numbered lists and custom tab stops are unsupported; table cell
-shading and borders are not imported reliably; merged-cell text is unconfirmed;
+shading and borders are not decoded; merged-cell text is unconfirmed;
 curved WordArt becomes straight text. Text inside WMF/EMF pictures is left out.
 Publisher 97-2000 files are refused.
+In the eight Apache test tables, rows and columns import but cell text is not shown yet. The synthetic 2x2 table now draws A1, B1, A2 and B2. Cell fills, borders and uncertain merged-cell text remain unsupported.
+
+The earlier same-session picture disappearance was a screenshot-timing bug in the app's ui.screenshot command, now fixed. No document or image data was lost.
+
+File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on macOS and Linux, and a Windows PDF raster spooler. Printing on a real printer is UNVERIFIED. The web build cannot print; export a PDF instead. Export to PDF works (automated checks).
+
+Screenshots are interface renderings from the app's own test renderer on Linux, not a Windows desktop capture.
+
+The demo flyer's background, croissant and coffee-cup pictures are AI-generated.
+See ASSETS.md and the source tree's assets/demo/NOTES.txt.
+
 Other unsupported features can produce warnings or different-looking output.
 Keep the original .pub and check any exported PDF carefully.
 

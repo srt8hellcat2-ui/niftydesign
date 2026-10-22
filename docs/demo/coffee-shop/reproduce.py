@@ -75,7 +75,7 @@ def picture(name, x, y, width, dx, dy, final_width, spread=0):
     return asset, ident
 
 
-def run(harness, sample):
+def build_plan(sample):
     global ROWS, NEXT
     NEXT = 27
     os.chdir(ROOT)
@@ -139,6 +139,12 @@ def run(harness, sample):
     shot('08-same-session-reopened')
     command('file.saveAs', {'path': str(WORK / 'same.designcraft')}, 'same-save')
     command('file.exportPdf', {'path': str(OUT / 'coffee-shop.pdf')}, 'pdf')
+    return ROWS
+
+
+def run(harness, sample):
+    global ROWS
+    build_plan(sample)
     script = WORK / 'editing.jsonl'
     script.write_text('\n'.join(map(json.dumps, ROWS)) + '\n')
     env = dict(os.environ, MESA_SHADER_CACHE_DISABLE='true')

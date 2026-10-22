@@ -62,7 +62,7 @@ Results come from the project's own checks (docs dated 2026-10-19 to 2026-10-21)
 | | What |
 |---|---|
 | **Works (automated checks)** | Opening all **142** controlled sample files. These are one-feature files. They are scored against the answer files that came with them, **not against Publisher**. Page size, orientation, page count and master pages. Text frames with fonts, sizes, colours, alignment, indents, line spacing, bullets, tab characters, caps, small caps, superscript, letter spacing. Common shapes and lines, solid and gradient fills, transparency, shadows, groups. Pictures (PNG, JPEG, BMP and similar) with rectangular crops. WordArt kept as editable text. Save as `.designcraft`, reopen, and export PDF. |
-| **Partly works** | **Real files** (see below). Tables: rows, columns and cell text come over, but text placement in cells is not settled. Freeform curves and some preset shapes become rectangles. PICT pictures show an empty frame. Pattern and texture fills keep only the first colour. Objects with shadows go into the PDF as images. |
+| **Partly works** | **Real files** (see below). In the eight Apache test tables, rows and columns import but cell text is not shown yet. The synthetic 2x2 table now draws A1, B1, A2 and B2. Cell fills, borders and uncertain merged-cell text remain unsupported. Freeform curves and some preset shapes become rectangles. PICT pictures show an empty frame. Pattern and texture fills keep only the first colour. Objects with shadows go into the PDF as images. |
 | **Not working yet** | Numbered lists. Custom tab stops. Table cell shading and borders. Curved or arched WordArt (comes out straight). Publisher 97, 98 and 2000 files (refused). Page numbers and dates are left out. Objects parked beside the page are left out. Subscript and strikethrough. |
 | **UNVERIFIED** | The desktop window and editing in it on a real Windows PC. In-app printing. Whether Windows system fonts are picked up. Any hosted build. The web file picker. |
 
@@ -89,10 +89,7 @@ About the 24 files:
 
 ## Printing
 
-- Export to PDF works (automated checks).
-- The File menu has **Print...** (Ctrl+P). It is an existing command now shown in the menu.
-- **In-app printing is UNVERIFIED.** It has not been tried on a real Windows desktop with a printer.
-- If it fails, print the exported PDF from your PDF viewer.
+File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on macOS and Linux, and a Windows PDF raster spooler. Printing on a real printer is **UNVERIFIED**. The web build cannot print; export a PDF instead. Export to PDF works (automated checks).
 
 ## Fonts
 
@@ -103,14 +100,19 @@ Publisher files use Microsoft fonts. NiftyDesign cannot include them.
 - A Find/Replace Font dialog lists the missing fonts.
 - Whether Windows system fonts are picked up on a real Windows PC is **UNVERIFIED**.
 
+Resolved: The earlier same-session picture disappearance was a screenshot-timing bug in the app's `ui.screenshot` command, now fixed. No document or image data was lost.
+
 ## Known problems found in testing
 
-- **Pictures missing after a same-session reopen.** In the newsletter test, two pictures were missing in the interface after reopening a saved `.designcraft` in the same session. The exported PDF and a fresh reopen kept them. The cause is not found. The earlier template-content screenshots are excluded from this source export.
-- **Blank table page.** A controlled table sample rendered blank. The importer lost the link between the table's text and its frame. The table and its cell text are in the document. See [the gallery diagnosis](docs/gallery/README.md#blank-table-diagnosis--2026-10-20).
+- **Table text remains partial.** In the eight Apache test tables, rows and columns import but cell text is not shown yet. The synthetic 2x2 table now draws A1, B1, A2 and B2. Cell fills, borders and uncertain merged-cell text remain unsupported. See [the gallery](docs/gallery/README.md#table-host-linkage-fixed--2026-10-21).
 - **Pictures over text.** In the newsletter test, clip art overlaps body text before any edit. The cause was not isolated. Text wrap around pictures and text flow between frames are not shown to work in that test.
 - **"N errors" in the status bar.** This is the preflight panel, not a crash and not an import failure. It counts overset text (text that does not fit its frame) plus missing fonts. The newsletter shows 12: six overset items and six missing font families.
 
 ## Screenshots
+
+Screenshots are interface renderings from the app's own test renderer on Linux, not a Windows desktop capture.
+
+The demo flyer's background, croissant and coffee-cup pictures are AI-generated; see [ASSETS.md](ASSETS.md) and [assets/demo/NOTES.txt](assets/demo/NOTES.txt).
 
 Each image is an interface rendering from the project's own test renderer, not a Windows desktop capture. Every image uses the project's own synthetic test file or a generic Apache test file.
 

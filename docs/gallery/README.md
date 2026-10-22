@@ -16,7 +16,7 @@ is not a claim of complete visual fidelity to Publisher.
 | [wmf-picture-page-1.png](wmf-picture-page-1.png) | `crates/pub/tests/data/wmf-picture.pub` | Same synthetic text plus a WMF picture: red triangle over a blue ellipse. |
 | [bullets-page-1.png](bullets-page-1.png) | controlled `text__bullets.pub` | Small bullet and example paragraph text near the top left. |
 | [shadow-page-1.png](shadow-page-1.png) | controlled `shadow__on.pub` | Blue rectangle with a dark outline/offset shadow; subtle at this scale. |
-| [table-2x2-page-1.png](table-2x2-page-1.png) | controlled `table__2x2.pub` | **Blank output.** CLI exited successfully and wrote a valid nonempty PNG, but every RGB pixel is white. No visible grid or cell text. Follow-up diagnosis below: imported host story has no frame linkage. This is not a successful table visual demonstration. |
+| [table-2x2-page-1.png](table-2x2-page-1.png) | controlled `table__2x2.pub` | Cell text `A1`, `B1`, `A2`, `B2` after the host-frame linkage fix. No grid, fills or borders are invented; those remain unsupported. |
 | [hello-nifty-pdf-page-1.png](hello-nifty-pdf-page-1.png) | NiftyDesign's [hello-nifty.pdf](hello-nifty.pdf), exported from `hello-nifty.pub` | Page 1 of our exported PDF, rasterized by `pdftoppm`; the after image below. |
 
 ## Before and after PDF export
@@ -48,25 +48,24 @@ pdftoppm -f 1 -singlefile -scale-to 792 -png docs/gallery/hello-nifty.pdf \
   docs/gallery/hello-nifty-pdf-page-1
 ```
 
-Every selected CLI command and the PDF rasterizer exited successfully. The blank
-table result above is retained rather than hidden. All six PNGs were inspected.
-No reader or rendering code was changed to produce these images.
+The original selected CLI commands and PDF rasterizer exited successfully. The
+updated table PNG was produced by the regression test using the same shared
+headless `Renderer::render_page` as the CLI. All six gallery images have been
+inspected. This table update changes model linkage, not binary decoding rules.
 
-## Blank table diagnosis — 2026-10-20
+## Table host linkage fixed — 2026-10-21
 
-The own CLI `document.inspect` and saved native document show a genuine 2x2 table
-with cell texts `A1`, `B1`, `A2`, `B2`, row heights 36 pt and column widths 144 pt.
-Text frame 7 points to host story 8, but that story's `frames` is empty. In the
-own importer `tables.rs::table_frame`, the assignable-cell branch replaces the
-linked source story with `Story::new(sid)` without retaining its frame list.
-`designcraft_compose::frame_specs` gathers frames from `st.frames`; this story consequently has
-no composed frames/lines. Its table text cannot reach `Renderer::draw_tables`.
-The imported table deliberately also has no cell fills and zero-weight edges,
-as documented in the format notes; those unsupported decorations cannot paint
-a grid independently. The 612x792 PNG is confirmed uniformly white.
+The earlier uniformly white table output was an importer/model linkage defect.
+`tables.rs::table_frame` created a new host story when cell ranges were assignable
+and discarded the source story's frame list. The table and four cell texts were
+present, but `designcraft_compose::frame_specs` found no host frames, so no table
+fragment reached the renderer.
 
-This is an importer/model linkage defect, not evidence that the sample has no
-text or a newly discovered rasterizer defect. Per the task, it is reported
-without changing the importer/readers or inventing a grid. The blank image is
-retained as a visible failed demonstration. A later scoped fix should preserve
-the existing host frame linkage and add a rendering regression test.
+The replacement host now retains the source frame IDs. A regression using the
+pinned external `table__2x2.pub` first failed with no composed cell lines; after
+the fix its composed lines contain all four cell labels and the rendered page
+is not uniformly white. The updated PNG shows those labels. Cell fills, border
+settings and uncertain/merged-cell text association remain unsupported; this fix
+adds no grid or other decoration. The eight Apache table samples were separately
+rendered internally: all eight have empty cell stories and show no table text yet.
+Their rows and columns import, with warnings for unconfirmed text association.

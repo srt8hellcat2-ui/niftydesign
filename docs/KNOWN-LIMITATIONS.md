@@ -12,10 +12,11 @@ NiftyDesign is an unofficial alpha based on DesignCraft by the ArtCraft team. Bu
 - **What the 24 files contain:** 15 of the 24 hold only generic content, per our scan. The newsletter and brochure hold Microsoft template content, so their images are not published.
 - A warning is not proof something is missing, and no warning does not prove the file is perfect. Warnings with hex numbers (for example "unsupported character formatting 0x…") name settings the importer does not understand; no visible problem has been established for them.
 
+Resolved: The earlier same-session picture disappearance was a screenshot-timing bug in the app's `ui.screenshot` command, now fixed. No document or image data was lost.
+
 ## Problems found in testing
 
-- After reopening a saved `.designcraft` in the **same session**, two pictures were missing in the interface (newsletter test). The exported PDF and a fresh reopen kept them. Cause not found.
-- A controlled table sample rendered as a blank page. The importer lost the link between the table's text and its frame.
+- In the eight Apache test tables, rows and columns import but cell text is not shown yet. The synthetic 2x2 table now draws A1, B1, A2 and B2. Cell fills, borders and uncertain merged-cell text remain unsupported.
 - In the newsletter test, clip art overlaps body text. Text wrap around pictures and text flow between frames are not shown to work there. Cause not isolated.
 - The status bar "N errors" is the preflight panel: overset text (text that does not fit its frame) plus missing fonts. It is not a crash and not an import failure.
 
@@ -29,15 +30,13 @@ NiftyDesign is an unofficial alpha based on DesignCraft by the ArtCraft team. Bu
 
 ## Printing
 
-- Export to PDF works (automated checks).
-- The File menu has **Print...** (Ctrl+P). In-app printing is **UNVERIFIED**.
-- If it fails, print the exported PDF from your PDF viewer.
+File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on macOS and Linux, and a Windows PDF raster spooler. Printing on a real printer is **UNVERIFIED**. The web build cannot print; export a PDF instead. Export to PDF works (automated checks).
 
 ## Not supported yet
 
 - Numbered lists.
 - Custom tab stops (tab characters themselves come over).
-- Table cell shading (fills) and borders. Rows, columns and text stay.
+- Table cell shading (fills) and borders. In the eight Apache test tables, rows and columns import but cell text is not shown yet. The synthetic 2x2 table now draws A1, B1, A2 and B2. Cell fills, borders and uncertain merged-cell text remain unsupported.
 - Text in merged table cells: merged cells come over, but which cell holds the text is not settled; check merged cells against the original.
 - Curved, arched or circular WordArt: comes out straight.
 - Publisher 97, 98 and 2000 files.
@@ -70,3 +69,9 @@ NiftyDesign is an unofficial alpha based on DesignCraft by the ArtCraft team. Bu
 ## Crashes
 
 Please report any crash with what you did just before, at https://github.com/srt8hellcat2-ui/niftydesign/issues.
+
+## Screenshot and demo evidence
+
+Screenshots are interface renderings from the app's own test renderer on Linux, not a Windows desktop capture.
+
+The demo flyer's background, croissant and coffee-cup pictures are AI-generated; see [ASSETS.md](../ASSETS.md) and [assets/demo/NOTES.txt](../assets/demo/NOTES.txt).

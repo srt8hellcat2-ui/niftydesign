@@ -1,0 +1,64 @@
+# Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0
+name: NiftyDesign Windows desktop demo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: '-C target-feature=+crt-static'
+  DESIGNCRAFT_REQUIRE_WINRES: 1
+
+jobs:
+  desktop:
+    runs-on: windows-2022
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Initialize failure evidence
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force "$env:RUNNER_TEMP/windows-desktop-demo" | Out-Null
+          'NOT RUN: preflight/build has not completed. See build.log if present and the workflow log. No desktop or printing claim.' | Set-Content "$env:RUNNER_TEMP/windows-desktop-demo/REPORT.md"
+      - name: Install pinned Rust
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal --no-self-update
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          rustup target add --toolchain 1.95.0 x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install permissive screenshot and PDF raster helpers
+        run: python -m pip install Pillow==11.3.0 pypdfium2==4.30.0
+      - name: Test driver helpers
+        run: python -m unittest discover -s packaging -p "test_windows_desktop_demo.py"
+      - name: Build real desktop app (locked, release, unsigned)
+        timeout-minutes: 100
+        shell: pwsh
+        run: |
+          cargo +1.95.0 build --locked --release --target x86_64-pc-windows-msvc -p designcraft 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/windows-desktop-demo/build.log"
+          if ($LASTEXITCODE -ne 0) {
+            'FAILED: release build did not complete; the app was not run. See build.log.' | Set-Content "$env:RUNNER_TEMP/windows-desktop-demo/REPORT.md"
+            exit $LASTEXITCODE
+          }
+      - name: Run desktop demo without mouse input
+        timeout-minutes: 15
+        shell: pwsh
+        run: |
+          python packaging/windows_desktop_demo.py --app target/x86_64-pc-windows-msvc/release/designcraft.exe --sample-dir "$env:RUNNER_TEMP/nifty-sample2" --out "$env:RUNNER_TEMP/windows-desktop-demo"
+          exit $LASTEXITCODE
+      - name: Retain desktop evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-desktop-demo
+          path: ${{ runner.temp }}/windows-desktop-demo
+          if-no-files-found: warn
+          retention-days: 14

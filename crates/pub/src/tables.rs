@@ -244,7 +244,13 @@ impl Builder<'_> {
                 cell.text = cell_story(&source, a..z, &mut self.table_work)?;
             }
         }
-        let mut host = if can_assign { Story::new(sid) } else { source };
+        let mut host = if can_assign {
+            let mut host = Story::new(sid);
+            host.frames = source.frames;
+            host
+        } else {
+            source
+        };
         host.insert_table(0, table);
         *self.doc.story_mut(sid).ok_or_else(|| bad("missing native story"))? = host;
         if !can_assign {
@@ -374,6 +380,8 @@ mod tests {
         let host = imp.document.stories.values().next().unwrap();
         host.check().unwrap();
         assert!(!host.text.contains("A1"));
+        assert_eq!(host.frames.len(), 1);
+        assert_eq!(imp.document.item(host.frames[0]).unwrap().text_frame().unwrap().story, host.id);
         let t = host.tables.values().next().unwrap();
         assert_eq!((t.nrows(), t.ncols()), (2, 2));
         assert_eq!(t.rows[0].height, 36.0);

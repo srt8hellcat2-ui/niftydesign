@@ -46,6 +46,74 @@ Created from designcraft-pub-development@6a979401aa23b0d3325e590057385b3c36c66a1
 
 ## Builder (Codex)
 
+### Builder (Codex): private source sync (2026-10-22)
+
+Compared the existing private NiftyDesign export at d82d525 with this project's
+pub-import changes from 45378356 through a61e5c0d. Used the existing export notes,
+public-document drafts, asset ledger and retained images to preserve the export
+exclusions and port moved documentation. No other .pub reader was consulted and
+no format encoding was inferred. The protected readers were not changed.
+
+Regression checks reuse the pinned controlled .pub corpus and its truth/*.json
+only as a scoring oracle, never to infer encoding. The controlled table fixture
+is used by the rendering regression; the pinned external Apache set is used only
+for batch regression counts. No external .pub or real-file rendering is included
+in this sync. The retained generic Sample2 screenshots and fictional Coffee Shop
+images keep their existing provenance. The Windows workflow is included but was
+not dispatched; no Windows desktop or physical-print result is claimed.
+
+
+### Builder (Codex): manual Windows desktop demo preparation (2026-10-22)
+
+Reused Apache POI Sample2.pub only as demo input, from test-data/publisher at
+bf7c9b6a1490046517cbd8e1504e702a89be4bc9, SHA-256
+c87ea7cc5606023c5fa99376631bbd45a8e9bdaba34c958057995b0e7ac8cc86.
+The existing external pinned copy was used locally; the manual job downloads only
+that .pub through the existing test-pub-cli.py manifest/hash verifier. No Apache
+source, README, text output or other upstream files were opened/downloaded.
+The 24 pinned real .pub inputs and 142 controlled .pub fixtures were reused only
+for the required batch/corpus regression checks; truth/*.json was used for scoring
+only, never to infer encoding. No new format rule or reader logic was introduced.
+
+Own-project references: control-protocol.md, registered engine command signatures,
+alpha-windows.yml, test-pub-cli.py/publisher-fixtures.csv, README graphics/log
+instructions, Coffee Shop reproduce.py/verify.py, engine-values.json and the
+existing native demo (full-text reference). The same three assets/demo PNGs and
+bundled fonts were reused with their existing ASSETS.md provenance. Only temporary
+local renderings were generated; no sample .pub or screenshots were committed.
+
+Job-only helper versions: Pillow 11.3.0 and pypdfium2 4.30.0 from their PyPI
+releases (https://pypi.org/project/Pillow/11.3.0/ and
+https://pypi.org/project/pypdfium2/4.30.0/). Installed pypdfium2 metadata reports
+`(Apache-2.0 OR BSD-3-Clause) AND LicenseRef-PdfiumThirdParty`; used to rasterize
+our own exported PDF, not to read .pub files. No helper binary is bundled into
+an app release. Windows app, adapter, CopyFromScreen and spooler behavior are
+UNVERIFIED until an owner-dispatched run; no workflow was dispatched.
+
+
+### Builder (Codex): upstream screenshot-readback audit (2026-10-22)
+
+Fresh official storytold/designcraft `main` at `c3382b422c4ba6664a6ccf564ca9c50b49f55f4a`:
+UI screenshot handler, canvas/cache and existing tests, relevant git history,
+AGENTS.md/CLAUDE.md and CI/xtask conventions. Used only to check a native UI
+capture regression and prepare an internal patch, not to infer any file encoding.
+Only the synthetic native SVG/PNG regression was copied into the baseline clone.
+No .pub samples, truth exports, other reader source or outputs were used.
+
+
+### Builder (Codex): table host-frame linkage regression (2026-10-21)
+
+Used our own tables.rs / composition / renderer and existing gallery diagnosis;
+controlled table__2x2.pub from pubsmith 0ccdf27 (data only), SHA-256
+72d2127f4ffdbe998f4f94414a28584e49af817991b70a564fda885dcb1a6a7d;
+and the eight previously pinned Apache Sample/2010 table inputs, data only.
+All Apache page renders stay in ignored internal storage. No outside source or
+other reader was read; no binary encoding was inferred. The unchanged corpus
+scorer used the existing 142 fixtures and truth JSON solely for scoring imports.
+The fix preserves existing native model frame linkage, without decoding changes.
+
+
+
 ### Builder (Codex): private NiftyDesign source export (2026-10-21)
 
 Used the merged project tree at 45378356, the existing public-repo drafts,

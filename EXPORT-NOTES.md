@@ -259,3 +259,121 @@ as the fallback `niftydesign-export` branch of designcraft-pub if access is
 refused. No old repository branch is force-pushed and no release is published.
 The actual destination and root commit hash are reported in the task response;
 the new root commit cannot include its own hash in this file.
+
+
+## Sync 2026-10-22
+
+This sync retains the original export commit d82d52562f6e5b4bb039998ea4d45060038b85b7
+and adds one child commit; no source-repository history is imported or rewritten.
+Source range: designcraft-pub pub-import, 45378356 through
+a61e5c0d83214f3cb9e7bde1faa0af7117f0bbac. Changes reviewed:
+
+- ab9746ed — table host frame linkage and controlled-table rendering regression.
+- 7dda13b5 — refresh the canvas before screenshot readback.
+- 16a0796d — merge of those fixes.
+- e46c309a — internal upstream patch preparation; patch archive excluded.
+- 68c5c8e3 — generated-patch whitespace attributes.
+- e1ec1485 — manual Windows desktop Coffee Shop workflow, driver, tests and docs.
+- a61e5c0d — merge of the desktop demo work.
+
+### Files added
+
+- `.gitattributes`
+- `.github/workflows/windows-desktop-demo.yml`
+- `crates/engine/tests/pub_tables.rs`
+- `docs/windows-desktop-demo.md`
+- `packaging/test_windows_desktop_demo.py`
+- `packaging/windows_desktop_demo.py`
+
+### Files changed
+
+- `ASSETS.md`
+- `README.md`
+- `crates/pub/src/tables.rs`
+- `crates/ui-egui/examples/ui_shot.rs`
+- `crates/ui-egui/src/control.rs`
+- `crates/ui-egui/src/lib.rs`
+- `crates/ui-egui/src/parent_canvas_tests.rs`
+- `docs/KNOWN-LIMITATIONS.md`
+- `docs/control-protocol.md`
+- `docs/demo/coffee-shop/reproduce.py`
+- `docs/gallery/README.md`
+- `docs/gallery/table-2x2-page-1.png`
+- `docs/pub-format/SOURCES.md`
+- `docs/publisher-parity-checklist.md`
+- `packaging/windows/README-ALPHA.txt`
+- `EXPORT-NOTES.md` (this appended sync record; historical text above preserved).
+
+### Files removed
+
+None. The original export exclusions remain absent.
+
+### Export transformations and exclusions
+
+The README and known limitations updates from docs/public-repo were ported by
+hand to README.md and docs/KNOWN-LIMITATIONS.md, with no DRAFT ONLY boxes.
+The parity checklist and Windows alpha README were corrected alongside them:
+real Apache tables still lack visible cell text; the synthetic 2x2 draws text;
+the screenshot-timing problem is fixed without data loss; physical printing is
+UNVERIFIED; web printing is unavailable; demo pictures are AI-generated.
+CONTRIBUTING.md and the issue templates have no source delta and remain unchanged.
+All pre-existing owner placeholders and their wording remain unchanged.
+
+Not copied: docs/REPORTS.md changes, upstream-patches/ (both the patch and its
+internal README), process/owner files, owner-only release checklist/EXPORT-ONLY
+material, docs/brand marks, and docs/screenshots/real-file/. docs/public-repo/
+is not recreated. docs/brand/LICENSE-brand.txt is retained. No donated sample,
+external .pub, real-table rendering or Microsoft-template screenshot is added.
+
+The only changed image is docs/gallery/table-2x2-page-1.png. Visually reviewed
+all 37 retained docs images (Coffee Shop demo and PDF rasters, generic controlled
+gallery samples, original project magazine illustrations, synthetic UI shots,
+and the generic Sample2 real-file-2 sequence): no Microsoft template text or clip
+art was found. README image links were checked against the actual exported tree.
+Only hello-nifty.pub and wmf-picture.pub, the two synthetic fixtures, are present.
+LICENSE-MIT and LICENSE-APACHE and all three protected readers are byte-identical
+to the original export. The changed pub table module retains the owner SPDX
+header; new NiftyDesign code/docs include the same attribution as the first export.
+
+### Sync verification
+
+- Branding: PASS on a clean staging copy of the complete synced file tree,
+  excluding .git. The checker intentionally refuses the checkout root; its
+  normal staging-directory check was used without modifying the checker.
+- `cargo fmt --check`: PASS.
+- `cargo clippy -p designcraft-pub -p designcraft-cli -p designcraft-engine
+  -p designcraft-ui-egui -- -D warnings`: PASS.
+- Additional `--all-targets` Clippy and `cargo xtask ci`: FAIL at the same three
+  pre-existing `unwrap_used` violations in crates/engine/src/cmd/print.rs,
+  lines 94, 98 and 99 (the assert_same_pdf_pages test helper). That file is
+  byte-identical to the first export and to current pub-import. No unrelated
+  lint fix was introduced. CI passed fmt, then stopped at Clippy; its workspace
+  test, pdf-deps and wasm gates did not run. This is not a full-CI pass.
+- Pub, CLI and engine tests: PASS, 1,003 passed / 15 ignored / 0 failed across
+  32 suites. UI library tests: PASS, 546 passed / 1 ignored / 0 failed,
+  including screenshot_after_native_reopen_refreshes_the_canvas_before_readback.
+- Explicit controlled-table rendering regression: PASS (1 test); A1/B1/A2/B2
+  reach composed lines and the rendered page is not uniformly white.
+- Packaging Python tests: PASS, 12 tests, including the opt-in pinned Sample2
+  command-plan/reference check. No Windows desktop run was performed.
+- `cargo xtask assets`: PASS, all 94 asset files attributed.
+- `cargo xtask layers`: PASS, 22 crates with no layering violations.
+- Corpus: PASS; before and after are 142/142 imported, 152/152 objects,
+  111/152 positions within 1 pt, 52/52 texts exact, 111/111 styles.
+  Truth files were used for scoring only.
+- Pinned batch/hash regression: PASS. Controlled set unchanged: 79 OK,
+  63 with warnings, 0 failures (142 files, 146 pages, 151 native objects).
+  Real set unchanged: 0 OK, 19 with warnings, 2 refused, 3 damaged failures
+  (24 files; successful outputs total 31 pages, 280 objects). The helper
+  verified all input SHA-256 values before and after conversion.
+- Export audit: PASS; all 10 local README image links resolve; all 37 retained
+  docs images were visually reviewed, with no Microsoft template content found;
+  only the two synthetic .pub fixtures are present. Owner placeholders, legal
+  files and export exclusions remain preserved.
+
+UNVERIFIED: running the new workflow on Windows, the real desktop/graphics
+adapter and OS captures, native dialogs, Windows font discovery, SmartScreen,
+physical printing and actual virtual-printer output. No hosted workflow was
+dispatched, visibility changed, release published or deployment performed.
+The GitHub GraphQL repository-information query returned Forbidden; no visibility
+change was attempted. The existing private repository is used as supplied.

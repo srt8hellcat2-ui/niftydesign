@@ -716,6 +716,22 @@ impl DesignApp {
         let uid = self.session.active()?.uid;
         Some(if self.pane == 1 { uid ^ (1 << 63) } else { uid })
     }
+    /// Prepare the next UI frame for a complete screenshot, rather than the
+    /// previous viewport texture shown while a background render is pending.
+    /// This does not change normal interactive rendering or document contents.
+    pub fn prepare_screenshot(&mut self) {
+        let invalidate = |canvas: &mut CanvasCache| {
+            canvas.shown = None;
+            canvas.shown_doc = None;
+            canvas.pending = None;
+            canvas.pending_doc = None;
+        };
+        invalidate(&mut self.canvas);
+        if let Some((canvas, _)) = &mut self.other_pane {
+            invalidate(canvas);
+        }
+    }
+
     pub fn view(&self) -> Option<&View> {
         self.views.get(&self.view_key()?)
     }

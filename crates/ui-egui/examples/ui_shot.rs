@@ -82,6 +82,7 @@ fn main() {
                 std::fs::write(path, result.to_string()).expect("write measurements");
             }
         } else if let Some(p) = l.get("shot").and_then(|v| v.as_str()) {
+            harness.state_mut().prepare_screenshot();
             step_n(&mut harness, 3);
             match harness.render() {
                 Ok(img) => {

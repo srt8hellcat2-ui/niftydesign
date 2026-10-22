@@ -102,3 +102,38 @@ fn small_edits_in_the_same_canvas_mode_still_repaint_partially() {
     assert_eq!(app.canvas.patches, 1);
     assert_eq!(pixel(&patch, app.canvas.shown.unwrap(), point), Color32::WHITE);
 }
+
+#[cfg(not(target_arch = "wasm32"))]
+#[test]
+fn screenshot_after_native_reopen_refreshes_the_canvas_before_readback() {
+    for (name, bytes) in [
+        (
+            "red.svg",
+            br##"<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="#ff0000"/></svg>"##.to_vec(),
+        ),
+        ("blue.png", designcraft_render::Rendered { width: 2, height: 2, pixels: [0, 0, 255, 255].repeat(4) }.to_png()),
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let picture = dir.path().join(name);
+        std::fs::write(&picture, &bytes).unwrap();
+        let saved = dir.path().join("placed.designcraft");
+        let mut app = app_with_document_object();
+        app.run("file.place", json!({"path": picture, "spread":0, "x":24, "y":24, "width":16})).unwrap();
+        app.run("file.saveAs", json!({"path":saved})).unwrap();
+        let ctx = egui::Context::default();
+        app.canvas.worker = Some(crate::render_worker::Worker::spawn(ctx.clone()).unwrap());
+        let before = render(&mut app, &ctx);
+        let expected = pixel(&before, app.canvas.shown.unwrap(), Point::new(32.0, 32.0));
+        assert_ne!(expected, Color32::WHITE, "native picture must be visible before reopen");
+        app.run("file.open", json!({"path":saved})).unwrap();
+        assert!(app.session.active().unwrap().doc.assets.values().any(|a| a.data.as_slice() == bytes));
+        let (request, _) = crate::ControlRequest::new("ui.screenshot", json!({"focus":false}));
+        assert!(matches!(crate::control::handle(&mut app, &ctx, &request), crate::control::Outcome::Screenshot { .. }));
+        // A different fitted zoom would normally queue a background render and
+        // leave the previous document's texture visible until a later frame.
+        let after = render_at_zoom(&mut app, &ctx, 0.75);
+        assert!(after.pos.is_none(), "capture needs a complete current viewport");
+        assert!(app.canvas.pending.is_none(), "capture must not depend on worker timing");
+        assert_eq!(pixel(&after, app.canvas.shown.unwrap(), Point::new(32.0, 32.0)), expected, "{name}");
+    }
+}

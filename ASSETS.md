@@ -85,7 +85,7 @@ controlled fixture content; its rights remain with its source authors.
 | `docs/gallery/hello-nifty-pdf-page-1.png` | pdftoppm rasterization of NiftyDesign output | `docs/gallery/hello-nifty.pdf` | MIT OR Apache-2.0 (synthetic source fixture) | Export comparison page |
 | `docs/gallery/bullets-page-1.png` | NiftyDesign renderer; controlled fixture by FuncularLabs/pubsmith | `text__bullets.pub` at `0ccdf27` (data only) | Source fixture rights unchanged; licence not independently verified | Generic example text and bullet; gallery-task output |
 | `docs/gallery/shadow-page-1.png` | NiftyDesign renderer; controlled fixture by FuncularLabs/pubsmith | `shadow__on.pub` at `0ccdf27` (data only) | Source fixture rights unchanged; licence not independently verified | Simple rectangle/shadow; gallery-task output |
-| `docs/gallery/table-2x2-page-1.png` | NiftyDesign renderer; controlled fixture by FuncularLabs/pubsmith | `table__2x2.pub` at `0ccdf27` (data only) | Source fixture rights unchanged; licence not independently verified | Blank output retained as a documented limitation |
+| `docs/gallery/table-2x2-page-1.png` | NiftyDesign renderer; controlled fixture by FuncularLabs/pubsmith | `table__2x2.pub` at `0ccdf27` (data only) | Source fixture rights unchanged; licence not independently verified | Cell text rendered after host-frame linkage fix; unsupported fills/borders remain absent |
 
 ## Interface renderings (C15, 2026-10-20)
 
