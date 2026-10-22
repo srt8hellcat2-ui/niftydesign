@@ -21,7 +21,7 @@ Extra labels: `fonts`, `print`, `donation` (a sample file offered), `needs-info`
 
 ## Bugs in DesignCraft's own code
 
-If a bug comes from code inherited from DesignCraft, we fix it in NiftyDesign anyway, keep the fix small and separate, and label the issue `upstream`. If someone else has reported the same problem to DesignCraft, we offer our fix to them as a pull request. Each such case is noted in docs/upstream-register.md.
+If a bug comes from code inherited from DesignCraft, we fix it in NiftyDesign anyway, keep the fix small and separate, and label the issue `upstream`. If someone else has reported the same problem to DesignCraft, we offer our fix to them as a pull request.
 
 ## What a good report contains
 
