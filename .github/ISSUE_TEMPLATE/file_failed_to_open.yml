@@ -8,7 +8,7 @@ body:
       value: |
         NiftyDesign is an unofficial alpha based on DesignCraft by the ArtCraft team. It is not supported by ArtCraft. **Report here, never to the ArtCraft repositories.** Publisher 97, 98 and 2000 files are refused on purpose (see Known limitations).
 
-        **Do NOT attach the file or any file containing names, addresses, phone numbers or photos of people.** Offer the file privately only after the maintainer asks.
+        **Issues here are public.** Do not post names, addresses, phone numbers, photos of people or anything private. You do not need to attach your file; only attach one if everyone is welcome to see it (see docs/SAMPLE-REQUEST.md).
   - type: input
     id: version
     attributes:
