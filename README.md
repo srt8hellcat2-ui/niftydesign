@@ -67,6 +67,10 @@ These are results from our own checks. We have not compared them side by side wi
 
 The full list is in [Known limitations](docs/KNOWN-LIMITATIONS.md).
 
+## In progress
+
+We are using every test file we have to find out why files open with warnings, and fixing the biggest causes first. On Windows we ran all 24 of Apache's public test files: 19 open with warnings, 2 are refused as too old, and 3 are damaged test files that are correctly rejected. The biggest known gaps are table cell text (8 of the 24 files), table fills and borders, and warnings that are hard to understand. Numbered lists, tab stops and curved WordArt need sample files. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
+
 ## Install
 
 1. Download the zip from the [latest release](https://github.com/srt8hellcat2-ui/niftydesign/releases).
