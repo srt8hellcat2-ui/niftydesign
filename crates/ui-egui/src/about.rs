@@ -3,7 +3,7 @@ use crate::DesignApp;
 use crate::theme::{Tokens, semibold};
 use egui::{Color32, Rect, Sense, pos2, vec2};
 
-pub const ABOUT_TEXT: &str = "NiftyDesign opens and edits older Microsoft Publisher (.pub) files, and also saves to PDF and prints. Based on DesignCraft by the ArtCraft team. Unofficial build; not supported by ArtCraft.";
+pub const ABOUT_TEXT: &str = "NiftyDesign opens and edits Microsoft Publisher (.pub) files from Publisher 2002 and newer, and also saves to PDF and prints. Based on DesignCraft by the ArtCraft team. Unofficial build; not supported by ArtCraft.";
 pub const ABOUT_TABS: [&str; 3] = ["About", "Contributors", "Models"];
 
 /// Paint the owner's original Nifty mark, preserving its colours and aspect ratio.
