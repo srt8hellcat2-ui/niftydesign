@@ -13,7 +13,7 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
 use crate::ids::StoryId;
-use crate::item::{StrokeType, VerticalJustification};
+use crate::item::{FirstBaseline, StrokeType, VerticalJustification};
 use crate::story::{CharFormat, ParaFormat, Story, TABLE_ANCHOR};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -159,6 +159,12 @@ fn full() -> f32 {
 fn no_fill() -> String {
     designcraft_color::swatch::NONE.into()
 }
+fn is_ascent(f: &FirstBaseline) -> bool {
+    *f == FirstBaseline::Ascent
+}
+fn is_zero_min(v: &f64) -> bool {
+    *v == 0.0
+}
 fn default_insets() -> [f64; 4] {
     [4.0; 4]
 }
@@ -181,6 +187,12 @@ pub struct Cell {
     pub insets: [f64; 4],
     #[serde(default)]
     pub vj: VerticalJustification,
+    /// Cell Options › Text › First Baseline: how far the first line's baseline sits below the
+    /// top inset (IDML `FirstBaselineOffset`), and its minimum (`MinimumFirstBaselineOffset`).
+    #[serde(default, skip_serializing_if = "is_ascent")]
+    pub first_baseline: FirstBaseline,
+    #[serde(default, skip_serializing_if = "is_zero_min")]
+    pub first_baseline_min: f64,
     /// Text rotation in degrees (only 0 is composed for now).
     #[serde(default)]
     pub rotation: f64,
@@ -216,6 +228,8 @@ impl Default for Cell {
             fill_tint: 1.0,
             insets: default_insets(),
             vj: VerticalJustification::Top,
+            first_baseline: FirstBaseline::Ascent,
+            first_baseline_min: 0.0,
             rotation: 0.0,
             strokes: Default::default(),
             border_overrides: [false; 4],
@@ -897,7 +911,8 @@ impl Table {
     }
 
     /// Move row `from` to position `to` (indices before the move). Refused when merged cells span
-    /// rows (the move would cut them).
+    /// rows (the move would cut them) or when the move would take a row across a header/footer
+    /// boundary (`from` and `to` must be the same kind of row).
     pub fn move_row(&mut self, from: usize, to: usize) -> Result<(), String> {
         let (nr, nc) = (self.nrows(), self.ncols());
         if from >= nr || to >= nr {
@@ -905,6 +920,9 @@ impl Table {
         }
         if self.regions().iter().any(|r| r.2 > 1) {
             return Err("unmerge cells that span rows first".into());
+        }
+        if self.rows[from].kind != self.rows[to].kind {
+            return Err("header and footer rows must stay first and last".into());
         }
         let row = self.rows.remove(from);
         self.rows.insert(to, row);
@@ -1253,6 +1271,17 @@ mod tests {
 
     fn story(t: &str) -> Story {
         Story::with_text(StoryId(1), t, ParaFormat::default())
+    }
+
+    #[test]
+    fn move_row_keeps_header_and_footer_rows_in_place() {
+        let mut t = Table::new(1, 3, 2, 1, 1, 120.0);
+        for (from, to) in [(0, 2), (0, 4), (2, 0), (2, 4), (4, 2), (4, 0)] {
+            assert!(t.move_row(from, to).is_err(), "move_row({from}, {to}) should be refused");
+            t.check().unwrap();
+        }
+        t.move_row(1, 3).unwrap();
+        t.check().unwrap();
     }
 
     #[test]

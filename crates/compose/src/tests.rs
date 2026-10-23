@@ -474,6 +474,23 @@ fn jump_object_keeps_grid_aligned_lines_on_the_grid() {
     assert!((l.baseline - want).abs() < 1e-6, "{} vs {want}", l.baseline);
 }
 
+/// An automatic page number wider than its frame stays on one line and hangs out, as in InDesign
+/// ("136" in a frame made for two digits); breaking it put "13" over "4".
+#[test]
+fn page_number_wider_than_its_frame_stays_whole() {
+    let text = designcraft_doc::story::PAGE_NUMBER.to_string();
+    let (d, sid, _) = doc_with(&text, Rect::new(0.0, 0.0, 10.0, 40.0), ParaAttrs::default());
+    let mut specs = frame_specs(&d, sid);
+    specs[0].page_name = Some("136".into());
+    let cs = compose(&d, d.story(sid).unwrap(), &specs, &ComposeOptions::default());
+    let lines = all_lines(&cs);
+    assert_eq!(lines.len(), 1, "{lines:?}");
+    assert!(!cs.is_overset());
+    // A word of ordinary letters that doesn't fit still breaks where it must.
+    let (d, sid, _) = doc_with("Wordwiderthanframe", Rect::new(0.0, 0.0, 30.0, 200.0), ParaAttrs::default());
+    assert!(all_lines(&compose_story(&d, sid, &ComposeOptions::default())).len() > 1);
+}
+
 #[test]
 fn hostile_wrap_geometry_terminates() {
     let (d, sid) = wrap_doc(ParaAttrs { grid_align: Some(GridAlign::AllLines), ..Default::default() }, &[]);
@@ -3644,6 +3661,37 @@ fn right_to_left_drop_cap_sets_its_tabs_from_the_right_edge() {
     // The text beside it starts at the left tab, 40 pt from the edge.
     let right = l.glyphs.iter().filter(|g| g.byte >= 3 && g.visible).map(|g| g.x + g.adv).fold(f64::NEG_INFINITY, f64::max);
     assert!(right <= 260.0 + 1e-6 && right > 255.0, "text ends at {right}");
+}
+
+/// The cap's point size scales it, as in InDesign: at the body's size (10 pt) it fills its lines
+/// exactly; set larger or smaller it is scaled by its size over the body's, keeping its baseline,
+/// so it rises above the first line (or falls short of it). The body's lines don't move, and the
+/// cap's box (highlight, caret) reaches the top of a cap that rises above its line.
+#[test]
+fn drop_cap_scales_with_its_point_size() {
+    let set = |size: f64| {
+        let (mut d, sid, _) = drop_doc(&[LOREM; 2].join(" "), drop_cap(3, 1));
+        d.story_mut(sid).unwrap().format_chars(0..1, |f| f.over.size = Some(size));
+        let cs = compose_story(&d, sid, &ComposeOptions::default());
+        all_lines(&cs).into_iter().cloned().collect::<Vec<Line>>()
+    };
+    let base = set(10.0);
+    let (b0, b2) = (base[0].baseline, base[2].baseline);
+    let body = base[0].glyphs.iter().find(|g| g.byte == 1).unwrap();
+    let fitted = cap_of(&base[0].glyphs[0]);
+    assert!((b2 - fitted - (b0 - cap_of(body))).abs() < 0.01, "at the body's size the cap fills its lines");
+    for (size, scale) in [(15.0, 1.5), (7.5, 0.75)] {
+        let l = set(size);
+        let dc = &l[0].glyphs[0];
+        for (a, b) in l.iter().zip(&base) {
+            assert!((a.baseline - b.baseline).abs() < 1e-6, "{size} pt: the lines stay where they were");
+        }
+        assert!((l[0].baseline + dc.y - b2).abs() < 1e-6, "{size} pt: the cap sits on line 3's baseline");
+        assert!((cap_of(dc) - fitted * scale).abs() < 0.01, "{size} pt: cap height {} vs {}", cap_of(dc), fitted * scale);
+        let top = (l[0].baseline - l[0].ascent).min(b2 - cap_of(dc));
+        assert!((l[0].drop_cap.unwrap().rect.y0 - top).abs() < 1e-6, "{size} pt: the box starts at the line's or the cap's top");
+    }
+    assert!(b2 - fitted * 1.5 < b0 - base[0].ascent, "a 15 pt cap rises above the first line");
 }
 
 /// A rule in Text Color takes the colour of the paragraph's text: the first character's for the
@@ -7241,4 +7289,24 @@ fn greek_text_gets_greek_hyphenation() {
     // αν-θρω-πος, the syllables hyph-el gives.
     let el = hyphen::Lang::for_language("Greek").unwrap();
     assert_eq!(hyphen::hyphen_points_in("ανθρωπος", &hyphen::Limits::default(), el), vec![2, 5]);
+}
+
+/// Rule Above's offset runs from the first line's baseline up to the rule's bottom edge, as in
+/// InDesign: a rule set clear of the cap height sits between the rows, not across the row above
+/// (an INDD project list whose rules crossed the previous paragraph's text).
+#[test]
+fn rule_above_offset_is_measured_from_the_baseline() {
+    use designcraft_doc::Rule;
+    let rule = Rule { on: true, weight: 1.5, offset: 10.0, ..Default::default() };
+    let para = ParaAttrs { rule_above: Some(rule), ..Default::default() };
+    let (d, sid, fid) = doc_with("Row one\nRow two", Rect::new(0.0, 0.0, 300.0, 200.0), para);
+    let cs = compose_story(&d, sid, &ComposeOptions::default());
+    let lines = all_lines(&cs);
+    let (first, second) = (lines[0], lines[1]);
+    let mut decos: Vec<Rect> = cs.frame(fid).unwrap().decos.iter().map(|dc| dc.rect).collect();
+    decos.sort_by(|a, b| a.y0.total_cmp(&b.y0));
+    let rule = decos[1];
+    assert!((rule.y1 - (second.baseline - 10.0)).abs() < 1e-6, "{rule:?}, baseline {}", second.baseline);
+    assert!((rule.height() - 1.5).abs() < 1e-6);
+    assert!(rule.y0 > first.baseline, "the rule stays below the row above: {rule:?}, its baseline {}", first.baseline);
 }

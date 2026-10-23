@@ -64,6 +64,7 @@ References to earlier results (in string parameters):
   "$$"          a literal `$` anywhere: "$$1" passes `$1` (a GREP group), "$${0.id}" passes `${0.id}`.
 
 Text parameters: "\n" starts a new paragraph, "\u2028" is a forced line break, "\t" a tab.
+"\u000b" (Word's line break, Chr(11)) is read as a forced line break too.
 Most commands ignore parameters they do not know instead of rejecting them: check names
 with `designcraft-cli describe COMMAND`.
 
@@ -332,7 +333,10 @@ fn run(args: &[String]) -> Result<(), String> {
                 }
             }
             "--page" => page = val()?.parse().map_err(|_| "bad --page")?,
-            "--scale" => scale = val()?.parse().map_err(|_| "bad --scale")?,
+            "--scale" => {
+                // 0, a negative value and NaN made a 1×1 image; infinity, "no such page".
+                scale = val()?.parse().ok().filter(|s: &f64| s.is_finite() && *s > 0.0).ok_or("bad --scale: expected a positive number")?;
+            }
             "--pdf-options" => {
                 // The export adds its path to them.
                 pdf_opts = match serde_json::from_str(&val()?).map_err(|e| format!("--pdf-options: {e}"))? {

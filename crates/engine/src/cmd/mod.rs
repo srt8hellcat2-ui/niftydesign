@@ -17,10 +17,11 @@ mod endnotes;
 mod export;
 mod file;
 pub(crate) mod find;
+pub use edit::copied_objects_text;
 pub use find::same_find_domain;
 pub(crate) mod flex;
 mod fonts;
-mod guides;
+pub(crate) mod guides;
 mod index;
 mod inspect;
 mod interactive;
@@ -259,9 +260,14 @@ pub(crate) fn str_param<'a>(p: &'a Value, key: &str) -> Option<&'a str> {
 }
 /// Plain text from a parameter, with CR LF and lone CR (classic Mac and InDesign line ends) as
 /// `\n`, the paragraph separator, as edit.paste and text import already do. Kept as they were,
-/// the CRs joined the paragraphs into one.
+/// the CRs joined the paragraphs into one. A vertical tab (Word's and PowerPoint's Shift+Enter,
+/// Chr(11)) is a forced line break: kept, it was drawn as a missing-glyph box.
 pub(crate) fn text_param(p: &Value, key: &str) -> String {
-    str_param(p, key).unwrap_or("").replace("\r\n", "\n").replace('\r', "\n")
+    str_param(p, key)
+        .unwrap_or("")
+        .replace("\r\n", "\n")
+        .replace('\r', "\n")
+        .replace('\u{B}', designcraft_doc::story::FORCED_LINE_BREAK.encode_utf8(&mut [0; 4]))
 }
 pub(crate) fn id_param(p: &Value, key: &str) -> Option<ItemId> {
     p.get(key).and_then(Value::as_u64).map(ItemId)

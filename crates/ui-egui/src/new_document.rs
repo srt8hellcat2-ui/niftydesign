@@ -360,9 +360,8 @@ fn cards(app: &DesignApp, tab: &str) -> Vec<Card> {
     }
 }
 
-/// `210 × 297 mm`, `51p0 × 66p0`.
-fn size_text(nd: &NewDocument) -> String {
-    let u = nd.units;
+/// `210 × 297 mm`, `51p0 × 66p0`: the size of `nd` in the dialog's units `u`.
+fn size_text(nd: &NewDocument, u: Unit) -> String {
     let (w, h) = (format_measure(nd.width, u), format_measure(nd.height, u));
     let suffix = u.suffix();
     if suffix.starts_with(' ')
@@ -391,7 +390,7 @@ fn paint_page(p: &egui::Painter, area: Rect, nd: &NewDocument, custom: bool, col
     }
 }
 
-fn card(ui: &mut Ui, c: &Card, selected: bool) -> egui::Response {
+fn card(ui: &mut Ui, c: &Card, units: Unit, selected: bool) -> egui::Response {
     let t = Tokens::get(ui.ctx());
     let (r, resp) = ui.allocate_exact_size(CARD, Sense::click());
     if selected {
@@ -406,7 +405,7 @@ fn card(ui: &mut Ui, c: &Card, selected: bool) -> egui::Response {
         ui.painter(),
         pos2(r.center().x, r.top() + 132.0),
         Align2::CENTER_CENTER,
-        &size_text(&c.nd),
+        &size_text(&c.nd, units),
         FontId::proportional(11.0),
         t.text_dim,
     );
@@ -494,13 +493,14 @@ fn presets(app: &mut DesignApp, ui: &mut Ui, d: &mut Dialog) -> bool {
     });
     ui.add_space(10.0);
     let current = d.s("preset");
+    let card_units = units(d);
     let mut create = false;
     let mut delete = None;
     let layout = if rtl { Layout::right_to_left(Align::TOP) } else { Layout::left_to_right(Align::TOP) }.with_main_wrap(true);
     ui.with_layout(layout, |ui| {
         ui.spacing_mut().item_spacing = vec2(10.0, 10.0);
         for c in &list {
-            let resp = card(ui, c, current == c.key);
+            let resp = card(ui, c, card_units, current == c.key);
             if resp.clicked() || resp.double_clicked() {
                 select(d, c);
             }
@@ -1029,6 +1029,13 @@ mod tests {
         let doc = &app.session.active().unwrap().doc;
         assert_eq!((doc.settings.page_width, doc.settings.intent), (1366.0, Intent::Web));
         assert!(!doc.settings.facing_pages);
+    }
+
+    #[test]
+    fn card_sizes_follow_the_dialog_units() {
+        let card = NewDocument::from_preset("Business Card").unwrap();
+        assert_eq!(size_text(&card, Unit::Millimeters), "88.9 × 50.8 mm");
+        assert_ne!(size_text(&card, Unit::Millimeters), size_text(&card, Unit::Picas));
     }
 
     #[test]

@@ -259,9 +259,28 @@ pub fn specs() -> Vec<CommandSpec> {
             "Stroke",
             [],
             None,
-            "{swatch?, tint?, weight?, align?: center|inside|outside, type?: {kind:…}, cap?: butt|round|projecting, join?: miter|round|bevel, miterLimit?, start?, end?: none|simple|simpleWide|triangle|triangleWide|barbed|curved|circle|circleSolid|square|squareSolid|bar, gapSwatch?, gapTint?, gapOverprint?: bool, ids?}",
+            "{swatch?, tint?, weight?, align?: center|inside|outside, type?: {kind: solid|dashed|dotted|thickThin|thinThick|thinThin|thickThick|thinThickThin|thickThinThick|wavy|hashed|stripes|style, pattern?: [dash, gap, …] (dashed: required, points), bands?: [[start, width], …] (stripes: required, fractions of stroke weight), name?: string (style: required, document stroke style name)} (other kinds take no extra fields; unknown type fields are errors), cap?: butt|round|projecting, join?: miter|round|bevel, miterLimit?, start?, end?: none|simple|simpleWide|triangle|triangleWide|barbed|curved|circle|circleSolid|square|squareSolid|bar, gapSwatch?, gapTint?, gapOverprint?: bool, ids?}",
             has_doc,
             |s, p| {
+                let kind: Option<designcraft_doc::StrokeType> = p
+                    .get("type")
+                    .map(|v| {
+                        if let Some(fields) = v.as_object() {
+                            let field = match v.get("kind").and_then(Value::as_str) {
+                                Some("dashed") => Some("pattern"),
+                                Some("stripes") => Some("bands"),
+                                Some("style") => Some("name"),
+                                _ => None,
+                            };
+                            for key in fields.keys() {
+                                if key != "kind" && Some(key.as_str()) != field {
+                                    return Err(bad("object.stroke", format!("type: unknown field `{key}`")));
+                                }
+                            }
+                        }
+                        serde_json::from_value(v.clone()).map_err(|e| bad("object.stroke", format!("type: {e}")))
+                    })
+                    .transpose()?;
                 for key in ["swatch", "gapSwatch"] {
                     if let Some(name) = p.get(key).and_then(Value::as_str) {
                         known_swatch(&s.doc()?.doc, name, "object.stroke", key)?;
@@ -297,7 +316,7 @@ pub fn specs() -> Vec<CommandSpec> {
                             st.swatch = v.into();
                         }
                         if let Some(v) = p2.get("tint").and_then(Value::as_f64) {
-                            st.tint = v as f32;
+                            st.tint = v.clamp(0.0, 1.0) as f32;
                         }
                         if let Some(v) = p2.get("weight").and_then(Value::as_f64) {
                             st.weight = v.max(0.0);
@@ -309,16 +328,18 @@ pub fn specs() -> Vec<CommandSpec> {
                             st.gap_swatch = v.into();
                         }
                         if let Some(v) = p2.get("gapTint").and_then(Value::as_f64) {
-                            st.gap_tint = v as f32;
+                            st.gap_tint = v.clamp(0.0, 1.0) as f32;
                         }
                         if let Some(v) = p2.get("gapOverprint").and_then(Value::as_bool) {
                             st.gap_overprint = v;
                         }
-                        for (k, apply) in [("align", 0), ("type", 1), ("cap", 2), ("join", 3), ("start", 4), ("end", 5)] {
+                        if let Some(kind) = &kind {
+                            st.kind = kind.clone();
+                        }
+                        for (k, apply) in [("align", 0), ("cap", 2), ("join", 3), ("start", 4), ("end", 5)] {
                             if let Some(v) = p2.get(k).cloned() {
                                 let _ = match apply {
                                     0 => serde_json::from_value(v).map(|x| st.align = x),
-                                    1 => serde_json::from_value(v).map(|x| st.kind = x),
                                     2 => serde_json::from_value(v).map(|x| st.cap = x),
                                     3 => serde_json::from_value(v).map(|x| st.join = x),
                                     4 => serde_json::from_value(v).map(|x| st.start = x),
@@ -1053,7 +1074,8 @@ fn adopt_or_dangle(dst: &mut Document, src: &Document, id: AssetId) -> AssetId {
     dst.adopt_asset(src, id).unwrap_or_else(|| AssetId(dst.alloc()))
 }
 
-fn renumber(dst: &mut Document, src: &Document, it: &mut Item, stories: &mut HashMap<StoryId, StoryId>) {
+/// Give `it` (an item of `src`) fresh ids from `dst`, with copies of its stories and the assets it uses.
+pub(crate) fn renumber(dst: &mut Document, src: &Document, it: &mut Item, stories: &mut HashMap<StoryId, StoryId>) {
     it.id = ItemId(dst.alloc());
     let my_id = it.id;
     if let Some(m) = it.media.as_mut()
@@ -1201,11 +1223,10 @@ fn transform_resize(s: &mut Session, p: &Value) -> Result<Value> {
     let to = rect_param(p, "to").ok_or_else(|| bad("transform.resize", "missing to"))?;
     let scale_content = bool_or(p, "content", false);
     let distribute = bool_or(p, "distribute", false);
-    if from.width().abs() < 1e-9 || from.height().abs() < 1e-9 {
-        return Err(bad("transform.resize", "degenerate source rect"));
-    }
-    let sx = to.width() / from.width();
-    let sy = to.height() / from.height();
+    // A flat source (a horizontal or vertical line) has no size to scale on its flat axis: that axis only moves.
+    let ratio = |new: f64, old: f64| if old.abs() < 1e-9 { 1.0 } else { new / old };
+    let sx = ratio(to.width(), from.width());
+    let sy = ratio(to.height(), from.height());
     let sx = if sx.abs() < 1e-3 { 1e-3f64.copysign(sx) } else { sx };
     let sy = if sy.abs() < 1e-3 { 1e-3f64.copysign(sy) } else { sy };
     let m = Affine::translate((to.x0, to.y0)) * Affine::scale_non_uniform(sx, sy) * Affine::translate((-from.x0, -from.y0));
@@ -4190,6 +4211,16 @@ mod fitting_tests {
     }
 
     #[test]
+    fn a_flat_line_resizes_along_its_length() {
+        let mut s = Session::new();
+        s.execute("file.new", &json!({})).unwrap();
+        let id = s.execute("line.create", &json!({"a": [100, 100], "b": [200, 100]})).unwrap()["id"].as_u64().unwrap();
+        s.execute("transform.resize", &json!({"ids": [id], "from": [100, 100, 200, 100], "to": [100, 100, 300, 100]})).unwrap();
+        let r = s.doc().unwrap().doc.item(ItemId(id)).unwrap().bounds();
+        assert!((r.x0 - 100.0).abs() < 1e-9 && (r.x1 - 300.0).abs() < 1e-9 && (r.y0 - 100.0).abs() < 1e-9 && r.height().abs() < 1e-9, "{r:?}");
+    }
+
+    #[test]
     fn live_distribute_spreads_objects_without_resizing() {
         let mut s = Session::new();
         s.execute("file.new", &json!({})).unwrap();
@@ -4368,6 +4399,22 @@ mod line_end_tests {
         assert_eq!(note(&mut s), "One\nTwo");
         s.execute("note.edit", &json!({"story": n["story"], "id": n["id"], "text": "Three\r\nFour"})).unwrap();
         assert_eq!(note(&mut s), "Three\nFour");
+    }
+
+    /// "One\u{B}Two" kept the vertical tab, drawn as a missing-glyph box, where Word and
+    /// PowerPoint text (Chr(11)) means a forced line break.
+    #[test]
+    fn vertical_tabs_are_forced_line_breaks() {
+        let mut s = Session::new();
+        s.execute("file.new", &json!({})).unwrap();
+        let r = s.execute("frame.create", &json!({"rect": [36, 36, 300, 300], "content": "text", "text": "One\u{B}Two"})).unwrap();
+        let sid = designcraft_doc::StoryId(r["story"].as_u64().unwrap());
+        let story = |s: &Session| s.doc().unwrap().doc.story(sid).unwrap().clone();
+        assert_eq!((story(&s).text.as_str(), story(&s).paras.len()), ("One\u{2028}Two", 1));
+        s.execute("text.insert", &json!({"text": "\u{B}Three", "raw": true})).unwrap();
+        assert_eq!((story(&s).text.as_str(), story(&s).paras.len()), ("One\u{2028}Two\u{2028}Three", 1));
+        s.execute("story.setText", &json!({"story": sid.0, "text": "A\u{B}B\rC"})).unwrap();
+        assert_eq!((story(&s).text.as_str(), story(&s).paras.len()), ("A\u{2028}B\nC", 2));
     }
 }
 
@@ -4796,6 +4843,64 @@ mod group_tests {
         let e = group_ids(&mut s, &[a, b]).unwrap_err().to_string();
         assert!(e.contains("multi-state"), "{e}");
         assert_eq!(children(&s, g), vec![a, b]);
+    }
+}
+
+#[cfg(test)]
+mod stroke_type_tests {
+    use serde_json::json;
+
+    #[test]
+    fn malformed_stroke_types_return_bad_params_without_editing() {
+        let mut s = crate::Session::new();
+        s.execute("file.new", &json!({})).unwrap();
+        let id = s.execute("frame.create", &json!({"rect": [0, 0, 100, 100]})).unwrap()["id"].clone();
+        for (kind, hint) in [
+            (json!({"kind": "dashed", "dash": [8, 2.5]}), "dash"),
+            (json!({"kind": "zigzag"}), "zigzag"),
+            (json!({"kind": "solid", "dash": [8, 2.5]}), "dash"),
+            (json!({"kind": "dashed", "pattern": [8, 2.5], "dash": [1, 2]}), "dash"),
+            (json!({"kind": "dashed"}), "pattern"),
+            (json!({"kind": "dashed", "pattern": "bad"}), "type"),
+            (json!({"kind": "stripes", "bands": [[0, "bad"]]}), "type"),
+            (json!({"kind": "style"}), "name"),
+            (json!({}), "kind"),
+            (json!("solid"), "type"),
+            (json!(null), "type"),
+        ] {
+            let before = s.doc().unwrap().doc.clone();
+            let error = s.execute("object.stroke", &json!({"ids": [id], "weight": 5, "type": kind})).unwrap_err();
+            assert!(matches!(error, crate::EngineError::BadParams { .. }), "{error}");
+            assert!(error.to_string().contains(hint), "{kind}: {error}");
+            assert!(std::sync::Arc::ptr_eq(&before, &s.doc().unwrap().doc), "{kind}: nothing changed");
+        }
+    }
+
+    #[test]
+    fn stroke_types_apply_all_supported_variants() {
+        let mut s = crate::Session::new();
+        s.execute("file.new", &json!({})).unwrap();
+        let id = s.execute("frame.create", &json!({"rect": [0, 0, 100, 100]})).unwrap()["id"].as_u64().unwrap();
+        for kind in [
+            json!({"kind": "solid"}),
+            json!({"kind": "dashed", "pattern": [8, 2.5]}),
+            json!({"kind": "dotted"}),
+            json!({"kind": "thickThin"}),
+            json!({"kind": "thinThick"}),
+            json!({"kind": "thinThin"}),
+            json!({"kind": "thickThick"}),
+            json!({"kind": "thinThickThin"}),
+            json!({"kind": "thickThinThick"}),
+            json!({"kind": "wavy"}),
+            json!({"kind": "hashed"}),
+            json!({"kind": "stripes", "bands": [[0, 0.3], [0.7, 0.3]]}),
+            json!({"kind": "style", "name": "Rails"}),
+        ] {
+            let result = s.execute("object.stroke", &json!({"ids": [id], "type": kind})).unwrap();
+            assert_eq!(result["changed"], 1);
+            let item = s.doc().unwrap().doc.item(designcraft_doc::ItemId(id)).unwrap();
+            assert_eq!(item.stroke.kind, serde_json::from_value::<designcraft_doc::StrokeType>(kind).unwrap());
+        }
     }
 }
 

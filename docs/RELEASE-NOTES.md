@@ -1,7 +1,7 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # NiftyDesign unsigned alpha: release notes
 
-NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer, lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.9.0 by the ArtCraft team, with a Publisher importer added. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
+NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer, lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.12.0 by the ArtCraft team, with a Publisher importer added. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
 
 ## What changed since alpha.1
 
@@ -30,7 +30,7 @@ On Windows 11 PCs where Smart App Control is turned On, Windows can block an uns
 Download the zip and its separate `.zip.sha256` file into the same folder. In PowerShell, change the version below to the version you downloaded:
 
 ```powershell
-$zip = 'NiftyDesign-0.9.0-nifty-alpha.2-windows-x64.zip'
+$zip = 'NiftyDesign-0.12.0-nifty-alpha.1-windows-x64.zip'
 $line = (Get-Content -LiteralPath "$zip.sha256").Trim()
 $hash, $filename = $line -split '  ', 2
 if ($filename -ne $zip -or $hash -notmatch '^[0-9a-fA-F]{64}$' -or

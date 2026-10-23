@@ -8,7 +8,7 @@ use designcraft_doc::{
     CharAttrs, CharFormat, ColumnsKind, Content, Document, Item, ListType, PageSide, ParaAttrs, ParaFormat, Rule, Shape, SpanColumns, Spread, Story,
     TextFrameOptions, story as st,
 };
-use designcraft_geom::{Affine, PathData, Rect};
+use designcraft_geom::{Affine, PathData};
 
 use crate::names::{self, CHAR_BUILTINS, OBJECT_BUILTINS, PARA_BUILTINS, escape_id, num, pt};
 use crate::xml::{El, Node, document, document_with_pi};
@@ -769,7 +769,7 @@ impl<'a> Ex<'a> {
                     },
                 )
                 .attr("CreatePrimaryTextFrame", bool_s(s.primary_text_frame))
-                .attr("ColumnGuideLocked", "true")
+                .attr("ColumnGuideLocked", bool_s(s.column_guides_locked))
                 .attr("MasterTextFrame", bool_s(s.primary_text_frame))
                 .attr("SnippetImportUsesOriginalLocation", "false"),
         );
@@ -922,6 +922,12 @@ impl<'a> Ex<'a> {
             }
             if let Some(vj) = cs.vj {
                 el.set("VerticalJustification", names::vj_out(vj));
+            }
+            if let Some(fb) = cs.first_baseline {
+                el.set("FirstBaselineOffset", names::first_baseline_out(fb));
+            }
+            if let Some(min) = cs.first_baseline_min {
+                el.set("MinimumFirstBaselineOffset", num(min));
             }
             if let Some(st) = &cs.stroke {
                 for side in ["TopEdge", "LeftEdge", "BottomEdge", "RightEdge"] {
@@ -2770,6 +2776,8 @@ impl<'a> Ex<'a> {
                     .attr("BottomInset", num(cell.insets[2]))
                     .attr("RightInset", num(cell.insets[3]))
                     .attr("VerticalJustification", vj)
+                    .attr("FirstBaselineOffset", names::first_baseline_out(cell.first_baseline))
+                    .attr("MinimumFirstBaselineOffset", num(cell.first_baseline_min))
                     .attr("RotationAngle", num(cell.rotation));
                 for (i, side) in ["TopEdge", "LeftEdge", "BottomEdge", "RightEdge"].iter().enumerate() {
                     // Do not turn absent native defaults into explicit shared-edge candidates.
@@ -2893,8 +2901,9 @@ impl Group {
 
 fn margin_el(pg: &designcraft_doc::Page) -> El {
     let m = pg.margin_rect();
-    let cols = designcraft_doc::column_rects(Rect::new(0.0, 0.0, m.width(), m.height()), pg.columns.count.max(1), pg.columns.gutter);
-    let pos: Vec<String> = cols.iter().flat_map(|c| [num(c.x0), num(c.x1)]).collect();
+    // Dragged column guides that still fit the margin box are written as they stand, so they
+    // survive the round trip; otherwise the even split, which InDesign writes for unmoved columns.
+    let pos: Vec<String> = pg.columns.edges(m.width()).into_iter().map(num).collect();
     El::new("MarginPreference")
         .attr("ColumnCount", pg.columns.count.max(1))
         .attr("ColumnGutter", num(pg.columns.gutter))

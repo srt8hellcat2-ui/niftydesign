@@ -254,7 +254,17 @@ pub(crate) fn resolve_packaged_links(document: &mut Document, package: Option<&s
     let Some(package) = package else { return };
     for asset in document.assets.values_mut() {
         let Some(link) = asset.link.as_deref() else { continue };
-        if link.len() > MAX_LINK_PATH_BYTES || crate::io::document_path(link, Some(package)).is_ok_and(crate::io::is_file) {
+        if link.len() > MAX_LINK_PATH_BYTES {
+            continue;
+        }
+        if let Ok(path) = crate::io::document_path(link, Some(package))
+            && crate::io::is_file(&path)
+        {
+            // A link relative to the document (what File › Package writes, `Links/logo.png`) is
+            // held as the file it names, as every other link is, so preflight and updates find it.
+            if std::path::Path::new(link).is_relative() {
+                std::sync::Arc::make_mut(asset).link = Some(path.to_string_lossy().into_owned());
+            }
             continue;
         }
         let Some(path) = packaged_link_candidates(link, Some(package)).into_iter().find(|p| crate::io::is_file(p)) else { continue };

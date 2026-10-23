@@ -18,6 +18,9 @@ use serde_json::{Value, json};
 
 const MAX_OUTPUT_COMPONENT_BYTES: usize = 200;
 
+/// The folder of a package that holds the files its document places.
+const LINKS_FOLDER: &str = "Links";
+
 fn path_error(path: &Path, message: impl std::fmt::Display) -> EngineError {
     EngineError::Other(format!("{}: {message}", path.display()))
 }
@@ -282,7 +285,10 @@ fn unique_name(base: String, taken: &mut Vec<String>) -> String {
 }
 
 /// Write each asset's bytes into `dir`; returns the relinked document and the paths written.
-fn write_links(d: &Document, root: &OutputRoot, dir: &Path, only: Option<&[AssetId]>) -> Result<(Document, Vec<PathBuf>)> {
+/// `relative_to` names the folder `dir` is, beside the saved document: the links then read
+/// `Links/logo.png`, so a package holds no path from the machine that made it (#340). `None` links
+/// the copies by their full paths (Links › Copy Link(s) To, which relinks the open document).
+fn write_links(d: &Document, root: &OutputRoot, dir: &Path, only: Option<&[AssetId]>, relative_to: Option<&str>) -> Result<(Document, Vec<PathBuf>)> {
     root.validate_directory(dir)?;
     let mut out = d.clone();
     let mut taken = Vec::new();
@@ -303,7 +309,10 @@ fn write_links(d: &Document, root: &OutputRoot, dir: &Path, only: Option<&[Asset
         let path = dir.join(&name);
         root.write(&path, a.data.as_slice())?;
         let mut na = (**a).clone();
-        na.link = Some(path.to_string_lossy().to_string());
+        na.link = Some(match relative_to {
+            Some(folder) => format!("{folder}/{name}"),
+            None => path.to_string_lossy().to_string(),
+        });
         out.assets.insert(id, Arc::new(na));
         written.push(path);
     }
@@ -387,8 +396,8 @@ fn package(s: &mut Session, p: &Value) -> Result<Value> {
     let links = s.execute("links.list", &json!({}))?;
     let pre = s.execute("preflight.run", &json!({})).unwrap_or(Value::Null);
     let d = s.doc()?.doc.clone();
-    let links_dir = root.child("Links")?;
-    let (packed, mut files) = write_links(&d, &root, &links_dir, None)?;
+    let links_dir = root.child(LINKS_FOLDER)?;
+    let (packed, mut files) = write_links(&d, &root, &links_dir, None, Some(LINKS_FOLDER))?;
     let doc_path = package_output_path(&dir, &title, "designcraft")?;
     root.write(&doc_path, &super::to_bytes(&packed)?)?;
     files.insert(0, doc_path);
@@ -463,7 +472,7 @@ fn copy_links(s: &mut Session, p: &Value) -> Result<Value> {
     let only: Option<Vec<AssetId>> = p.get("assets").and_then(Value::as_array).map(|a| a.iter().filter_map(Value::as_u64).map(AssetId).collect());
     let d = s.doc()?.doc.clone();
     let root = OutputRoot::new(dir.clone())?;
-    let (relinked, written) = write_links(&d, &root, &dir, only.as_deref())?;
+    let (relinked, written) = write_links(&d, &root, &dir, only.as_deref(), None)?;
     s.edit(|doc, _| {
         doc.assets = relinked.assets;
         Ok(())
@@ -520,14 +529,17 @@ mod tests {
                 std::io::Read::read_to_string(&mut f, &mut spreads).unwrap();
             }
         }
-        let linked = dir.join("Links").join("my photo.png");
-        let uri = format!("file:{}", linked.to_string_lossy().replace(' ', "%20"));
+        // Relative to the package: no path from the machine that made it (#340).
+        let uri = "file:Links/my%20photo.png";
+        let folder = dir.file_name().unwrap().to_string_lossy().into_owned();
+        assert!(!spreads.contains(&folder), "the package's own folder is not written: {spreads}");
         assert!(spreads.contains(&format!(r#"LinkResourceURI="{uri}""#)), "{spreads}");
         assert!(!spreads.contains("<Contents") && !spreads.contains(r#"StoredState="Embedded""#), "no image is embedded");
         let back = designcraft_idml::import_idml_with(&idml, &|_| None).unwrap();
         let asset = back.assets.values().next().unwrap();
         assert!(asset.data.is_empty(), "no image is embedded");
-        assert_eq!(asset.link.as_deref(), linked.to_str());
+        assert_eq!(asset.link.as_deref(), Some("Links/my photo.png"));
+        assert!(dir.join("Links").join("my photo.png").exists());
     }
 
     /// A link whose file is gone has no bytes to copy: the package leaves it out of Links/, the
@@ -570,6 +582,29 @@ mod tests {
             assert_eq!(status(&mut opened, "gone.svg"), Some(json!("missing")), "{extension}");
             assert_eq!(status(&mut opened, "kept.svg"), Some(json!("ok")), "{extension}");
         }
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    /// A package holds no path from the machine that made it: the document and the IDML link the
+    /// copies in `Links/` by relative names, and they still open as linked after the move (#340).
+    #[test]
+    fn package_documents_hold_relative_links_only() {
+        let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+        let dir = std::env::temp_dir().join(format!("dc-package-relative-{}-{nonce}", std::process::id()));
+        let folder = dir.file_name().unwrap().to_string_lossy().into_owned();
+        let png = designcraft_render::Rendered { width: 4, height: 3, pixels: [30, 90, 180, 255].repeat(12) }.to_png();
+        let mut s = Session::new();
+        s.execute("file.new", &json!({"title": "RelativePackage", "width": 72, "height": 72})).unwrap();
+        s.execute("file.place", &json!({"base64": super::super::base64_encode(&png), "name": "owned.png", "x": 5, "y": 5, "width": 16})).unwrap();
+        s.execute("file.package", &json!({"dir": dir.to_string_lossy(), "idml": true, "pdf": false})).unwrap();
+        let packed = super::super::from_bytes(&std::fs::read(dir.join("RelativePackage.designcraft")).unwrap()).unwrap();
+        let link = packed.assets.values().next().unwrap().link.clone().unwrap();
+        assert_eq!(link, "Links/owned.png");
+        assert!(!link.contains(&folder));
+        // Copy Link(s) To is unchanged: it relinks the open document by full path.
+        s.execute("links.copyTo", &json!({"dir": dir.join("Copies").to_string_lossy()})).unwrap();
+        let copied = s.doc().unwrap().doc.assets.values().next().unwrap().link.clone().unwrap();
+        assert!(std::path::Path::new(&copied).is_absolute(), "{copied}");
         std::fs::remove_dir_all(dir).unwrap();
     }
 

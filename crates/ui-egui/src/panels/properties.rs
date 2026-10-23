@@ -59,6 +59,9 @@ fn selection_title(app: &DesignApp, info: &Option<SelInfo>) -> String {
     if st.selection.text.is_some() {
         return crate::i18n::tr(&app.ui.language, "Characters").into();
     }
+    if info.is_none() && !st.selection.guides.is_empty() {
+        return crate::i18n::tr(&app.ui.language, "Ruler Guide").into();
+    }
     match info {
         None => crate::i18n::tr(&app.ui.language, "No Selection").into(),
         Some(i) if i.count > 1 => crate::i18n::tr(&app.ui.language, "Multiple Objects").into(),
@@ -104,6 +107,11 @@ pub fn show(app: &mut DesignApp, ui: &mut egui::Ui) {
         divider(ui);
         section(ui, crate::i18n::tr(&app.ui.language, "Quick Actions"), true);
         quick_actions_text(app, ui);
+        return;
+    }
+    if info.is_none() && app.session.active().is_some_and(|st| !st.selection.guides.is_empty()) {
+        section(ui, crate::i18n::tr(&app.ui.language, "Transform"), true);
+        guide_section(app, ui);
         return;
     }
     // The Page tool with no objects selected: the page's own settings, as InDesign's.
@@ -513,7 +521,9 @@ fn document_sections(app: &mut DesignApp, ui: &mut Ui) {
     if smart != app.ui.smart_guides {
         let _ = app.run("view.smartGuides", json!({}));
     }
-    app.ui.guides_locked = locked;
+    if locked != app.ui.guides_locked {
+        let _ = app.run("view.lockGuides", json!({"on": locked}));
+    }
     rule(ui);
     section(ui, crate::i18n::tr(&app.ui.language, "Quick Actions"), true);
     let (a, b) = button_pair(ui, crate::i18n::tr(&app.ui.language, "Import File"), crate::i18n::tr(&app.ui.language, "Insert Page"));
@@ -610,6 +620,27 @@ fn transform_section(app: &mut DesignApp, ui: &mut Ui, i: &SelInfo) {
     transform_angles(app, ui, rp);
     if more_options(ui, &app.ui.language).clicked() {
         show_panel(app, "info");
+    }
+}
+
+/// Properties › Transform for selected ruler guides: X for one vertical guide, Y for one
+/// horizontal guide; with several guides both fields are empty.
+fn guide_section(app: &mut DesignApp, ui: &mut Ui) {
+    let guide = super::guide_field(app);
+    let b = block(ui, 2.0 * FIELD_H + 4.0);
+    for (row, (label, key)) in [("X:", "gx"), ("Y:", "gy")].into_iter().enumerate() {
+        let yy = row as f32 * 25.0;
+        let on = guide.filter(|g| g.row() == row);
+        place(ui, sub(b, 40.0, yy, 18.0, FIELD_H), |ui| widgets::caption_w(ui, label, 18.0));
+        let typed = place(ui, sub(b, 59.0, yy, 135.0, FIELD_H), |ui| {
+            if on.is_none() {
+                ui.disable();
+            }
+            measure(ui, key, on.map(|g| g.value), on.map_or_else(|| units(app), |g| g.unit), 135.0)
+        });
+        if let (Some(v), Some(g)) = (typed, on) {
+            let _ = app.run("guide.move", g.move_to(v));
+        }
     }
 }
 
@@ -1864,6 +1895,12 @@ pub fn stroke_panel(app: &mut DesignApp, ui: &mut egui::Ui) {
         super::cell_stroke::panel(app, ui);
         return;
     }
+    if super::colors_affect_text(app)
+        && let Some(a) = text_attrs(app)
+    {
+        text_stroke_panel(app, ui, &a["chars"]);
+        return;
+    }
     let Some(i) = sel_info(app) else {
         crate::rtl::label(ui, crate::i18n::tr(&app.ui.language, "Select an object."));
         return;
@@ -1983,6 +2020,27 @@ pub fn stroke_panel(app: &mut DesignApp, ui: &mut egui::Ui) {
         });
         ui.end_row();
     });
+}
+
+/// Stroke panel while text is selected: the text's outline colour, weight and whether it sits behind the fill.
+fn text_stroke_panel(app: &mut DesignApp, ui: &mut egui::Ui, c: &Value) {
+    let swatch = c["stroke"].as_str().unwrap_or(designcraft_color::swatch::NONE).to_string();
+    egui::Grid::new("text_stroke_panel").num_columns(2).spacing(vec2(8.0, 6.0)).show(ui, |ui| {
+        caption(ui, crate::i18n::tr(&app.ui.language, "Weight:"));
+        if let Some(v) = number(ui, "tsw_panel", c["strokeWeight"].as_f64(), " pt", 60.0, 3) {
+            let _ = app.run("type.char", json!({"attrs": {"strokeWeight": v}}));
+        }
+        ui.end_row();
+        caption(ui, crate::i18n::tr(&app.ui.language, "Color:"));
+        super::swatch_picker(app, ui, "tspick", Some(swatch), |app, n| {
+            let _ = super::apply_swatch(app, true, &n, None);
+        });
+        ui.end_row();
+    });
+    let mut behind = c["strokeBehindFill"].as_bool().unwrap_or(false);
+    if ui.checkbox(&mut behind, crate::rtl::widget(ui, crate::i18n::tr(&app.ui.language, "Stroke Behind Fill"))).changed() {
+        let _ = app.run("type.char", json!({"attrs": {"strokeBehindFill": behind}}));
+    }
 }
 
 /// A short line ending in arrowhead `a` (pointing left for Start, right for End).
@@ -2915,6 +2973,30 @@ mod tests {
         h
     }
 
+    /// With the caret in text, the Stroke panel offers the text's stroke options, not an empty panel.
+    #[test]
+    fn stroke_panel_shows_the_text_stroke_options_while_text_is_selected() {
+        let mut app = DesignApp::new(designcraft_engine::Session::new(), crate::Services::default());
+        app.run("file.new", json!({})).unwrap();
+        app.run("frame.create", json!({"rect": [72, 72, 400, 400], "content": "text", "caret": true})).unwrap();
+        let mut ready = false;
+        let mut h = Harness::builder().with_size(vec2(320.0, 400.0)).build_ui_state(
+            move |ui, app: &mut DesignApp| {
+                if !ready {
+                    crate::theme::install_fonts(ui.ctx(), "");
+                    crate::theme::apply(ui.ctx(), &Tokens::for_brightness(Default::default()));
+                    ready = true;
+                    return;
+                }
+                stroke_panel(app, ui);
+            },
+            app,
+        );
+        h.run_steps(3);
+        assert!(h.query_by_label("Select an object.").is_none());
+        h.get_by_label("Stroke Behind Fill");
+    }
+
     /// As InDesign's: Edit Page takes the Page tool to the page in view, and Properties sets that
     /// page alone; Back returns to the document.
     #[test]
@@ -3066,8 +3148,19 @@ mod tests {
     /// are translated, with a sample of each script's figures.
     #[test]
     fn digits_choices_use_the_reference_names() {
-        let shown: Vec<String> = DIGIT_OPTIONS.iter().map(|o| digit_label("fr", *o)).collect();
-        assert_eq!(shown, ["Par défaut", "Arabe  0123", "Hindi  ٠١٢٣", "Persan  ۰۱۲۳", "Natif"].map(String::from));
+        assert_eq!(DIGIT_OPTIONS.map(|o| o.1), ["Default", "Arabic", "Hindi", "Farsi", "Native"]);
+        for (lang, _) in crate::i18n::LANGUAGES {
+            let tr = |s| crate::i18n::tr(lang, s);
+            let shown: Vec<String> = DIGIT_OPTIONS.iter().map(|o| digit_label(lang, *o)).collect();
+            let expected = [
+                tr("Default").to_string(),
+                format!("{}  0123", tr("Arabic")),
+                format!("{}  ٠١٢٣", tr("Hindi")),
+                format!("{}  ۰۱۲۳", tr("Farsi")),
+                tr("Native").to_string(),
+            ];
+            assert_eq!(shown, expected, "{lang}");
+        }
     }
 
     #[test]

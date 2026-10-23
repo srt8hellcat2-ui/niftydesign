@@ -16,6 +16,7 @@ REQUIRED = [Path(p) for p in (
     'docs/brand/LICENSE-brand.txt', 'assets/app-icon/LICENSE.txt',
     'assets/nifty/nifty-wordmark.png', 'assets/nifty/nifty-mark.png',
 )] + sorted(p.relative_to(ROOT) for p in (ROOT / 'assets/fonts').glob('OFL*.txt'))
+REQUIRED += sorted(p.relative_to(ROOT) for p in (ROOT / 'licenses/pdf-backend').rglob('*') if p.is_file())
 
 
 # Fingerprints only: the trademark artwork is deliberately excluded from this tree.
