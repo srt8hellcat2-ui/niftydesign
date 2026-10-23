@@ -5,7 +5,7 @@ Thanks for trying this. NiftyDesign is an early, unofficial alpha. It opens Micr
 
 ## What to know first
 
-- Opening a `.pub` never changes it. The file opens as a new, unsaved document.
+- Opening a `.pub` never modifies your original file on disk. NiftyDesign opens a converted copy as a new, unsaved document, and that copy can look different from the original: some features are lost or simplified (see below). Always compare it with your original.
 - Save proposes a `.designcraft` file next to the original. Saving back to `.pub` is not offered.
 - Only Publisher 2002 and later files are supported.
 
