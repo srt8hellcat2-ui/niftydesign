@@ -14,7 +14,7 @@ Uses DesignCraft's built-in data merge. Column headers in the first CSV row beco
 
 Sample: `people.csv` (3 rows gives 3 pages).
 
-You can also do this by hand in the app: pick the CSV as the data source, insert fields into your label text, then run "Create Merged Document". The commands behind it are `data.source.select`, `data.placeholder.add` and `data.merge`.
+The same thing should be possible by hand in the app (I have not clicked through the menus myself, see the end of this page): pick the CSV as the data source, insert fields into your label text, then run "Create Merged Document". The commands behind it are `data.source.select`, `data.placeholder.add` and `data.merge`.
 
 ## 2. Two CSV files in a set order: `streets-and-interventions.ps1`
 
@@ -36,3 +36,24 @@ How it works: for each page it inserts a page with the right parent (`layout.pag
 Tested with single-sided pages (Document Setup: Facing Pages off). With facing pages, make sure each parent has its labels on the side(s) it is used on. Labels are replaced as plain text, so each label takes the formatting of its first character.
 
 Run `designcraft-cli describe <command>` to see what any command accepts.
+## What was tested, and what was not (please read)
+
+These examples were written with the help of an AI assistant and then run on a real PC. NiftyDesign is an unofficial build, not an ArtCraft release.
+
+**Tested** (Windows 11, NiftyDesign 0.12.0-nifty-alpha.3, only the small sample files in this folder):
+
+- `csv-to-labels.ps1` with `people.csv`: 3 rows gave 3 pages with the right names and cities, and a PDF was exported.
+- `streets-and-interventions.ps1` with a small template (parent pages A, B and C, single-sided pages): 2 streets and 5 interventions gave 9 pages in the right order, with the right text on every page.
+
+**Not tested, so it may not work for you:**
+
+- Your own real files and template. The template for the second script is not included, so you have to make your own (step 1 above).
+- Facing-pages documents. In my first try, labels on the left-hand pages were not filled. I think my test template was the cause (its labels were on one side of the parent page only), but I have not confirmed that.
+- Big CSV files. Every page takes several commands, so hundreds of streets will take a while. I did not time it.
+- Accents, symbols or very long text. A label that is replaced takes the formatting of its first character, so mixed formatting inside one label is lost.
+- Image, QR and link fields, and putting several labels on one page (data merge has options for this, I did not try them).
+- The by-hand method in the app's menus. The app's command list does not say where data merge lives in the menus, so I can't tell you where to click. The commands in the scripts are what I actually ran.
+
+If a {field} name in a label does not exist in the CSV, the text is left as it is. If PowerShell refuses to run the scripts, start them with `powershell -ExecutionPolicy Bypass -File .\script.ps1 ...`.
+
+If something does not work, please open an issue with your command, the error text and what you expected.
