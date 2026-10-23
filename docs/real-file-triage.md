@@ -1,6 +1,43 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # Real-file robustness triage — 2026-10-19, updated for stored row endings
 
+## T5–T8 investigations — 2026-10-23
+
+No reader, rendering, printing or preflight logic changed for these items. Per-item regression runs used the same pinned inputs, with `truth/*.json` used by the corpus scorer only, never to infer encodings. All samples, extracted text, CSVs and rendered real-file images remain outside this checkout.
+
+### T5 — 60685.pub: text accounted for; appearance not independently verified
+
+The existing Quill directory/SYID/STRS/TEXT description was used to inspect the pinned file. Its main story has **1,882 UTF-16 units and 20 CR terminators**; three other stories contain only a CR. All four stories match the imported native text after the documented paragraph normalization and removal of the final paragraph terminator. In the main story, the exact heading `Education` is followed by an **empty paragraph**, then `Work Experience`. There is no education-entry text in that interval to recover. No resume contact or personal details are copied here.
+
+The odd strip is already a source drawing group, Contents sequence **302**, with **38** children: **26** rectangle shapes (kind 1) and **12** line shapes (kind 20). A throwaway read-only probe called our existing `escher::parse`; its mapped bounds, converted from EMU at 12,700 EMU/pt with the existing Letter-page offset, are **(36, 36)–(576, 48.96) pt**. The imported group has the same 38 kinds and every child's axis-aligned bounds agrees within **0.001 pt**. The exported PDF was rasterized and inspected outside the checkout; it shows this strip and the empty Education section. This establishes source content and retained geometry, **not** that the strip looks the same in Publisher. Colours/styling and the author's intended appearance have no independent reference here; no fidelity fix is justified by these observations.
+
+### T6 — page numbers and dates: not implemented
+
+`pub-format/text-store.md` §3 describes unhandled control units as fields but does not establish field type, expansion value, page association, date format, or the metadata connecting a placeholder to its definition. The two warning-bearing files contain **4** (`SampleBrochure.pub`) and **2** (`SampleNewsletter.pub`) TEXT units `0x000A`. These observations do not identify what any occurrence means. No value, page number or date was guessed. The existing full warning remains: `Fields and special characters (page numbers, dates) were left out of the text.`
+
+Needed: describer notes verifying the relevant field-definition records and their association with exact story offsets, plus synthetic pairs changing only a known page-number/date field (including format and page context). Without them, this item is blocked; no protected reader was edited.
+
+### T7 — Windows retained print job: cause not established; no change
+
+Read our `crates/engine/src/cmd/print.rs` and the already-pinned `craft-print` implementation/embedded `windows_print.ps1` at `d991bf6792f8ade99c51358bf3c1d902c8cd96b5`. The app passes the current `DocState::title()`; the script assigns `PrintDocument.DocumentName`, uses `StandardPrintController`, calls `Print()`, and disposes the print document in `finally`. The Rust caller waits for PowerShell's output and drops the temporary PDF before returning. No keep-printed-jobs/retain/hold/pause operation is set by this path. This does not prove the HP driver or spooler behaved correctly or identify the reason for “Printing, Retained”. Windows queue/driver settings and actual job state need inspection on the affected PC. No print behavior changed; no Windows or physical-printer test was available here.
+
+### T8 — RGB preflight: inherited broad rule; no change
+
+`preflight.rs` checks **every RGB swatch** in a print document, without checking whether artwork uses it. Despite its “in use” comment, the implementation is not a usage analysis. The same loop/message exists unchanged in the initial source export `d82d525`; it was not introduced by this importer work. This is evidence of inherited behavior in this tree, not a test of today's external upstream. The actual default palette in `designcraft_color::default_swatches()` is CMYK (apart from special swatches). A fresh headless `file.new` with `intent: print` followed by `preflight.run` reports **0 errors / 0 warnings** here, so the owner's particular RGB-black/blue swatches were not reproduced by that minimal case. It remains unknown which UI/style action added them on that PC and whether either was used. The broad rule can warn about unused RGB swatches, but changing it would require a verified usage-aware policy; no color/preflight behavior changed.
+
+### Per-item before/after checks
+
+Scores are ordered **imports / objects / positions within 1 pt / exact texts / styles**. Each row has its own corpus and 24-file batch rerun, not an inferred result. The batch's five unsuccessful entries are the same **2 old-version refusals + 3 damaged inputs** in every run. Each successful file's warnings, notes, page count and object count match the T4 report.
+
+| Item | Corpus before | Corpus after | Real batch before: OK / warnings / refused / damaged | Real batch after | Pages / objects before → after |
+|---|---|---|---|---|---|
+| T5 | 142/142; 152/152; 111/152; 52/52; 111/111 | same | 9 / 10 / 2 / 3 | 9 / 10 / 2 / 3 | 31 / 280 → 31 / 280 |
+| T6 | 142/142; 152/152; 111/152; 52/52; 111/111 | same | 9 / 10 / 2 / 3 | 9 / 10 / 2 / 3 | 31 / 280 → 31 / 280 |
+| T7 | 142/142; 152/152; 111/152; 52/52; 111/111 | same | 9 / 10 / 2 / 3 | 9 / 10 / 2 / 3 | 31 / 280 → 31 / 280 |
+| T8 | 142/142; 152/152; 111/152; 52/52; 111/111 | same | 9 / 10 / 2 / 3 | 9 / 10 / 2 / 3 | 31 / 280 → 31 / 280 |
+
+The nine OK entries still have informational notes; their status is the T3 severity reclassification, not a fidelity claim. Fmt and clippy (`-D warnings`, all targets of pub/engine/UI/CLI) pass. Default pub tests: **48 passed**; CLI: **27 passed**; engine library: **846 passed**; UI library: **548 passed**. Intentionally ignored tests are separate; the external corpus was explicitly run for every item. Windows desktop/spooler behavior and comparison against Publisher remain unverified here. No protected readers or owner-maintained files were edited.
+
 ## T4 converted-copy notice — 2026-10-23
 
 Every successful `.pub` open now returns a separate notice in the engine result. The active imported document shows it as non-modal information in the app; the CLI batch CSV appends a `notice` column. It is not a new loss warning and does not replace or suppress warnings/notes:
