@@ -874,16 +874,3 @@ scoring audit only; no coordinates or encoding rules were derived from them.
 Final sources reuse pubsmith fixtures at `0ccdf27` and Apache POI `.pub` inputs
 at `bf7c9b6a1490046517cbd8e1504e702a89be4bc9`, with the previously recorded hashes.
 No external repository code, reader output, or additional sample was accessed.
-
-### Builder (Codex): alpha package and UI/print audit (2026-10-22)
-
-Used this repository's packaging templates, engine links, UI command/status handling,
-DocState display-title accessor, print command and preflight code. Inspected the
-already pinned `craft-print` dependency at `storytold/craft-libs@d991bf6792f8ade99c51358bf3c1d902c8cd96b5`
-(`crates/print/src/lib.rs` and `windows_print.ps1`) only for print-job naming and
-resource/retention handling. The script calls Print and disposes PrintDocument in
-finally; no explicit retain/pause/hold operation was found. Actual Windows queue
-behavior was not tested here. The RGB-swatch preflight check is unchanged from the
-initial source export (`d82d525`) and was left unchanged. No Publisher encoding
-or external format source was consulted, and no truth JSON was used. Validation
-used the existing repository tests and synthetic command/package regressions.

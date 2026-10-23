@@ -1,7 +1,7 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # Installing the NiftyDesign alpha (Windows)
 
-NiftyDesign is an unofficial alpha that opens older Microsoft Publisher (.pub) files. It is not made by, supported by or affiliated with Microsoft or ArtCraft. Read docs/KNOWN-LIMITATIONS.md first so you know what to expect.
+NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer. It is not made by, supported by or affiliated with Microsoft or ArtCraft. Read docs/KNOWN-LIMITATIONS.md first so you know what to expect.
 
 ## What you need
 

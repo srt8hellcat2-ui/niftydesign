@@ -1,3 +1,10 @@
+
+
+## Windows captures (added 2026-10-22)
+
+The six `windows-*` PNGs in this folder were taken from the running NiftyDesign 0.9.0-nifty-alpha.1 desktop app on one Windows 11 PC (the maintainer's test, DirectX 12), using the app's own screenshot command, with the status bar cropped off. They show Apache's `Sample2.pub` opened, a demo flyer and a business card built in the app, the saved file reopened after a full restart, and page renders of the saved document. The flyer's croissant and coffee-cup pictures are AI-generated; see [ASSETS.md](../../ASSETS.md).
+
+Everything below this section describes the older images numbered 01 to 07. Those came from the Linux test renderer and are not Windows captures.
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # NiftyDesign interface renderings (C15)
 
