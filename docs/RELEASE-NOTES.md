@@ -8,7 +8,6 @@ NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files f
 - Table cell text is now drawn.
 - Added the converted-copy notice and import notes.
 - Clearer note wording for skipped formatting settings.
-- Status bar message fixes.
 - Test-only maintenance.
 - Desktop demo workflow fix.
 
