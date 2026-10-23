@@ -5,11 +5,19 @@ NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files f
 
 ## This is a test build, and we need your help
 
-You are among the first people to run NiftyDesign on a real Windows PC. We have not run the desktop app on Windows ourselves yet; our checks so far ran on Linux and in automated tests. We have no private collection of real Publisher files either: so far we have tested with public sample .pub files (from the Apache POI project) and with files we generated for testing. That is why we are asking you to try your own files and tell us what happens. Whatever you find, good or bad, is useful.
+The maintainer has run this app on one Windows 11 PC with one inkjet printer. There it launched, opened Apache's public Sample2.pub test file, a flyer and a business card were built in it, saved, reopened after a restart, exported to PDF and printed. That is the only Windows testing so far, so you may find problems we have not. We also have no collection of real people's Publisher files: so far we tested with public Apache POI sample files and with files we generated. That is why we are asking you to try your own files and tell us what happens. Whatever you find, good or bad, is useful.
 
-## Unsigned download and checksum
+## What opening a file does
+
+Opening a .pub never modifies your original file on disk. NiftyDesign opens a converted copy as a new, unsaved document. That copy can look different from what Publisher shows. Some features are lost or simplified (table cell text, curved WordArt, numbered lists and tab stops, page numbers and dates, for example), and not every loss gives a warning. Always compare it with your original. Publisher 97, 98 and 2000 files are refused.
+
+## Unsigned download, SmartScreen and Smart App Control
 
 The app is not signed. Windows SmartScreen will warn. After verifying the checksum, if you choose to run it, select **More info**, then **Run anyway**. Extract the entire zip before starting `designcraft.exe`.
+
+On Windows 11 PCs where Smart App Control is turned On, Windows can block an unsigned app completely, with the message "An Application Control policy has blocked this file" and no Run anyway option. This happened on the maintainer's own PC to a rebuilt copy of this app. If you see it, read the Smart App Control section of Known limitations for your options. We plan to apply for free open-source code signing.
+
+## Check your download
 
 Download the zip and its separate `.zip.sha256` file into the same folder. In PowerShell, change the version below to the version you downloaded:
 
@@ -28,9 +36,9 @@ The sidecar verifies the finished zip before extraction. `SHA256SUMS` inside the
 
 ## Verified and unverified
 
-Automated checks cover opening a controlled sample, saving and reopening it, and exporting a non-empty PDF. They do not cover the Windows desktop app on a real PC.
+Worked on the maintainer's one Windows 11 PC: launching, opening a .pub, editing, saving and reopening, PDF export, printing on one inkjet printer, and Arial and Times New Roman found as installed fonts.
 
-Printing on a real printer and Windows system fonts are **UNVERIFIED**. Publisher 97/98/2000 files are refused. Real files often open with warnings and can differ from the original layout. Keep your original files and check the exported PDF. See [Known limitations](https://github.com/srt8hellcat2-ui/niftydesign/blob/main/docs/KNOWN-LIMITATIONS.md).
+Not verified: other PCs and other printers, the native print dialog and file dialogs, and mouse-driven editing in a full session. Real files often open with warnings and can differ from the original layout. Keep your original files and check the exported PDF. See [Known limitations](https://github.com/srt8hellcat2-ui/niftydesign/blob/main/docs/KNOWN-LIMITATIONS.md).
 
 ## Reporting problems
 
