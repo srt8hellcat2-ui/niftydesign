@@ -13,6 +13,20 @@ spec.loader.exec_module(branding)
 
 
 class PackageBranding(unittest.TestCase):
+    def test_pdf_backend_licenses_are_staged_and_required(self):
+        sources = sorted(p for p in (branding.ROOT / 'licenses/pdf-backend').rglob('*') if p.is_file())
+        self.assertTrue(sources)
+        with tempfile.TemporaryDirectory() as folder:
+            dest = Path(folder)
+            branding.stage_legal(dest)
+            for source in sources:
+                path = source.relative_to(branding.ROOT)
+                self.assertEqual((dest / path).read_bytes(), source.read_bytes())
+                (dest / path).unlink()
+                self.assertIn(f'missing or changed legal file: {path}', branding.check(dest))
+                (dest / path).write_bytes(source.read_bytes())
+            self.assertEqual(branding.check(dest), [])
+
     def test_legal_files_kept_but_marks_rejected_even_renamed(self):
         with tempfile.TemporaryDirectory() as d:
             dest = Path(d)

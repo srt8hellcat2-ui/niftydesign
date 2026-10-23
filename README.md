@@ -9,7 +9,7 @@
   <img alt="status: unofficial alpha" src="https://img.shields.io/badge/status-unofficial%20alpha-d9822b">
   <img alt="runs on: Windows x64" src="https://img.shields.io/badge/runs%20on-Windows%20x64-1f6feb">
   <img alt="license: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-1f6feb">
-  <img alt="built on DesignCraft 0.9" src="https://img.shields.io/badge/built%20on-DesignCraft%200.9-2da44e">
+  <img alt="built on DesignCraft 0.12" src="https://img.shields.io/badge/built%20on-DesignCraft%200.12-2da44e">
   <img alt="build: unsigned" src="https://img.shields.io/badge/build-unsigned-6e7781">
 </p>
 

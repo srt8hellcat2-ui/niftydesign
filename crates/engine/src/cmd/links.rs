@@ -14,7 +14,9 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use designcraft_doc::{AssetId, Content, Document, Fingerprint, ItemId, Selection, Story, StoryId, TextFileLink};
+use designcraft_compose::Cache;
+use designcraft_doc::{AssetId, Content, Document, Fingerprint, Item, ItemId, Selection, Story, StoryId, TextFileLink};
+use designcraft_geom::Affine;
 use serde_json::{Value, json};
 
 use super::{CommandSpec, bad, cmd, has_doc, str_param};
@@ -25,7 +27,7 @@ pub fn specs() -> Vec<CommandSpec> {
         cmd!(query "links.list", "Links", [], None, "{} → [{asset, name, path, status: ok|modified|missing|embedded, refused?: why a missing link isn't followed (a path on another computer, a device), pixels, pdfCrop (placed PDFs: the box shown), uses: [{id, page, ppi}]}], then linked text files: [{story, name, path, status (also tooLarge: unchanged size, too big to check), edited (the story was changed in the layout), uses: [{id, page}]}]", has_doc, |s, _| {
             // Taken out for the call so the document needn't be cloned on every poll.
             let mut checks = std::mem::take(&mut s.text_link_checks);
-            let links = s.doc().map(|d| list(&d.doc, d.path.as_deref().map(Path::new), &mut checks));
+            let links = s.doc().map(|d| list(&d.doc, &s.cache, d.path.as_deref().map(Path::new), &mut checks));
             s.text_link_checks = checks;
             Ok(Value::Array(links?))
         }),
@@ -262,7 +264,60 @@ fn file_name(path: &str) -> String {
     std::path::Path::new(path).file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| path.to_string())
 }
 
-fn list(d: &Document, document: Option<&Path>, checks: &mut TextChecks) -> Vec<Value> {
+/// A graphic showing an asset: the item, its page, and the transform from its parent's space to
+/// the spread.
+struct Shown<'a> {
+    item: &'a Item,
+    page: Option<usize>,
+    parent_xf: Affine,
+}
+
+/// Where an asset shows: frames on spreads (see [`uses`]) and anchored or inline objects, whose
+/// page and position come from the frame their story lays them out in.
+fn shown<'a>(d: &'a Document, cache: &Cache, aid: AssetId) -> Vec<Shown<'a>> {
+    fn walk<'a>(it: &'a Item, xf: Affine, aid: AssetId, page: Option<usize>, out: &mut Vec<Shown<'a>>) {
+        if let Content::Graphic(g) = &it.content
+            && g.asset == aid
+        {
+            out.push(Shown { item: it, page, parent_xf: xf });
+        }
+        for c in it.children() {
+            walk(c, xf * it.xf, aid, page, out);
+        }
+    }
+    let mut out: Vec<Shown> = uses(d, aid)
+        .into_iter()
+        .filter_map(|id| {
+            let loc = d.find(id)?;
+            Some(Shown { item: d.item_at(&loc)?, page: d.page_of_item(id), parent_xf: d.parent_xf(&loc) })
+        })
+        .collect();
+    for st in d.stories.values() {
+        let mut composed = None;
+        for (k, o) in st.objects.iter().enumerate() {
+            let mut found = false;
+            o.item.walk(&mut |i| found |= matches!(&i.content, Content::Graphic(g) if g.asset == aid));
+            if !found {
+                continue;
+            }
+            let cs = composed.get_or_insert_with(|| cache.get(d, st.id, None));
+            let placed = cs.frames.iter().find_map(|ft| ft.objects.iter().find(|p| p.index == k).map(|p| (ft.frame, p.origin)));
+            // Overset: no page; the resolution of the object as it would show.
+            let (page, xf) = match placed {
+                Some((fid, origin)) => {
+                    let frame_xf =
+                        d.find(fid).map_or(Affine::IDENTITY, |loc| d.parent_xf(&loc)) * d.item(fid).map_or(Affine::IDENTITY, |i| d.text_xf(i));
+                    (d.page_of_item(fid), frame_xf * Affine::translate(origin.to_vec2()))
+                }
+                None => (None, Affine::IDENTITY),
+            };
+            walk(&o.item, xf, aid, page, &mut out);
+        }
+    }
+    out
+}
+
+fn list(d: &Document, cache: &Cache, document: Option<&Path>, checks: &mut TextChecks) -> Vec<Value> {
     let texts = d.stories.values().filter_map(|st| {
         let l = st.file_link.as_ref()?;
         let uses: Vec<Value> = st.frames.iter().map(|id| json!({"id": id.0, "page": d.page_of_item(*id).map(|p| d.page_name(p))})).collect();
@@ -273,25 +328,24 @@ fn list(d: &Document, document: Option<&Path>, checks: &mut TextChecks) -> Vec<V
         .values()
         .filter(|a| used.contains(&a.id))
         .map(|a| {
-            let uses: Vec<Value> = uses(d, a.id)
+            let uses: Vec<Value> = shown(d, cache, a.id)
                 .into_iter()
-                .map(|id| {
+                .map(|u| {
+                    let it = u.item;
                     // Effective resolution: image pixels over the size it is shown at.
                     let ppi = (|| {
-                        let loc = d.find(id)?;
-                        let it = d.item_at(&loc)?;
                         let Content::Graphic(g) = &it.content else { return None };
                         // Vector (placed PDF or SVG): no effective resolution.
                         if a.mime == "application/pdf" || a.mime == "image/svg+xml" {
                             return None;
                         }
                         let (pw, _) = a.pixels?;
-                        let xf = d.parent_xf(&loc) * it.xf * g.xf;
+                        let xf = u.parent_xf * it.xf * g.xf;
                         let shown_w = xf.transform_rect_bbox(designcraft_geom::Rect::new(0.0, 0.0, g.size.0, g.size.1)).width();
                         (shown_w > 0.0).then(|| (pw as f64 / (shown_w / 72.0)).round())
                     })();
-                    let page = d.page_of_item(id).map(|p| d.page_name(p));
-                    json!({"id": id.0, "page": page, "ppi": ppi})
+                    let page = u.page.map(|p| d.page_name(p));
+                    json!({"id": it.id.0, "page": page, "ppi": ppi})
                 })
                 .collect();
             let pdf_crop = (a.mime == "application/pdf").then(|| a.pdf_crop.name());
@@ -344,6 +398,9 @@ fn reimport(d: &mut Document, sid: StoryId, path: &str, bytes: &[u8], before: Fi
 fn reload(path: impl AsRef<Path>) -> Result<(Vec<u8>, (u32, u32))> {
     let path = path.as_ref();
     let b = crate::io::read_file(path).map_err(EngineError::Other)?;
+    if designcraft_render::is_pdf(&b) {
+        designcraft_render::check_pdf_input_size(b.len()).map_err(|e| bad("links", format!("{}: {e}", path.display())))?;
+    }
     let px = designcraft_render::image_size(&b).ok_or_else(|| bad("links", format!("{}: unsupported or corrupt image", path.display())))?;
     Ok((b, px))
 }
@@ -525,6 +582,31 @@ mod tests {
         }
         let result = s.execute("file.exportPdf", &json!({})).unwrap();
         super::super::file::base64_decode(result["base64"].as_str().unwrap())
+    }
+
+    #[test]
+    fn anchored_image_lists_its_page_and_resolution() {
+        let mut s = Session::new();
+        s.execute("file.new", &json!({"pages": 2, "facingPages": false})).unwrap();
+        let r = s
+            .execute("frame.create", &json!({"spread": 1, "rect": [72, 72, 400, 400], "content": "text", "text": "Before after and more words."}))
+            .unwrap();
+        let sid = s.doc().unwrap().doc.item(ItemId(r["id"].as_u64().unwrap())).unwrap().text_frame().unwrap().story;
+        let placed = s
+            .execute(
+                "file.place",
+                &json!({"base64": super::super::file::base64_encode(&png(10, 10)), "name": "dot.png", "x": 450, "y": 450, "width": 36}),
+            )
+            .unwrap();
+        let id = placed["id"].as_u64().unwrap();
+        let before = s.execute("links.list", &json!({})).unwrap();
+        assert_eq!(before[0]["uses"][0]["ppi"], 20.0);
+        s.execute("anchored.insert", &json!({"ids": [id], "story": sid.0, "pos": 7})).unwrap();
+        let list = s.execute("links.list", &json!({})).unwrap();
+        let uses = list[0]["uses"].as_array().unwrap();
+        assert_eq!(uses.len(), 1, "anchored image must have one use: {list}");
+        assert_eq!(uses[0]["page"], "2");
+        assert_eq!(uses[0]["ppi"], 20.0);
     }
 
     #[test]

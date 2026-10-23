@@ -934,3 +934,39 @@ for the three changed workflows. Corpus scores remain **142/142, 152/152,
 warnings / 2 refused / 3 damaged**, **31 pages / 280 objects**. All 48 expected
 cell texts occur in the eight table PDFs. The local CLI reports
 `0.9.0-nifty-alpha.2`; Windows execution was not tested locally.
+
+## Builder (Codex): 2026-10-23 — DesignCraft 0.12.0 base
+
+Used the public DesignCraft source delta from `storytold/designcraft`
+`v0.9.0` (`7cb8b12507def48fb9346e5004340b5e8e4cfcb7`) to `v0.12.0`
+(`5e8ef678321cfdd2d18927e2af94d58e5f9d8836`), applied by a three-way patch
+because this export does not share upstream history. Kept our importer integration,
+branding and packaging. No Publisher reader logic or importer tests were changed;
+no new Publisher encoding was inferred.
+
+Compared the alpha.2 build against the upgraded build using the same 24 pinned
+Apache inputs already recorded here (all manifest SHA-256 values checked), plus
+`hello-nifty.pub` and `wmf-picture.pub`. Apache inputs and generated real-file outputs
+stayed outside the checkout. All 21 successful documents retained their document
+content and asset bytes, with identical PDF text and page pixels across 33 pages
+in both PDF rasterization and our headless renderer. In these comparisons, only
+document creation times, PDF creation/modification times and the native generator
+version differed.
+All 21 alpha.2 documents loaded, saved and reopened in fresh engine sessions
+without content or asset changes; the native format version remained 2.
+
+Used the existing controlled 142-fixture corpus and its Publisher `truth/*.json`
+layout exports for scoring only, never for inferring encodings. Scores remained
+142/142 imported, 152/152 objects, 111/152 positions within 1 pt, 52/52 exact texts
+and 111/111 styles. The Apache batch remained 9 with notes / 10 with warnings /
+2 refused / 3 damaged, 31 pages and 280 objects; all 48 expected table cell texts
+were found in the eight exported PDFs. Report warnings, notes and refusal reasons
+matched the alpha.2 baseline exactly after normalizing output folder paths.
+
+All seven `cargo xtask ci` gates passed: 3,058 tests passed, 19 optional/manual
+tests ignored; assets, layers and wasm checks passed. Packaging had 32 passing
+tests and two Windows-only skips; actionlint and the built Linux CLI's existing
+package string guard passed. The catalogue check initially found six unused
+French descriptions for upstream About content absent from our About screen;
+removing those entries kept our About text intact and made the check pass.
+Windows execution and printing were not tested for this upgrade.

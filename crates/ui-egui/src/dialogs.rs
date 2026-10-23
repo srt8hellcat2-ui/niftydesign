@@ -315,9 +315,16 @@ fn keyboard_shortcuts(app: &mut DesignApp, ui: &mut egui::Ui, d: &mut Dialog) {
     if !msg.is_empty() {
         ui.label(egui::RichText::new(msg).color(egui::Color32::from_rgb(240, 180, 60)));
     }
-    if ui.button(crate::rtl::widget(ui, crate::i18n::tr(&app.ui.language, "Reset All to Defaults"))).clicked() {
-        let _ = app.run("window.resetShortcuts", json!({}));
-    }
+    ui.horizontal(|ui| {
+        if ui.button(crate::rtl::widget(ui, crate::i18n::tr(&app.ui.language, "Reset All to Defaults"))).clicked() {
+            let _ = app.run("window.resetShortcuts", json!({}));
+        }
+        if ui.button(crate::rtl::widget(ui, crate::i18n::tr(&app.ui.language, "Import InDesign Set…"))).clicked()
+            && let Some(msg) = crate::shortcut_import::pick_and_import(app)
+        {
+            d.fields.insert("message".into(), json!(msg));
+        }
+    });
 }
 
 /// File › Print opens the native system dialog; cancellation never submits a job.
@@ -1235,7 +1242,9 @@ pub fn open_document_setup(app: &mut DesignApp) {
     }
     // The margins as shown: OK applies them to every page only when they were edited.
     f["marginsShown"] = json!(SETUP_EDGES.map(|e| f[format!("margin{e}")].clone()));
-    app.ui.dialog = Some(Dialog::new("documentSetup", f));
+    let mut d = Dialog::new("documentSetup", f);
+    d.unit = units;
+    app.ui.dialog = Some(d);
 }
 
 /// The edges of Document Setup's margins, bleed and slug (field suffixes).
@@ -7076,6 +7085,17 @@ mod tests {
     }
 
     #[test]
+    fn document_setup_reads_a_bare_number_in_the_documents_units() {
+        let mut app = document_setup_app("millimeters");
+        setup_fields(&mut app, json!({"bleedTop": "5", "bleedBottom": "5", "bleedInside": "5", "bleedOutside": "5", "width": "210"}));
+        confirm(&mut app).unwrap();
+        let mm = designcraft_geom::units::PT_PER_MM;
+        let settings = &app.session.active().unwrap().doc.settings;
+        assert!(settings.bleed.iter().all(|b| (b - 5.0 * mm).abs() < 1e-6), "5 mm, not 5 picas: {:?}", settings.bleed);
+        assert!((settings.page_width - 210.0 * mm).abs() < 1e-6, "{}", settings.page_width);
+    }
+
+    #[test]
     fn document_setup_keeps_each_pages_margins_unless_they_are_edited() {
         let mut app = DesignApp::new(designcraft_engine::Session::new(), crate::Services::default());
         app.run("file.new", json!({"pages": 3, "margins": 36})).unwrap();
@@ -8942,7 +8962,7 @@ mod tests {
         assert_eq!(app.ui.language, "de");
         assert_eq!(app.ui.dialog.as_ref().map(|d| d.id.as_str()), Some("preferences"));
         let labels = dialog_frame(&mut app, &ctx, screen, vec![]);
-        let heading = visible_label(&labels, screen, "Sprache der Oberfläche");
+        let heading = visible_label(&labels, screen, crate::i18n::tr("de", "Interface Language"));
         let combo = visible_label(&labels, screen, "Deutsch");
 
         // The names stay endonyms in the German interface.

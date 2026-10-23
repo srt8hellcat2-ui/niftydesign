@@ -27,6 +27,7 @@ mod prefs;
 pub mod render_worker;
 mod rtl;
 mod section_options;
+mod shortcut_import;
 pub mod story_editor;
 pub mod taskbar;
 pub mod theme;
@@ -296,6 +297,7 @@ pub struct UiState {
     pub align_to: String,
     /// Properties > Text Style tab: 0 = Paragraph Styles, 1 = Character Styles.
     pub text_style_tab: u8,
+    /// View › Grids & Guides › Lock Guides: ruler guides can't be dragged.
     pub guides_locked: bool,
     pub smart_guides: bool,
     #[serde(default = "default_true")]
@@ -457,6 +459,7 @@ impl UiState {
             smart_dimensions: self.smart_dimensions,
             smart_spacing: self.smart_spacing,
             zone_px: self.snap_zone,
+            guides_locked: self.guides_locked,
         }
     }
 }
@@ -753,7 +756,9 @@ impl DesignApp {
         ViewInfo {
             zoom: self.view().map(|v| v.zoom).unwrap_or(1.0),
             snap: self.ui.snap_view(),
-            unit: self.ui.units,
+            // Tool readouts (sizes, smart-guide distances) measure in the document's ruler units,
+            // as its Control and Properties fields do.
+            unit: self.session.active().map_or(self.ui.units, |st| st.doc.settings.horizontal_units),
             stroke_in_front: self.ui.stroke_front,
         }
     }
@@ -833,7 +838,7 @@ impl DesignApp {
                         Some(t.to_string())
                     }
                     None if !self.native_menu => {
-                        self.object_clip_text = Some(self.copied_objects_text());
+                        self.object_clip_text = Some(designcraft_engine::cmd::copied_objects_text(&self.session));
                         self.object_clip_text.clone()
                     }
                     None => {
@@ -861,7 +866,7 @@ impl DesignApp {
             }
         }
         if r.is_ok()
-            && matches!(id, "font.replace" | "edit.undo" | "edit.redo")
+            && matches!(id, "font.replace" | "font.reload" | "edit.undo" | "edit.redo")
             && let Some(dialog) = self.ui.dialog.as_mut().filter(|d| d.id == "findFont")
         {
             dialog.fields.remove("_fonts");
@@ -931,35 +936,6 @@ impl DesignApp {
             o.entry("at").or_insert(json!([at.x, at.y]));
         }
         params
-    }
-
-    /// Plain text for the system clipboard after copying objects: the copied text frames' stories,
-    /// or U+FFFC (object replacement character) when none has text.
-    fn copied_objects_text(&self) -> String {
-        let mut stories = Vec::new();
-        if let Some(clip) = &self.session.clipboard
-            && let Some(sp) = clip.spreads.first()
-        {
-            for it in &sp.items {
-                it.walk(&mut |i| {
-                    if let Some(tf) = i.text_frame()
-                        && !stories.contains(&tf.story)
-                    {
-                        stories.push(tf.story);
-                    }
-                });
-            }
-        }
-        let text = stories
-            .iter()
-            .filter_map(|id| self.session.clipboard.as_ref()?.story(*id))
-            .map(|st| {
-                st.text.chars().filter(|c| !('\u{E000}'..='\u{E1FF}').contains(c)).map(|c| if c == '\u{2028}' { '\n' } else { c }).collect::<String>()
-            })
-            .filter(|t| !t.is_empty())
-            .collect::<Vec<_>>()
-            .join("\n");
-        if text.is_empty() { '\u{FFFC}'.to_string() } else { text }
     }
 
     /// Handle requests produced by tools/commands (dialogs, view changes, file pickers).
@@ -1085,6 +1061,10 @@ impl DesignApp {
         let Some(inbox) = self.services.inbox.clone() else { return };
         let files = std::mem::take(&mut *inbox.lock().unwrap_or_else(|e| e.into_inner()));
         for file in files {
+            if file.request.purpose == "shortcuts" {
+                shortcut_import::import_delivered(self, &file.bytes);
+                continue;
+            }
             if self.ui.dialog.is_some() {
                 self.status(
                     crate::i18n::tr(&self.ui.language, "{name}: import cancelled while a dialog is open; choose the file again")
@@ -1903,6 +1883,17 @@ mod tests {
         assert!(!accurate.rich_black, "a saved choice is kept");
     }
 
+    /// Tool readouts measured in picas whatever the document's units (the UI's unit is never set):
+    /// they follow the active document's ruler units.
+    #[test]
+    fn tool_readouts_measure_in_the_documents_units() {
+        let mut app = DesignApp::new(designcraft_engine::Session::new(), Services::default());
+        assert_eq!(app.view_info().unit, Unit::Picas, "no document: the UI's default");
+        app.run("file.new", json!({})).unwrap();
+        app.run("document.preferences", json!({"horizontalUnits": "inches", "verticalUnits": "millimeters"})).unwrap();
+        assert_eq!(app.view_info().unit, Unit::Inches);
+    }
+
     /// An app with one document that has an unsaved edit.
     fn app_with_unsaved_document() -> DesignApp {
         let mut app = DesignApp::new(designcraft_engine::Session::new(), Services::default());
@@ -2542,7 +2533,7 @@ mod tests {
         assert_eq!(app.ui.status, "Table: No table selected");
         app.ui.language = "cs".into();
         app.status_error("Table", "No table selected");
-        assert_eq!(app.ui.status, "Tabulka: No table selected");
+        assert_eq!(app.ui.status, format!("{}: No table selected", crate::i18n::tr("cs", "Table")));
     }
 
     #[test]

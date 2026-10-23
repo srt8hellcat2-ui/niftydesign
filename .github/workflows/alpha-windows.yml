@@ -45,24 +45,24 @@ jobs:
             if ([BitConverter]::ToUInt16($bytes, $pe + 4) -ne 0x8664) { throw "$name is not x64" }
           }
           $meta = (Get-Item (Join-Path $bin 'designcraft.exe')).VersionInfo
-          if ($meta.ProductName -ne 'NiftyDesign' -or $meta.ProductVersion -ne '0.9.0-nifty-alpha.2' -or $meta.FileVersion -ne '0.9.0-nifty-alpha.2') {
+          if ($meta.ProductName -ne 'NiftyDesign' -or $meta.ProductVersion -ne '0.12.0-nifty-alpha.1' -or $meta.FileVersion -ne '0.12.0-nifty-alpha.1') {
             throw 'Wrong app name or alpha version metadata'
           }
           $version = & (Join-Path $bin 'designcraft-cli.exe') --version
-          if ($LASTEXITCODE -ne 0 -or $version -ne 'NiftyDesign CLI 0.9.0-nifty-alpha.2') { throw 'Wrong CLI alpha version' }
+          if ($LASTEXITCODE -ne 0 -or $version -ne 'NiftyDesign CLI 0.12.0-nifty-alpha.1') { throw 'Wrong CLI alpha version' }
       - name: Stage legal files, assets and README (branding check must pass)
         run: python packaging/alpha_windows.py stage target/x86_64-pc-windows-msvc/release dist/niftydesign-alpha
       - name: Headless hello-nifty save, PDF and PNG smoke
         run: python packaging/alpha_windows.py smoke dist/niftydesign-alpha/designcraft-cli.exe dist/alpha-smoke
       - name: Check branding and hashes, then zip
-        run: python packaging/alpha_windows.py zip dist/niftydesign-alpha dist/niftydesign-0.9.0-nifty-alpha.2-windows-x64.zip
+        run: python packaging/alpha_windows.py zip dist/niftydesign-alpha dist/niftydesign-0.12.0-nifty-alpha.1-windows-x64.zip
       - name: Upload alpha zip and its checksum
         uses: actions/upload-artifact@v4
         with:
           name: niftydesign-alpha-windows-x64
           path: |
-            dist/niftydesign-0.9.0-nifty-alpha.2-windows-x64.zip
-            dist/niftydesign-0.9.0-nifty-alpha.2-windows-x64.zip.sha256
+            dist/niftydesign-0.12.0-nifty-alpha.1-windows-x64.zip
+            dist/niftydesign-0.12.0-nifty-alpha.1-windows-x64.zip.sha256
           if-no-files-found: error
           retention-days: 14
       - name: Upload headless smoke PNG and PDF

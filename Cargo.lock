@@ -735,6 +735,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "chrono"
+version = "0.4.45"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1aa79e62e7697b8e29b513a68abacf485adcd1fe8284a4316c5ae868e6633327"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "clipboard-win"
 version = "5.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -883,8 +892,12 @@ source = "git+https://github.com/storytold/craft-libs?rev=82a24b006eefa036b43c09
 [[package]]
 name = "craft-pdf"
 version = "0.1.0"
-source = "git+https://github.com/storytold/craft-libs?rev=c3487320b2d1de657b860b3c8abb44e1f2b32bd8#c3487320b2d1de657b860b3c8abb44e1f2b32bd8"
+source = "git+https://github.com/storytold/craft-libs?rev=89dcbb3060377a26c99a6d80caa16084366704c4#89dcbb3060377a26c99a6d80caa16084366704c4"
 dependencies = [
+ "bytemuck",
+ "hayro",
+ "hayro-interpret",
+ "hayro-syntax",
  "krilla",
  "thiserror 2.0.21",
 ]
@@ -980,7 +993,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "arboard",
  "designcraft-engine",
@@ -1002,7 +1015,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-cli"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "designcraft-color",
  "designcraft-compose",
@@ -1019,7 +1032,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-color"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "craft-cms",
  "kurbo",
@@ -1031,7 +1044,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-compose"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "designcraft-color",
  "designcraft-doc",
@@ -1051,8 +1064,9 @@ dependencies = [
 
 [[package]]
 name = "designcraft-doc"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
+ "chrono",
  "designcraft-color",
  "designcraft-geom",
  "proptest",
@@ -1063,7 +1077,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-engine"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "ashpd",
  "caseless",
@@ -1105,8 +1119,9 @@ dependencies = [
 
 [[package]]
 name = "designcraft-epub"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
+ "chrono",
  "designcraft-color",
  "designcraft-doc",
  "zip",
@@ -1114,7 +1129,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-fonts"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "core-text",
  "harfrust 0.13.3",
@@ -1127,7 +1142,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-format"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "designcraft-doc",
  "designcraft-images",
@@ -1139,7 +1154,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-geom"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "flo_curves",
  "kurbo",
@@ -1152,7 +1167,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-idml"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "designcraft-color",
  "designcraft-compose",
@@ -1167,7 +1182,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-images"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "craft-cms",
  "designcraft-color",
@@ -1182,7 +1197,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-mcp"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "designcraft-engine",
  "designcraft-geom",
@@ -1195,8 +1210,9 @@ dependencies = [
 
 [[package]]
 name = "designcraft-pdf"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
+ "chrono",
  "craft-pdf",
  "designcraft-color",
  "designcraft-compose",
@@ -1217,8 +1233,9 @@ dependencies = [
 
 [[package]]
 name = "designcraft-pptx"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
+ "chrono",
  "designcraft-color",
  "designcraft-compose",
  "designcraft-doc",
@@ -1234,7 +1251,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-pub"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "cfb",
  "designcraft-color",
@@ -1249,25 +1266,26 @@ dependencies = [
 
 [[package]]
 name = "designcraft-render"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
+ "craft-pdf",
  "designcraft-color",
  "designcraft-compose",
  "designcraft-doc",
  "designcraft-fonts",
  "designcraft-geom",
  "designcraft-images",
- "hayro",
  "image",
  "log",
  "serde",
+ "thiserror 2.0.21",
  "vello_common 0.2.0",
  "vello_cpu 0.2.0",
 ]
 
 [[package]]
 name = "designcraft-textimport"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "designcraft-doc",
  "quick-xml",
@@ -1276,7 +1294,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-tools"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "designcraft-color",
  "designcraft-compose",
@@ -1288,7 +1306,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-ui-egui"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "craft-ui",
  "designcraft-color",
@@ -1315,7 +1333,7 @@ dependencies = [
 
 [[package]]
 name = "designcraft-web"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "designcraft-engine",
  "designcraft-format",
@@ -2186,7 +2204,7 @@ dependencies = [
 [[package]]
 name = "hayro"
 version = "0.7.1"
-source = "git+https://github.com/storytold/pdfcraft?rev=b5467d93a0ffaa5e5e6658bccdf8655a3ba689c9#b5467d93a0ffaa5e5e6658bccdf8655a3ba689c9"
+source = "git+https://github.com/storytold/craft-libs?rev=89dcbb3060377a26c99a6d80caa16084366704c4#89dcbb3060377a26c99a6d80caa16084366704c4"
 dependencies = [
  "bytemuck",
  "hayro-interpret",
@@ -2216,7 +2234,7 @@ dependencies = [
 [[package]]
 name = "hayro-interpret"
 version = "0.7.0"
-source = "git+https://github.com/storytold/pdfcraft?rev=b5467d93a0ffaa5e5e6658bccdf8655a3ba689c9#b5467d93a0ffaa5e5e6658bccdf8655a3ba689c9"
+source = "git+https://github.com/storytold/craft-libs?rev=89dcbb3060377a26c99a6d80caa16084366704c4#89dcbb3060377a26c99a6d80caa16084366704c4"
 dependencies = [
  "bitflags 2.13.2",
  "hayro-cmap",
@@ -2234,7 +2252,7 @@ dependencies = [
 [[package]]
 name = "hayro-jbig2"
 version = "0.3.0"
-source = "git+https://github.com/storytold/pdfcraft?rev=b5467d93a0ffaa5e5e6658bccdf8655a3ba689c9#b5467d93a0ffaa5e5e6658bccdf8655a3ba689c9"
+source = "git+https://github.com/storytold/craft-libs?rev=89dcbb3060377a26c99a6d80caa16084366704c4#89dcbb3060377a26c99a6d80caa16084366704c4"
 dependencies = [
  "fearless_simd",
  "hayro-ccitt",
@@ -2258,7 +2276,7 @@ checksum = "885c5ef0654933139a9b9546fc2c69e18d37f38aa2520f079092b1be18f1fcaa"
 [[package]]
 name = "hayro-syntax"
 version = "0.7.2"
-source = "git+https://github.com/storytold/pdfcraft?rev=b5467d93a0ffaa5e5e6658bccdf8655a3ba689c9#b5467d93a0ffaa5e5e6658bccdf8655a3ba689c9"
+source = "git+https://github.com/storytold/craft-libs?rev=89dcbb3060377a26c99a6d80caa16084366704c4#89dcbb3060377a26c99a6d80caa16084366704c4"
 dependencies = [
  "flate2",
  "hayro-ccitt",
@@ -2622,7 +2640,7 @@ dependencies = [
 [[package]]
 name = "krilla"
 version = "0.8.2"
-source = "git+https://github.com/storytold/craft-libs?rev=c3487320b2d1de657b860b3c8abb44e1f2b32bd8#c3487320b2d1de657b860b3c8abb44e1f2b32bd8"
+source = "git+https://github.com/storytold/craft-libs?rev=89dcbb3060377a26c99a6d80caa16084366704c4#89dcbb3060377a26c99a6d80caa16084366704c4"
 dependencies = [
  "base64",
  "bumpalo",
@@ -5704,7 +5722,7 @@ checksum = "d6bbff5f0aada427a1e5a6da5f1f98158182f26556f345ac9e04d36d0ebed650"
 [[package]]
 name = "winit"
 version = "0.30.13"
-source = "git+https://github.com/skylartaylor/winit.git?rev=3d51077fd1a966f84df9ef287839dc84fd5b4ca7#3d51077fd1a966f84df9ef287839dc84fd5b4ca7"
+source = "git+https://github.com/storytold/winit.git?rev=3d51077fd1a966f84df9ef287839dc84fd5b4ca7#3d51077fd1a966f84df9ef287839dc84fd5b4ca7"
 dependencies = [
  "ahash",
  "android-activity",
@@ -5878,7 +5896,7 @@ checksum = "9440ea3e5aeabb0ac63af70daf835274065238cdd0cec83418f417eae38bacee"
 
 [[package]]
 name = "xtask"
-version = "0.9.0-nifty-alpha.2"
+version = "0.12.0-nifty-alpha.1"
 dependencies = [
  "serde_json",
 ]

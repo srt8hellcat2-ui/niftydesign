@@ -37,6 +37,10 @@ class AlphaPackage(unittest.TestCase):
                 self.assertEqual({n for n in files if n.startswith('docs/brand/')},
                                  {'docs/brand/LICENSE-brand.txt'})
                 self.assertEqual(len([n for n in files if n.startswith('assets/fonts/OFL')]), 4)
+                legal = {p.relative_to(alpha.ROOT).as_posix()
+                         for p in (alpha.ROOT / 'licenses/pdf-backend').rglob('*') if p.is_file()}
+                self.assertTrue(legal)
+                self.assertEqual({n for n in files if n.startswith('licenses/pdf-backend/')}, legal)
                 hashes = dict(line.split('  ', 1)[::-1] for line in z.read('SHA256SUMS').decode().splitlines())
                 self.assertEqual(set(hashes), files - {'SHA256SUMS'})
                 for name, digest in hashes.items():

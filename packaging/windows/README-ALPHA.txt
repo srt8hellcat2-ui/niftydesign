@@ -1,4 +1,4 @@
-NiftyDesign 0.9.0-nifty-alpha.2 - unofficial alpha
+NiftyDesign 0.12.0-nifty-alpha.1 - unofficial alpha
 Windows x64 only. Not for ARM64, 32-bit Windows, macOS or Linux.
 
 
@@ -20,9 +20,9 @@ before running designcraft.exe. The command-line tool is designcraft-cli.exe.
 
 
 Verify the zip before extracting. Download both the zip and its separate
-niftydesign-0.9.0-nifty-alpha.2-windows-x64.zip.sha256 file into the same folder.
+niftydesign-0.12.0-nifty-alpha.1-windows-x64.zip.sha256 file into the same folder.
 In PowerShell, from that folder:
-  $zip = 'niftydesign-0.9.0-nifty-alpha.2-windows-x64.zip'
+  $zip = 'niftydesign-0.12.0-nifty-alpha.1-windows-x64.zip'
   $expected = ((Get-Content -LiteralPath "$zip.sha256").Trim() -split '  ', 2)[0]
   if ((Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash -ne $expected) {
     throw "SHA256 mismatch: $zip"
