@@ -888,7 +888,7 @@ initial source export (`d82d525`) and was left unchanged. No Publisher encoding
 or external format source was consulted, and no truth JSON was used. Validation
 used the existing repository tests and synthetic command/package regressions.
 
-### Builder (Codex): comment and private-test naming checks (2026-10-23)
+### Builder (Codex): test maintenance check (2026-10-23)
 
 Used only this repository's original importer/packaging tests and the previously
 recorded inputs: the 142 controlled `.pub` fixtures at `0ccdf27`, and the same 24
@@ -903,5 +903,5 @@ and assets, PDF drawing streams/text and all 31 page pixel buffers match;
 only normal document/PDF creation/modification metadata was excluded. The
 production CLI executable is byte-identical. The full suite reports the same
 2,940 passed / 0 failed / 19 ignored; all seven CI steps and the packaging tests
-pass. Changes are limited to private test names, explanatory comments and this
+pass. Changes are limited to test-only edits and this
 source-use record; no runtime or protected-reader code changed.
