@@ -1,5 +1,6 @@
 [package]
 name = "designcraft"
+description = "NiftyDesign opens and edits Microsoft Publisher (.pub) files from Publisher 2002 and newer"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

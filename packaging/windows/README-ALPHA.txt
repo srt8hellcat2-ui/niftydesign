@@ -1,8 +1,8 @@
 NiftyDesign 0.9.0-nifty-alpha.1 - unofficial alpha
 Windows x64 only. Not for ARM64, 32-bit Windows, macOS or Linux.
 
-NiftyDesign is an unofficial alpha for opening and editing older Microsoft
-Publisher (.pub) files, saving .designcraft documents, exporting PDF and printing.
+NiftyDesign opens and edits Microsoft Publisher (.pub) files from Publisher 2002 and newer.
+This unofficial alpha saves .designcraft documents, exports PDF and prints.
 Based on DesignCraft by the ArtCraft team. Unofficial build; not supported by
 ArtCraft or Microsoft. This is not a Microsoft Publisher release.
 
@@ -55,8 +55,10 @@ Screenshots are interface renderings from the app's own test renderer on Linux, 
 The demo flyer's background, croissant and coffee-cup pictures are AI-generated.
 See ASSETS.md for their provenance.
 
-Other unsupported features can produce warnings or different-looking output.
-Keep the original .pub and check any exported PDF carefully.
+Opening a .pub never modifies the original file on disk. NiftyDesign opens a
+converted copy that can look different from what Publisher shows, because some
+features are lost or simplified, and not every loss gives a warning. Always
+compare with the original and check any exported PDF carefully.
 
 The 24-file Apache test set in docs/real-file-triage.md produced:
   0 opened without warnings; 19 opened with warnings;

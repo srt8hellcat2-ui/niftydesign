@@ -17,7 +17,7 @@
       Scope="perMachine"
       Compressed="yes"
       Language="1033">
-    <SummaryInformation Description="NiftyDesign page layout and publishing" Manufacturer="NiftyDesign (unofficial)" />
+    <SummaryInformation Description="NiftyDesign opens and edits Microsoft Publisher (.pub) files from Publisher 2002 and newer" Manufacturer="NiftyDesign (unofficial)" />
     <!-- Same-version upgrades let successive pre-releases of one X.Y.Z replace each other
          (MSI versions are numeric, so 1.2.3-rc.1 and 1.2.3-rc.2 are both 1.2.3). -->
     <MajorUpgrade AllowSameVersionUpgrades="yes"
@@ -56,7 +56,7 @@
       <Component Id="DesigncraftApp" Guid="DE018EF3-EE87-4E36-9F76-0B7B060A195E">
         <File Id="DesigncraftExe" Source="$(var.BinDir)\designcraft.exe" KeyPath="yes">
           <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="NiftyDesign"
-              Description="NiftyDesign page layout and publishing" WorkingDirectory="INSTALLFOLDER" Advertise="yes"
+              Description="NiftyDesign opens and edits Microsoft Publisher (.pub) files from Publisher 2002 and newer" WorkingDirectory="INSTALLFOLDER" Advertise="yes"
               Icon="DesigncraftIcon.ico" IconIndex="0" />
         </File>
 

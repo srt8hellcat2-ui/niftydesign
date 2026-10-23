@@ -14,7 +14,8 @@ import alpha_windows as alpha
 # These tokens are prohibited in distributed text and executable strings, including
 # UTF-16 Windows resource strings. Historical source records and crate names are
 # not package inputs.
-FORBIDDEN_STRINGS = ('designcraft-pub', 'REPO_URL_HERE', 'OWNER TO FILL', 'owner must fill')
+FORBIDDEN_STRINGS = ('designcraft-pub', 'REPO_URL_HERE', 'OWNER TO FILL', 'owner must fill',
+                     'older Microsoft Publisher')
 
 
 def reject_forbidden_strings(stream, label):
@@ -24,8 +25,10 @@ def reject_forbidden_strings(stream, label):
     tail = b''
     while chunk := stream.read(1024 * 1024):
         data = (tail + chunk).lower()
+        # Line wrapping in packaged text must not hide a forbidden phrase.
+        normalized = re.sub(rb'\s+', b' ', data)
         for text, pattern in patterns:
-            if pattern in data:
+            if pattern in data or pattern in normalized:
                 raise ValueError(f'forbidden package string {text!r} in {label}')
         tail = data[-overlap:]
 
