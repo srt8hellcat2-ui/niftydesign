@@ -76,7 +76,7 @@ We are using every test file we have to find out why files open with warnings, a
 1. Download the zip from the [latest release](https://github.com/srt8hellcat2-ui/niftydesign/releases).
 2. Right-click the zip and choose **Extract All**.
 3. Open the new folder and double-click `designcraft.exe`.
-4. Windows may warn you because the alpha is not signed. Choose **More info**, then **Run anyway**.
+4. Windows may warn you because the alpha is not signed. Choose **More info**, then **Run anyway**. If Windows instead says "An Application Control policy has blocked this file", Smart App Control is blocking unsigned apps and offers no way around it. See [Known limitations](docs/KNOWN-LIMITATIONS.md#windows-smart-app-control-can-block-this-app).
 
 <details>
 <summary>Want to verify the download? (optional)</summary>
