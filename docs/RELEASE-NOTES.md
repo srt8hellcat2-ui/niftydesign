@@ -29,7 +29,7 @@ On Windows 11 PCs where Smart App Control is turned On, Windows can block an uns
 Download the zip and its separate `.zip.sha256` file into the same folder. In PowerShell, change the version below to the version you downloaded:
 
 ```powershell
-$zip = 'NiftyDesign-0.12.0-nifty-alpha.1-windows-x64.zip'
+$zip = 'NiftyDesign-0.12.0-nifty-alpha.3-windows-x64.zip'
 $line = (Get-Content -LiteralPath "$zip.sha256").Trim()
 $hash, $filename = $line -split '  ', 2
 if ($filename -ne $zip -or $hash -notmatch '^[0-9a-fA-F]{64}$' -or
