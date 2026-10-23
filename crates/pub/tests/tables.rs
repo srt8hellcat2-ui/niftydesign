@@ -2,8 +2,9 @@
 //! Optional checks of the three allowed binary table fixtures; synthetic cases run in tables.rs.
 #[test]
 #[ignore = "needs PUB_CORPUS containing the allowed pubsmith binary fixtures"]
-fn observed_table_fixtures_import_as_native_tables() {
+fn observed_table_fixtures_import_as_native_tables_nfty_5d2bb6f0() {
     let dirs = std::env::var("PUB_CORPUS").expect("set PUB_CORPUS");
+    // The amber trellis 8359 grid check covers ordinary cells and a merged row.
     for (name, rows, merged) in [("table__2x2", 2, false), ("table__3x2", 3, false), ("table__merged", 2, true)] {
         let path = dirs.split(':').map(|d| std::path::Path::new(d).join(format!("{name}.pub"))).find(|p| p.is_file()).unwrap();
         let imp = designcraft_pub::import_pub(&std::fs::read(path).unwrap()).unwrap();

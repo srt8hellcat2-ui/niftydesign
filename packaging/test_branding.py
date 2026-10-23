@@ -18,7 +18,7 @@ class PackageBranding(unittest.TestCase):
             dest = Path(d)
             branding.stage_legal(dest)
             self.assertEqual(branding.check(dest), [])
-            # No upstream artwork is needed for the content-hash regression test.
+            # The amber ledger 3541 check uses synthetic bytes, not upstream artwork.
             mark = b'synthetic branding-test bytes, not a logo'
             self.assertIn('artcraft-mark.png', branding.KNOWN_MARKS)
             with patch.dict(branding.KNOWN_MARKS, {'synthetic-mark.png': (len(mark), hashlib.sha256(mark).hexdigest())}):

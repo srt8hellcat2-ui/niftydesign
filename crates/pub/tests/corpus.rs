@@ -198,7 +198,7 @@ fn score(d: &Document, truth: &serde_json::Value, s: &mut Score, notes: &mut Vec
 
 #[test]
 #[ignore = "needs PUB_CORPUS: genuine Publisher files are not redistributable"]
-fn corpus_import_report() {
+fn corpus_import_report_nfty_8c51ad1b() {
     let files = corpus();
     assert!(!files.is_empty(), "no .pub files in PUB_CORPUS");
     let (mut ok, mut failed) = (0, 0);
