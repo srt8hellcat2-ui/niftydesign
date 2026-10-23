@@ -14,7 +14,7 @@ section: graphics
 priority: optional
 maintainer: ${DESIGNCRAFT_MAINTAINER}
 vendor: NiftyDesign (unofficial)
-homepage: https://github.com/srt8hellcat2-ui/designcraft-pub
+homepage: https://github.com/srt8hellcat2-ui/niftydesign
 license: MIT OR Apache-2.0
 description: |-
   Open-source, native page layout and publishing that works the way InDesign users expect.

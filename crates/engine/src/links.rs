@@ -3,9 +3,9 @@
 use serde_json::{Value, json};
 
 /// This unofficial build's source repository.
-pub const GITHUB: &str = "https://github.com/srt8hellcat2-ui/designcraft-pub";
+pub const GITHUB: &str = "https://github.com/srt8hellcat2-ui/niftydesign";
 /// This build's issue tracker.
-pub const ISSUES: &str = "https://github.com/srt8hellcat2-ui/designcraft-pub/issues";
+pub const ISSUES: &str = "https://github.com/srt8hellcat2-ui/niftydesign/issues";
 
 /// All links as JSON (the `app.links` command).
 pub fn all() -> Value {
@@ -30,7 +30,7 @@ mod tests {
 
     #[test]
     fn links_follow_the_app_slug() {
-        assert!(GITHUB.ends_with("/srt8hellcat2-ui/designcraft-pub"));
+        assert!(GITHUB.ends_with("/srt8hellcat2-ui/niftydesign"));
         assert!(ISSUES.starts_with(GITHUB));
         for k in ["github", "issues"] {
             assert!(get(k).is_some_and(|u| u.starts_with("https://")), "{k}");

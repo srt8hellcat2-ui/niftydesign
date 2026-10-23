@@ -42,8 +42,9 @@ class AlphaPackage(unittest.TestCase):
                 for name, digest in hashes.items():
                     self.assertEqual(hashlib.sha256(z.read(name)).hexdigest(), digest)
                 readme = z.read('README-ALPHA.txt').decode()
-                for text in [alpha.VERSION, 'REPO_URL_HERE', 'UNVERIFIED', 'SmartScreen',
+                for text in [alpha.VERSION, 'https://github.com/srt8hellcat2-ui/niftydesign/issues', 'UNVERIFIED', 'SmartScreen',
                              '.zip.sha256', 'before extracting',
+                             'ONE Windows 11 PC', 'one inkjet', 'ASSETS.md',
                              '19 opened with warnings', 'numbered lists', 'custom tab stops',
                              'cell', 'WordArt', 'WMF/EMF pictures', '97-2000', 'personal information']:
                     self.assertIn(text, readme)
