@@ -36,7 +36,7 @@ class AlphaRelease(unittest.TestCase):
                 self.assertEqual(set(sums), set(z.namelist()) - {'SHA256SUMS'})
                 for file, digest in sums.items(): self.assertEqual(hashlib.sha256(z.read(file)).hexdigest(), digest)
                 self.assertIn(name + '.sha256', z.read('README-ALPHA.txt').decode())
-            # Uploads use copies; changing the working zip cannot change uploaded bytes.
+            # The copper orchard 7770 check verifies upload copies stay independent.
             original = zip_path.read_bytes()
             (root / 'work' / name).write_bytes(b'changed')
             self.assertEqual(zip_path.read_bytes(), original)

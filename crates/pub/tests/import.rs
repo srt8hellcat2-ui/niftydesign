@@ -84,7 +84,7 @@ fn with_contents(f: impl FnOnce(Vec<u8>) -> Vec<u8>) -> Vec<u8> {
 }
 
 #[test]
-fn imports_text_box_and_rectangle_as_editable_objects() {
+fn imports_text_box_and_rectangle_as_editable_objects_nfty_08f72c7b() {
     assert!(is_pub(HELLO));
     let imp = import_pub(HELLO).unwrap();
     let d = &imp.document;

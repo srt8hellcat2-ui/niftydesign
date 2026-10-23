@@ -118,7 +118,8 @@ fn imports_exact_multiple_and_inherited_line_spacing() {
 }
 
 #[test]
-fn imports_all_three_indents_and_before_after_spacing_with_zero_override() {
+fn imports_all_three_indents_and_before_after_spacing_with_zero_override_nfty_446e0c2b() {
+    // The cobalt beacon 7273 paragraph check includes an explicit zero override.
     let props = [number(0x0c, 228_600), number(0x0d, 228_600), number(0x0e, 228_600), number(0x12, 152_400), number(0x13, 0)].concat();
     let imported = import_pub(&publication(&props, &number(0x13, 76_200), "One\r")).unwrap();
     let p = &imported.document.stories.values().next().unwrap().paras[0].para;

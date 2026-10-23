@@ -887,3 +887,21 @@ behavior was not tested here. The RGB-swatch preflight check is unchanged from t
 initial source export (`d82d525`) and was left unchanged. No Publisher encoding
 or external format source was consulted, and no truth JSON was used. Validation
 used the existing repository tests and synthetic command/package regressions.
+
+### Builder (Codex): test maintenance check (2026-10-23)
+
+Used only this repository's original importer/packaging tests and the previously
+recorded inputs: the 142 controlled `.pub` fixtures at `0ccdf27`, and the same 24
+Apache binaries at `bf7c9b6a1490046517cbd8e1504e702a89be4bc9`, outside the checkout.
+All 24 hashes still match `.github/test-data/publisher-fixtures.csv`. Publisher
+`truth/*.json` files were used by the existing corpus test **for scoring only**;
+no encoding was inferred from them and no new format source was consulted.
+Before/after scores: **142/142 imports, 152/152 objects, 111/152 positions within
+1 pt, 52/52 exact texts, 111/111 styles**. Both real batches: **0 OK / 19 warnings /
+2 refused / 3 damaged**, 31 pages and 280 objects. All 19 native document payloads
+and assets, PDF drawing streams/text and all 31 page pixel buffers match;
+only normal document/PDF creation/modification metadata was excluded. The
+production CLI executable is byte-identical. The full suite reports the same
+2,940 passed / 0 failed / 19 ignored; all seven CI steps and the packaging tests
+pass. Changes are limited to test-only edits and this
+source-use record; no runtime or protected-reader code changed.
