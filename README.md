@@ -33,7 +33,7 @@ This is an alpha, and it is honest about that:
 
 - **It has been run by the maintainer on one Windows 11 PC.** There, the app launched, opened a Publisher test file, a flyer and a business card were built in it, saved, reopened after a restart, exported to PDF, and printed on one inkjet printer. Windows system fonts were found. Other PCs and printers are untested, so you may find problems we have not.
 - **Our real-file testing is small.** We have tested with public sample files from the Apache POI project and with files we generated for testing. We do not have a collection of real people's Publisher files. That is why we are asking for yours.
-- **Real files often open with warnings.** Of 24 real Apache test files, none opened with no warnings, 19 opened with warnings, 2 were refused as too old, and 3 were damaged test files that were correctly rejected. A warning means something was not converted fully. Always check the result against your original.
+- **Real files often open with warnings.** Of 24 real Apache test files, none opened with no warnings, 19 opened with warnings, 2 were refused as too old, and 3 were damaged test files that were correctly rejected. A warning means something was not converted fully. No warning does not prove the copy is perfect, because not every loss produces a warning. Always check the result against your original.
 
 ## From a .pub file to a finished page
 
