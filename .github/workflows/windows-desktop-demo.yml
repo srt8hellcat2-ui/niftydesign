@@ -9,6 +9,10 @@ permissions:
 
 env:
   CARGO_INCREMENTAL: 0
+  PYTHONUNBUFFERED: 1
+  PYTHONUTF8: 1
+  PYTHONIOENCODING: utf-8
+  RUST_VERSION: 1.95.0
   CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: '-C target-feature=+crt-static'
   DESIGNCRAFT_REQUIRE_WINRES: 1
 
@@ -28,6 +32,17 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force "$env:RUNNER_TEMP/windows-desktop-demo" | Out-Null
           'NOT RUN: preflight/build has not completed. See build.log if present and the workflow log. No desktop or printing claim.' | Set-Content "$env:RUNNER_TEMP/windows-desktop-demo/REPORT.md"
+      - name: Restore Cargo build cache
+        id: cargo-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-desktop-${{ runner.os }}-rust-${{ env.RUST_VERSION }}-${{ hashFiles('Cargo.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            cargo-desktop-${{ runner.os }}-rust-${{ env.RUST_VERSION }}-${{ hashFiles('Cargo.lock') }}-
       - name: Install pinned Rust
         shell: pwsh
         run: |
@@ -48,17 +63,68 @@ jobs:
             'FAILED: release build did not complete; the app was not run. See build.log.' | Set-Content "$env:RUNNER_TEMP/windows-desktop-demo/REPORT.md"
             exit $LASTEXITCODE
           }
+      - name: Save Cargo build cache even after failure
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
       - name: Run desktop demo without mouse input
         timeout-minutes: 15
         shell: pwsh
         run: |
           python packaging/windows_desktop_demo.py --app target/x86_64-pc-windows-msvc/release/designcraft.exe --sample-dir "$env:RUNNER_TEMP/nifty-sample2" --out "$env:RUNNER_TEMP/windows-desktop-demo"
           exit $LASTEXITCODE
-      - name: Retain desktop evidence even on failure
+      - name: Ensure app has exited before reading evidence
         if: always()
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          # Backstop for a step timeout/forced driver stop. The driver owns a kill-on-close job too.
+          $apps = @(Get-Process -Name designcraft -ErrorAction SilentlyContinue)
+          foreach ($app in $apps) { taskkill /PID $app.Id /T /F }
+          foreach ($app in $apps) {
+            if (-not $app.WaitForExit(15000)) { throw "App PID $($app.Id) did not exit" }
+          }
+          if (Get-Process -Name designcraft -ErrorAction SilentlyContinue) { throw 'App still running' }
+          Write-Host 'No designcraft.exe process remains.'
+          exit 0
+      - name: Print report and comparisons to job log
+        if: always()
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          foreach ($name in @('REPORT.md', 'comparison.csv')) {
+            Write-Host "--- $name ---"
+            $path = Join-Path "$env:RUNNER_TEMP/windows-desktop-demo" $name
+            try { Get-Content -LiteralPath $path -ErrorAction Stop | Write-Host }
+            catch { Write-Warning "Cannot read $name : $($_.Exception.Message)" }
+          }
+      - name: Stage unlocked evidence copies
+        if: always()
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          ./packaging/stage_windows_desktop_evidence.ps1 -Source "$env:RUNNER_TEMP/windows-desktop-demo" -Destination "$env:RUNNER_TEMP/windows-desktop-staged"
+      - name: Upload report first
+        if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: windows-desktop-demo
-          path: ${{ runner.temp }}/windows-desktop-demo
+          name: windows-desktop-report
+          path: ${{ runner.temp }}/windows-desktop-staged/report
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload screenshots and documents independently
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-desktop-shots
+          path: ${{ runner.temp }}/windows-desktop-staged/shots
           if-no-files-found: warn
           retention-days: 14

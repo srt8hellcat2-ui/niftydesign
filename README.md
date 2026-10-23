@@ -29,11 +29,13 @@
 
 NiftyDesign is the full DesignCraft desktop app with a Publisher importer added. You can open a `.pub` file, edit it, save it as a `.designcraft` document, and export a PDF. Opening a `.pub` never modifies your original file on disk. NiftyDesign opens a converted copy as a new, unsaved document. That copy can look different from what Publisher shows, because some features are lost or simplified (see the table below). Always compare it with your original.
 
+NiftyDesign now shows a notice on every converted .pub: 'This is a converted copy. It can look different from what Publisher shows; some features are lost or simplified, and not every loss gives a warning. Compare it with your original.' The import notes list stays available in the app and in the command-line report.
+
 This is an alpha, and it is honest about that:
 
 - **It has been run by the maintainer on one Windows 11 PC.** There, the app launched, opened a Publisher test file, a flyer and a business card were built in it, saved, reopened after a restart, exported to PDF, and printed on one inkjet printer. Windows system fonts were found. Other PCs and printers are untested, so you may find problems we have not.
 - **Our real-file testing is small.** We have tested with public sample files from the Apache POI project and with files we generated for testing. We do not have a collection of real people's Publisher files. That is why we are asking for yours.
-- **Real files often open with warnings.** Of 24 real Apache test files, none opened with no warnings, 19 opened with warnings, 2 were refused as too old, and 3 were damaged test files that were correctly rejected. A warning means something was not converted fully. No warning does not prove the copy is perfect, because not every loss produces a warning. Always check the result against your original.
+- **Real files often open with warnings.** Of 24 real Apache test files: 9 opened with only notes about formatting settings we do not understand and skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. The 9 are not a claim that they match Publisher; we have not compared them with Publisher. Earlier counts called these 9 'warnings'; only the labelling changed, not the importer's fidelity. A warning means something was not converted fully. No warning does not prove the copy is perfect, because not every loss produces a warning. Always check the result against your original.
 
 ## From a .pub file to a finished page
 
@@ -58,7 +60,7 @@ These are results from our own checks. We have not compared them side by side wi
 | Text, fonts, colours, bullets | Works | Tested on our sample files. Windows system fonts such as Arial and Times New Roman were found on the test PC. |
 | Shapes, lines, fills, shadows | Works | Common shapes. Some freeforms become rectangles. |
 | Pictures | Mostly works | PNG, JPEG, BMP. PICT and some clip art may look wrong. |
-| Tables | Partly | Real files with tables open, but cell text is not drawn yet. |
+| Tables | Partly | In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. |
 | WordArt | Partly | Arched or circular WordArt comes out straight. |
 | Numbered lists, custom tab stops | Not yet | Lost on import. |
 | Save as `.designcraft` and reopen | Works | Tested after a full restart. |
@@ -69,7 +71,7 @@ The full list is in [Known limitations](docs/KNOWN-LIMITATIONS.md).
 
 ## In progress
 
-We are using every test file we have to find out why files open with warnings, and fixing the biggest causes first. On Windows we ran all 24 of Apache's public test files: 19 open with warnings, 2 are refused as too old, and 3 are damaged test files that are correctly rejected. The biggest known gaps are table cell text (8 of the 24 files), table fills and borders, and warnings that are hard to understand. Numbered lists, tab stops and curved WordArt need sample files. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
+We are using every test file we have to find out why files open with warnings, and fixing the biggest causes first. Of 24 real Apache test files: 9 opened with only notes about formatting settings we do not understand and skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. The 9 are not a claim that they match Publisher; we have not compared them with Publisher. Earlier counts called these 9 'warnings'; only the labelling changed, not the importer's fidelity. In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. Numbered lists, tab stops and curved WordArt need sample files. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
 
 ## Install
 

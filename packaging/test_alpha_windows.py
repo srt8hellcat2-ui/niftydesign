@@ -47,7 +47,9 @@ class AlphaPackage(unittest.TestCase):
                              'ONE Windows 11 PC', 'one inkjet', 'ASSETS.md',
                              'from Publisher 2002 and newer', 'never modifies the original file on disk',
                              'not every loss gives a warning',
-                             '19 opened with warnings', 'numbered lists', 'custom tab stops',
+                             '9 opened with only notes', '10 opened with warnings',
+                             "Earlier counts called these 9 'warnings'", 'not a claim that they match Publisher',
+                             'cell text is now drawn', 'about 0.01 inch', 'numbered lists', 'custom tab stops',
                              'cell', 'WordArt', 'WMF/EMF pictures', '97-2000', 'personal information']:
                     self.assertIn(text, readme)
             (stage / 'README-ALPHA.txt').write_text('modified')

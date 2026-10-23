@@ -3,13 +3,22 @@
 
 NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer, lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.9.0 by the ArtCraft team, with a Publisher importer added. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
 
+## What changed since alpha.1
+
+- Table cell text is now drawn.
+- Added the converted-copy notice and import notes.
+- Clearer note wording for skipped formatting settings.
+- Status bar message fixes.
+- Test-only maintenance.
+- Desktop demo workflow fix.
+
 ## This is a test build, and we need your help
 
 The maintainer has run this app on one Windows 11 PC with one inkjet printer. There it launched, opened Apache's public Sample2.pub test file, a flyer and a business card were built in it, saved, reopened after a restart, exported to PDF and printed. That is the only Windows testing so far, so you may find problems we have not. We also have no collection of real people's Publisher files: so far we tested with public Apache POI sample files and with files we generated. That is why we are asking you to try your own files and tell us what happens. Whatever you find, good or bad, is useful.
 
 ## What opening a file does
 
-Opening a .pub never modifies your original file on disk. NiftyDesign opens a converted copy as a new, unsaved document. That copy can look different from what Publisher shows. Some features are lost or simplified (table cell text, curved WordArt, numbered lists and tab stops, page numbers and dates, for example), and not every loss gives a warning. Always compare it with your original. Publisher 97, 98 and 2000 files are refused.
+Opening a .pub never modifies your original file on disk. NiftyDesign opens a converted copy as a new, unsaved document. That copy can look different from what Publisher shows. Some features are lost or simplified (table fills, borders and padding, curved WordArt, numbered lists and tab stops, page numbers and dates, for example), and not every loss gives a warning. Always compare it with your original. Publisher 97, 98 and 2000 files are refused.
 
 ## Unsigned download, SmartScreen and Smart App Control
 
@@ -22,7 +31,7 @@ On Windows 11 PCs where Smart App Control is turned On, Windows can block an uns
 Download the zip and its separate `.zip.sha256` file into the same folder. In PowerShell, change the version below to the version you downloaded:
 
 ```powershell
-$zip = 'NiftyDesign-0.9.0-nifty-alpha.1-windows-x64.zip'
+$zip = 'NiftyDesign-0.9.0-nifty-alpha.2-windows-x64.zip'
 $line = (Get-Content -LiteralPath "$zip.sha256").Trim()
 $hash, $filename = $line -split '  ', 2
 if ($filename -ne $zip -or $hash -notmatch '^[0-9a-fA-F]{64}$' -or
