@@ -3,7 +3,7 @@
 
 <p align="center"><b>Open Your Publisher Files · Edit Them · Export PDF · Save as .designcraft</b></p>
 
-<p align="center">Open your Microsoft Publisher (.pub) files, edit them, and export PDF. Free, open source, for Windows.<br><b>Works with files from Publisher 2002 and newer.</b> Publisher 97, 98 and 2000 files are not supported yet.<br>NiftyDesign is an early, unofficial test build. You do not need Publisher installed.<br><i>Built on DesignCraft by the ArtCraft team.</i></p>
+<p align="center">A free, open-source alternative for opening, editing and converting Microsoft Publisher (.pub) files to PDF on Windows, with no Publisher needed.<br><b>Works with files from Publisher 2002 and newer.</b> Publisher 97, 98 and 2000 files are not supported yet.<br>NiftyDesign is an early, unofficial test build. You do not need Publisher installed.<br><i>Built on DesignCraft by the ArtCraft team.</i></p>
 
 <p align="center">
   <img alt="status: unofficial alpha" src="https://img.shields.io/badge/status-unofficial%20alpha-d9822b">
@@ -98,6 +98,26 @@ You are among the first to run this. Whatever you find, good or bad, helps.
 4. Looking for files? Here is what helps most: [docs/SAMPLE-REQUEST.md](docs/SAMPLE-REQUEST.md). Files from Publisher 2002 to 2010, and files with tables, numbered lists, WordArt or tab stops, are especially useful.
 
 How we handle reports: [docs/TRIAGE.md](docs/TRIAGE.md). Security problems: [SECURITY.md](SECURITY.md).
+
+## Common questions
+
+**How do I open a .pub file without Microsoft Publisher?**
+Download NiftyDesign for Windows from the [latest release](https://github.com/srt8hellcat2-ui/niftydesign/releases), start it, choose **Open** and pick your .pub file. It works with files from Publisher 2002 and newer. It opens a converted copy as a new, unsaved document and never changes your original file.
+
+**Can I convert a .pub file to PDF for free?**
+Yes. Open the file, then export PDF. Check the PDF against your original: some features, such as table fills and borders, curved WordArt and numbered lists, are not converted yet. See [Known limitations](docs/KNOWN-LIMITATIONS.md).
+
+**Is there a free alternative to Microsoft Publisher?**
+NiftyDesign is an early, unofficial alpha built to open and edit existing .pub files. It is not a full Publisher replacement. Other free tools that can import Publisher files include LibreOffice Draw and Scribus.
+
+**Does it open old Publisher 97, 98 or 2000 files?**
+Not yet. Those files are refused with a message. Re-save them in Publisher 2002 or newer first.
+
+**Microsoft is retiring Publisher. What happens to my files?**
+Microsoft has announced that Publisher will be retired and lose support on October 1, 2026. Your .pub files stay on your computer, but the program that edits them goes away. NiftyDesign is one way to keep opening them. Keep your original files either way.
+
+**Why does Windows warn me or block it?**
+The alpha is not code-signed yet, so Windows SmartScreen or Smart App Control may warn about it or block it the first time. The [install steps](#install) explain what to do, and [Known limitations](docs/KNOWN-LIMITATIONS.md) says what we saw on our own test PC.
 
 ## Credits and license
 
