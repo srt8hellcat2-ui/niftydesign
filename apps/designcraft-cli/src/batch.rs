@@ -10,7 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-const HELP: &str = "usage: designcraft-cli batch-convert INPUT_DIR --out OUTPUT_DIR [--timeout-seconds N]\nRecursively converts .pub files (case-insensitive) to PDF and .designcraft.\nOutputs preserve subfolders and append .pdf/.designcraft to the complete input name.\nWrites report.csv with file, pages, objects, status, warnings, pdf_path, failure_reason and notes; existing outputs/reports are never overwritten.\nSymbolic links are not followed. Each file has a separate worker and a 120-second default timeout.\nProcesses all files, then exits unsuccessfully if any failed.";
+const HELP: &str = "usage: designcraft-cli batch-convert INPUT_DIR --out OUTPUT_DIR [--timeout-seconds N]\nRecursively converts .pub files (case-insensitive) to PDF and .designcraft.\nOutputs preserve subfolders and append .pdf/.designcraft to the complete input name.\nWrites report.csv with file, pages, objects, status, warnings, pdf_path, failure_reason, notes and notice; existing outputs/reports are never overwritten.\nSymbolic links are not followed. Each file has a separate worker and a 120-second default timeout.\nProcesses all files, then exits unsuccessfully if any failed.";
 const MAX_FILES: usize = 100_000;
 const MAX_INPUT: u64 = 512 * 1024 * 1024;
 const MAX_RESULT: u64 = 2 * 1024 * 1024;
@@ -24,6 +24,7 @@ struct Outcome {
     failed: bool,
     warnings: Vec<String>,
     notes: Vec<String>,
+    notice: Option<String>,
 }
 impl Outcome {
     fn failure(message: impl Into<String>) -> Self {
@@ -66,6 +67,9 @@ impl Outcome {
         }
     }
     fn add_warnings(&mut self, value: &Value) {
+        if let Some(notice) = value.get("notice").and_then(Value::as_str) {
+            self.notice = Some(notice.chars().take(1000).collect());
+        }
         for note in value.get("notes").and_then(Value::as_array).into_iter().flatten() {
             if let Some(message) = note.as_str() {
                 self.note(message);
@@ -87,7 +91,7 @@ impl Outcome {
         }
     }
     fn value(&self) -> Value {
-        json!({"pages": self.pages, "objects": self.objects, "failed": self.failed, "warnings": self.warnings, "notes": self.notes, "failure_reason": self.failure_reason})
+        json!({"pages": self.pages, "objects": self.objects, "failed": self.failed, "warnings": self.warnings, "notes": self.notes, "notice": self.notice, "failure_reason": self.failure_reason})
     }
     fn from_value(v: Value) -> Result<Self, String> {
         let failed = v.get("failed").and_then(Value::as_bool).ok_or("invalid worker result")?;
@@ -239,7 +243,7 @@ fn csv(value: &str) -> String {
 fn row(report: &mut File, name: &Path, outcome: &Outcome) -> Result<(), String> {
     writeln!(
         report,
-        "{},{},{},{},{},{},{},{}",
+        "{},{},{},{},{},{},{},{},{}",
         csv(&name.to_string_lossy()),
         outcome.pages.map(|n| n.to_string()).unwrap_or_default(),
         outcome.objects.map(|n| n.to_string()).unwrap_or_default(),
@@ -247,7 +251,8 @@ fn row(report: &mut File, name: &Path, outcome: &Outcome) -> Result<(), String> 
         csv(&outcome.warnings.join("\n")),
         csv(&outcome.pdf_path.as_ref().map(|p| p.to_string_lossy()).unwrap_or_default()),
         csv(outcome.failure_reason.as_deref().unwrap_or_default()),
-        csv(&outcome.notes.join("\n"))
+        csv(&outcome.notes.join("\n")),
+        csv(outcome.notice.as_deref().unwrap_or_default())
     )
     .map_err(|e| format!("write report: {e}"))?;
     report.flush().map_err(|e| format!("flush report: {e}"))
@@ -369,7 +374,7 @@ pub(crate) fn run(args: &[String]) -> Result<(), String> {
         .create_new(true)
         .open(&report_path)
         .map_err(|e| format!("create {} (existing reports are not overwritten): {e}", report_path.display()))?;
-    writeln!(report, "file,pages,objects,status,warnings,pdf_path,failure_reason,notes").map_err(|e| e.to_string())?;
+    writeln!(report, "file,pages,objects,status,warnings,pdf_path,failure_reason,notes,notice").map_err(|e| e.to_string())?;
     let scratch_path = output.join(format!(".batch-work-{}", std::process::id()));
     fs::create_dir(&scratch_path).map_err(|e| format!("create batch workspace: {e}"))?;
     let scratch = Scratch(scratch_path);
@@ -434,10 +439,12 @@ mod tests {
     #[test]
     fn informational_notes_round_trip_without_becoming_loss_warnings() {
         let mut out = Outcome { pages: Some(1), objects: Some(2), ..Default::default() };
+        out.notice = Some(designcraft_pub::CONVERSION_NOTICE.into());
         out.note("text kept; fields 0x30");
         out.note("text kept; fields 0x30");
         let back = Outcome::from_value(out.value()).unwrap();
         assert_eq!(back.notes, ["text kept; fields 0x30"]);
+        assert_eq!(back.notice.as_deref(), Some(designcraft_pub::CONVERSION_NOTICE));
         assert!(back.warnings.is_empty());
         assert_eq!(back.status(), "converted OK");
         let mut loss = back;

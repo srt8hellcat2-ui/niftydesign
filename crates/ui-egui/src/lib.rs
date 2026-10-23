@@ -1562,6 +1562,11 @@ impl DesignApp {
             if !presenting {
                 chrome::doc_tabs(self, ui);
             }
+            if !presenting && let Some(notice) = self.session.active().and_then(|d| d.import_notice) {
+                ui.group(|ui| {
+                    ui.label(egui::RichText::new(notice).small());
+                });
+            }
             if let Some(document) = self.session.active()
                 && !document.import_notes.is_empty()
                 && !presenting
@@ -1822,6 +1827,24 @@ pub fn drop_key_name_text(raw: &mut egui::RawInput, text_input_focused: bool) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn publisher_notice_is_visible_without_a_modal_and_stays_with_its_document() {
+        use egui_kittest::kittest::Queryable as _;
+        let mut session = Session::new();
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../pub/tests/data/hello-nifty.pub");
+        let result = session.execute("file.open", &json!({"path":path.to_string_lossy()})).unwrap();
+        let notice = result["notice"].as_str().unwrap().to_string();
+        let mut h = test_window::open(DesignApp::new(session, Services::default()), egui::vec2(1200.0, 800.0));
+        h.run_steps(3);
+        assert!(h.get_by_label(&notice).rect().width() > 0.0);
+        assert!(h.state().app.ui.dialog.is_none(), "the notice is not a modal dialog");
+        h.state_mut().app.run("document.inspect", json!({})).unwrap();
+        h.run_steps(2);
+        assert!(h.get_by_label(&notice).rect().width() > 0.0);
+        h.state_mut().app.run("file.new", json!({})).unwrap();
+        assert!(h.state().app.session.active().unwrap().import_notice.is_none());
+    }
 
     /// The Control panel's two-row groups were centred as if they were one row tall, so the second
     /// row hung below the panel and was cut off.

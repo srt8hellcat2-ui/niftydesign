@@ -359,11 +359,12 @@ pub(crate) fn open_pub(s: &mut Session, p: &Value) -> Result<Value> {
     }
     let mut state = DocState::new(d, None);
     state.import_notes = imp.notes.clone();
+    state.import_notice = Some(designcraft_pub::CONVERSION_NOTICE);
     state.import_save_path = str_param(p, "path").filter(|_| str_param(p, "base64").is_none()).map(|path| {
         std::path::absolute(path).unwrap_or_else(|_| std::path::PathBuf::from(path)).with_extension("designcraft").to_string_lossy().into_owned()
     });
     let i = s.add_document(state);
-    Ok(json!({"index": i, "warnings": imp.warnings, "notes": imp.notes}))
+    Ok(json!({"index": i, "warnings": imp.warnings, "notes": imp.notes, "notice": designcraft_pub::CONVERSION_NOTICE}))
 }
 
 /// An InDesign document or template (.indd, .indt): known by its signature, or by its name when
@@ -403,6 +404,20 @@ mod tests {
         })?;
         let bytes = designcraft_idml::export_idml_with(&session.doc()?.doc, &designcraft_idml::ExportOptions { embed_images });
         Ok((bytes, png))
+    }
+
+    #[test]
+    fn publisher_open_always_returns_notice_without_changing_diagnostics() {
+        let bytes = include_bytes!("../../../pub/tests/data/hello-nifty.pub");
+        let expected = designcraft_pub::import_pub(bytes).unwrap();
+        let mut session = Session::new();
+        let result = session.execute("file.openBytes", &json!({"name":"flyer.pub", "base64":base64_encode(bytes)})).unwrap();
+        assert_eq!(result["notice"], designcraft_pub::CONVERSION_NOTICE);
+        assert_eq!(result["warnings"], json!(expected.warnings));
+        assert_eq!(result["notes"], json!(expected.notes));
+        assert_eq!(session.active().unwrap().import_notice, Some(designcraft_pub::CONVERSION_NOTICE));
+        session.execute("file.new", &json!({})).unwrap();
+        assert!(session.active().unwrap().import_notice.is_none());
     }
 
     #[test]

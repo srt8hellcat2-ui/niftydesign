@@ -77,6 +77,9 @@ pub enum PubError {
 
 pub type Result<T> = std::result::Result<T, PubError>;
 
+/// Always display for an opened Publisher conversion, independently of diagnostics.
+pub const CONVERSION_NOTICE: &str = "This is a converted copy. It can look different from what Publisher shows; some features are lost or simplified, and not every loss gives a warning. Compare it with your original.";
+
 /// An imported publication and what the import could not bring over.
 #[derive(Debug)]
 pub struct Imported {

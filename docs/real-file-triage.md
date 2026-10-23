@@ -1,6 +1,14 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # Real-file robustness triage — 2026-10-19, updated for stored row endings
 
+## T4 converted-copy notice — 2026-10-23
+
+Every successful `.pub` open now returns a separate notice in the engine result. The active imported document shows it as non-modal information in the app; the CLI batch CSV appends a `notice` column. It is not a new loss warning and does not replace or suppress warnings/notes:
+
+> This is a converted copy. It can look different from what Publisher shows; some features are lost or simplified, and not every loss gives a warning. Compare it with your original.
+
+Engine and UI-harness tests check delivery, retained diagnostics, visible non-modal text and document association; a CLI test checks report delivery/round-trip. All **19** successful real imports carry the notice. Before/after real counts are **9 OK with notes / 10 warnings / 2 refused / 3 damaged**, **31 pages / 280 objects**; each file's status, warning list and notes match T3. Before/after corpus scores remain **142/142, 152/152, 111/152, 52/52, 111/111** (truth files scored only). Native Windows appearance is not tested here.
+
 ## T3 diagnostic-severity update — 2026-10-23
 
 Before/after corpus: **142/142 imports, 152/152 objects, 111/152 positions, 52/52 texts, 111/111 styles**, unchanged. Real batch before **0 OK / 19 warnings / 2 refused / 3 damaged**; after **9 OK with informational notes / 10 warnings / 2 refused / 3 damaged**. Successful output totals remain **31 pages / 280 objects**. All **19** successful native document JSONs match T1 outputs after excluding creation/modification timestamps. This is diagnostic reclassification, not a fidelity improvement. Every unidentified formatting field remains in the separate notes column/array; named, confirmed losses remain full warnings. Controlled conversion status changes from **79 OK / 63 warnings** to **130 OK / 12 warnings**, with **142/142** conversions and unchanged corpus scores.
@@ -39,7 +47,7 @@ All eight source tables link Contents sequence **299** to Quill story **6**, wit
 
 Reused only the existing 24 Apache binaries at `bf7c9b6a1490046517cbd8e1504e702a89be4bc9` and the controlled binaries at `0ccdf27`; hashes of all 24 Apache files were checked against `.github/test-data/publisher-fixtures.csv`. Inputs, CSVs, PDFs, stream extracts and rendered images stay outside the checkout. The corpus runner used Publisher `truth/*.json` solely to score imports before/after; no encoding was inferred from those files. Existing source provenance is in `pub-format/SOURCES.md`; that protected file was not edited.
 
-T2 changes no importer behavior, so its before/after numbers are the T1-after column above. No fill/border interpretation was added. T3–T8 were not started because the task requires stopping at an item that cannot be verified.
+T2 changes no importer behavior, so its before/after numbers are the T1-after column above. No fill/border interpretation was added. At the end of the earlier T1 run, T3–T8 had not been started because of its stop-at-unverified instruction. The subsequent T3–T8 entries supersede that historical status.
 
 ## Inputs and current run
 
