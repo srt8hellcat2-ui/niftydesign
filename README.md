@@ -27,7 +27,7 @@
 
 ## What this is, and what to expect
 
-NiftyDesign is the full DesignCraft desktop app with a Publisher importer added. You can open a `.pub` file, edit it, save it as a `.designcraft` document, and export a PDF. Opening a `.pub` never changes the original. It opens as a new, unsaved document.
+NiftyDesign is the full DesignCraft desktop app with a Publisher importer added. You can open a `.pub` file, edit it, save it as a `.designcraft` document, and export a PDF. Opening a `.pub` never modifies your original file on disk. NiftyDesign opens a converted copy as a new, unsaved document. That copy can look different from what Publisher shows, because some features are lost or simplified (see the table below). Always compare it with your original.
 
 This is an alpha, and it is honest about that:
 
