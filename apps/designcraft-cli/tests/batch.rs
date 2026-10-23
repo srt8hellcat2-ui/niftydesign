@@ -52,7 +52,7 @@ fn recursive_batch_continues_after_bad_input_and_writes_both_valid_formats() {
         assert_eq!(designcraft_render::pdf_page_count(&pdf), Some(1));
     }
     let report = fs::read_to_string(output.join("report.csv")).unwrap();
-    assert!(report.starts_with("file,pages,objects,status,warnings,pdf_path,failure_reason\n"));
+    assert!(report.starts_with("file,pages,objects,status,warnings,pdf_path,failure_reason,notes\n"));
     assert!(report.contains("\"00-bad.pub\",,,\"failed\""));
     assert!(report.contains(&format!("\"{}\",1,2,", Path::new("nested,folder").join("same.PUB").display())));
     assert!(report.contains("import:"));
@@ -97,7 +97,7 @@ fn empty_folder_writes_a_zero_file_report_and_help_is_noninteractive() {
     assert!(result.status.success());
     let summary: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
     assert_eq!(summary["files"], 0);
-    assert_eq!(fs::read_to_string(output.join("report.csv")).unwrap(), "file,pages,objects,status,warnings,pdf_path,failure_reason\n");
+    assert_eq!(fs::read_to_string(output.join("report.csv")).unwrap(), "file,pages,objects,status,warnings,pdf_path,failure_reason,notes\n");
     assert!(Command::new(env!("CARGO_BIN_EXE_designcraft-cli")).args(["batch-convert", "--help"]).status().unwrap().success());
 }
 
@@ -116,8 +116,8 @@ fn real_publisher_corpus_keeps_expected_status_counts() {
     assert_eq!(result.status.code(), Some(1), "refused and damaged files must be reported after processing the whole set");
     let summary: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
     assert_eq!(summary["files"], 24);
-    assert_eq!(summary["converted_ok"], 0);
-    assert_eq!(summary["converted_with_warnings"], 19);
+    assert_eq!(summary["converted_ok"], 9);
+    assert_eq!(summary["converted_with_warnings"], 10);
     assert_eq!(summary["failed"], 5, "the CLI combines two refusals with three damaged-file failures");
 
     const LIMIT: u64 = 16 * 1024 * 1024;

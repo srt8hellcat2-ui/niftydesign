@@ -358,11 +358,12 @@ pub(crate) fn open_pub(s: &mut Session, p: &Value) -> Result<Value> {
         d.title = title;
     }
     let mut state = DocState::new(d, None);
+    state.import_notes = imp.notes.clone();
     state.import_save_path = str_param(p, "path").filter(|_| str_param(p, "base64").is_none()).map(|path| {
         std::path::absolute(path).unwrap_or_else(|_| std::path::PathBuf::from(path)).with_extension("designcraft").to_string_lossy().into_owned()
     });
     let i = s.add_document(state);
-    Ok(json!({"index": i, "warnings": imp.warnings}))
+    Ok(json!({"index": i, "warnings": imp.warnings, "notes": imp.notes}))
 }
 
 /// An InDesign document or template (.indd, .indt): known by its signature, or by its name when

@@ -203,6 +203,7 @@ fn corpus_import_report() {
     assert!(!files.is_empty(), "no .pub files in PUB_CORPUS");
     let (mut ok, mut failed) = (0, 0);
     let mut total = Score::default();
+    let mut note_counts: std::collections::BTreeMap<String, usize> = Default::default();
     let mut warning_counts: std::collections::BTreeMap<String, usize> = Default::default();
     for f in &files {
         let name = f.file_name().unwrap().to_string_lossy().to_string();
@@ -224,6 +225,9 @@ fn corpus_import_report() {
                     its.len(),
                     imp.warnings.len()
                 );
+                for note in &imp.notes {
+                    *note_counts.entry(note.clone()).or_default() += 1;
+                }
                 for w in &imp.warnings {
                     *warning_counts.entry(w.clone()).or_default() += 1;
                 }
@@ -267,6 +271,9 @@ fn corpus_import_report() {
         total.style_ok,
         total.style_checked
     );
+    for (note, n) in note_counts {
+        println!("NOTE  {n:4}× {note}");
+    }
     for (w, n) in warning_counts {
         println!("WARN  {n:4}× {w}");
     }

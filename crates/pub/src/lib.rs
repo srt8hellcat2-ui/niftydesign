@@ -83,6 +83,8 @@ pub struct Imported {
     pub document: Document,
     /// One line per kind of problem that did not stop the import.
     pub warnings: Vec<String>,
+    /// Informational diagnostics for unidentified formatting settings; field IDs are retained.
+    pub notes: Vec<String>,
 }
 
 const CFB_SIGNATURE: [u8; 8] = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
@@ -147,13 +149,26 @@ pub fn import_pub(bytes: &[u8]) -> Result<Imported> {
     b.warnings.extend(dr.warnings.iter().cloned());
     b.build()?;
     let mut warnings: Vec<String> = Vec::new();
+    let mut notes = Vec::new();
     let mut seen = HashSet::new();
     for w in b.warnings {
         if seen.insert(w.clone()) {
-            warnings.push(w);
+            if let Some((kind, rest)) = w.strip_prefix("Publisher ").and_then(|w| w.split_once(" formatting is unsupported for fields: "))
+                && matches!(kind, "character" | "paragraph")
+                && let Some((fields, detail)) = rest.split_once(". Supported attributes were retained.")
+            {
+                notes.push(format!(
+                    "A formatting setting this version does not understand was skipped; the text is kept. Publisher {kind} fields: {fields}."
+                ));
+                if !detail.trim().is_empty() {
+                    warnings.push(format!("Publisher {kind} formatting loss: {}", detail.trim()));
+                }
+            } else {
+                warnings.push(w);
+            }
         }
     }
-    Ok(Imported { document: b.doc, warnings })
+    Ok(Imported { document: b.doc, warnings, notes })
 }
 
 struct Builder<'a> {

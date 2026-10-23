@@ -396,7 +396,7 @@ mod tests {
         };
         let mut b = Builder::new(&c, &q, &dr).unwrap();
         b.build().unwrap();
-        crate::Imported { document: b.doc, warnings: b.warnings }
+        crate::Imported { document: b.doc, warnings: b.warnings, notes: Vec::new() }
     }
     fn dimension_properties(ends: &[u32], sizes: &[u32], width: u32, height: u32) -> Vec<u8> {
         fn number(key: u8, value: u32) -> Vec<u8> {

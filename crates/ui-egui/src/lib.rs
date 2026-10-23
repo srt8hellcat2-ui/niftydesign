@@ -1562,6 +1562,16 @@ impl DesignApp {
             if !presenting {
                 chrome::doc_tabs(self, ui);
             }
+            if let Some(document) = self.session.active()
+                && !document.import_notes.is_empty()
+                && !presenting
+            {
+                ui.collapsing(format!("Import notes ({})", document.import_notes.len()), |ui| {
+                    for note in &document.import_notes {
+                        ui.small(note);
+                    }
+                });
+            }
             let split_layout = (self.split && !presenting)
                 .then(|| {
                     craft_ui::layout::split_rect(

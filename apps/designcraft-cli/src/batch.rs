@@ -10,7 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-const HELP: &str = "usage: designcraft-cli batch-convert INPUT_DIR --out OUTPUT_DIR [--timeout-seconds N]\nRecursively converts .pub files (case-insensitive) to PDF and .designcraft.\nOutputs preserve subfolders and append .pdf/.designcraft to the complete input name.\nWrites report.csv with file, pages, objects, status, warnings, pdf_path and failure_reason; existing outputs/reports are never overwritten.\nSymbolic links are not followed. Each file has a separate worker and a 120-second default timeout.\nProcesses all files, then exits unsuccessfully if any failed.";
+const HELP: &str = "usage: designcraft-cli batch-convert INPUT_DIR --out OUTPUT_DIR [--timeout-seconds N]\nRecursively converts .pub files (case-insensitive) to PDF and .designcraft.\nOutputs preserve subfolders and append .pdf/.designcraft to the complete input name.\nWrites report.csv with file, pages, objects, status, warnings, pdf_path, failure_reason and notes; existing outputs/reports are never overwritten.\nSymbolic links are not followed. Each file has a separate worker and a 120-second default timeout.\nProcesses all files, then exits unsuccessfully if any failed.";
 const MAX_FILES: usize = 100_000;
 const MAX_INPUT: u64 = 512 * 1024 * 1024;
 const MAX_RESULT: u64 = 2 * 1024 * 1024;
@@ -23,6 +23,7 @@ struct Outcome {
     failure_reason: Option<String>,
     failed: bool,
     warnings: Vec<String>,
+    notes: Vec<String>,
 }
 impl Outcome {
     fn failure(message: impl Into<String>) -> Self {
@@ -50,7 +51,26 @@ impl Outcome {
             }
         }
     }
+    fn note(&mut self, message: impl Into<String>) {
+        let original = message.into();
+        let mut message: String = original.chars().take(4000).collect();
+        if original.chars().nth(4000).is_some() {
+            message.push_str("… [truncated]");
+        }
+        if !self.notes.contains(&message) {
+            if self.notes.len() < 200 {
+                self.notes.push(message);
+            } else if self.notes.len() == 200 {
+                self.notes.push("Additional notes omitted (report limit).".into());
+            }
+        }
+    }
     fn add_warnings(&mut self, value: &Value) {
+        for note in value.get("notes").and_then(Value::as_array).into_iter().flatten() {
+            if let Some(message) = note.as_str() {
+                self.note(message);
+            }
+        }
         for warning in value.get("warnings").and_then(Value::as_array).into_iter().flatten() {
             if let Some(message) = warning.as_str() {
                 self.warn(message);
@@ -67,7 +87,7 @@ impl Outcome {
         }
     }
     fn value(&self) -> Value {
-        json!({"pages": self.pages, "objects": self.objects, "failed": self.failed, "warnings": self.warnings, "failure_reason": self.failure_reason})
+        json!({"pages": self.pages, "objects": self.objects, "failed": self.failed, "warnings": self.warnings, "notes": self.notes, "failure_reason": self.failure_reason})
     }
     fn from_value(v: Value) -> Result<Self, String> {
         let failed = v.get("failed").and_then(Value::as_bool).ok_or("invalid worker result")?;
@@ -92,6 +112,9 @@ impl Outcome {
         let mut out = Self { pages, objects, failed, failure_reason, ..Self::default() };
         if !v.get("warnings").is_some_and(Value::is_array) {
             return Err("invalid worker warnings".into());
+        }
+        if v.get("notes").is_some_and(|n| n.as_array().is_none_or(|a| a.len() > 201 || a.iter().any(|n| !n.is_string()))) {
+            return Err("invalid worker notes".into());
         }
         out.add_warnings(&v);
         Ok(out)
@@ -216,14 +239,15 @@ fn csv(value: &str) -> String {
 fn row(report: &mut File, name: &Path, outcome: &Outcome) -> Result<(), String> {
     writeln!(
         report,
-        "{},{},{},{},{},{},{}",
+        "{},{},{},{},{},{},{},{}",
         csv(&name.to_string_lossy()),
         outcome.pages.map(|n| n.to_string()).unwrap_or_default(),
         outcome.objects.map(|n| n.to_string()).unwrap_or_default(),
         csv(outcome.status()),
         csv(&outcome.warnings.join("\n")),
         csv(&outcome.pdf_path.as_ref().map(|p| p.to_string_lossy()).unwrap_or_default()),
-        csv(outcome.failure_reason.as_deref().unwrap_or_default())
+        csv(outcome.failure_reason.as_deref().unwrap_or_default()),
+        csv(&outcome.notes.join("\n"))
     )
     .map_err(|e| format!("write report: {e}"))?;
     report.flush().map_err(|e| format!("flush report: {e}"))
@@ -345,7 +369,7 @@ pub(crate) fn run(args: &[String]) -> Result<(), String> {
         .create_new(true)
         .open(&report_path)
         .map_err(|e| format!("create {} (existing reports are not overwritten): {e}", report_path.display()))?;
-    writeln!(report, "file,pages,objects,status,warnings,pdf_path,failure_reason").map_err(|e| e.to_string())?;
+    writeln!(report, "file,pages,objects,status,warnings,pdf_path,failure_reason,notes").map_err(|e| e.to_string())?;
     let scratch_path = output.join(format!(".batch-work-{}", std::process::id()));
     fs::create_dir(&scratch_path).map_err(|e| format!("create batch workspace: {e}"))?;
     let scratch = Scratch(scratch_path);
@@ -407,6 +431,19 @@ pub(crate) fn run(args: &[String]) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn informational_notes_round_trip_without_becoming_loss_warnings() {
+        let mut out = Outcome { pages: Some(1), objects: Some(2), ..Default::default() };
+        out.note("text kept; fields 0x30");
+        out.note("text kept; fields 0x30");
+        let back = Outcome::from_value(out.value()).unwrap();
+        assert_eq!(back.notes, ["text kept; fields 0x30"]);
+        assert!(back.warnings.is_empty());
+        assert_eq!(back.status(), "converted OK");
+        let mut loss = back;
+        loss.warn("page numbers lost");
+        assert_eq!(loss.status(), "converted with warnings");
+    }
     #[test]
     fn csv_quotes_commas_quotes_and_newlines_and_names_do_not_collide() {
         assert_eq!(csv("a,\"b\n"), "\"a,\"\"b\n\"");

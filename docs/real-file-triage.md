@@ -1,6 +1,10 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # Real-file robustness triage — 2026-10-19, updated for stored row endings
 
+## T3 diagnostic-severity update — 2026-10-23
+
+Before/after corpus: **142/142 imports, 152/152 objects, 111/152 positions, 52/52 texts, 111/111 styles**, unchanged. Real batch before **0 OK / 19 warnings / 2 refused / 3 damaged**; after **9 OK with informational notes / 10 warnings / 2 refused / 3 damaged**. Successful output totals remain **31 pages / 280 objects**. All **19** successful native document JSONs match T1 outputs after excluding creation/modification timestamps. This is diagnostic reclassification, not a fidelity improvement. Every unidentified formatting field remains in the separate notes column/array; named, confirmed losses remain full warnings. Controlled conversion status changes from **79 OK / 63 warnings** to **130 OK / 12 warnings**, with **142/142** conversions and unchanged corpus scores.
+
 ## Deferred T2: exact paired-sample request — 2026-10-23
 
 Needed: redistributable Publisher 2002-or-newer pairs with the same small 2×2 unmerged table, distinctive text in every cell, and multiple ordinary text boxes outside it. Keep text, fonts, grid, dimensions and all unrelated settings identical within each pair. Supply the original `.pub` files plus a plain description identifying the row/column and the one changed setting; a Publisher screenshot or PDF can identify the intended appearance, but is not an encoding specification.
