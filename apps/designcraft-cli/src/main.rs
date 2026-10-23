@@ -78,7 +78,10 @@ non-zero exit when a step fails."#;
 
 /// The links line under the usage block.
 fn usage_footer() -> String {
-    format!("\nNiftyDesign source: {}", designcraft_engine::links::GITHUB)
+    format!(
+        "\nNiftyDesign opens and edits Microsoft Publisher (.pub) files from Publisher 2002 and newer.\nNiftyDesign source: {}",
+        designcraft_engine::links::GITHUB
+    )
 }
 
 /// stdout went away. A reader that stopped early (a closed pipe) ends the program quietly, as

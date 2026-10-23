@@ -45,6 +45,8 @@ class AlphaPackage(unittest.TestCase):
                 for text in [alpha.VERSION, 'https://github.com/srt8hellcat2-ui/niftydesign/issues', 'UNVERIFIED', 'SmartScreen',
                              '.zip.sha256', 'before extracting',
                              'ONE Windows 11 PC', 'one inkjet', 'ASSETS.md',
+                             'from Publisher 2002 and newer', 'never modifies the original file on disk',
+                             'not every loss gives a warning',
                              '19 opened with warnings', 'numbered lists', 'custom tab stops',
                              'cell', 'WordArt', 'WMF/EMF pictures', '97-2000', 'personal information']:
                     self.assertIn(text, readme)

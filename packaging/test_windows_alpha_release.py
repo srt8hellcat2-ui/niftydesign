@@ -59,6 +59,8 @@ class AlphaRelease(unittest.TestCase):
         with self.assertRaises(ValueError):
             release.reject_forbidden_strings(io.BytesIO(b'x' * (1024 * 1024 - 3) +
                                                         release.FORBIDDEN_STRINGS[0].encode()), 'boundary.exe')
+        with self.assertRaises(ValueError):
+            release.reject_forbidden_strings(io.BytesIO(b'older Microsoft\r\nPublisher'), 'wrapped.txt')
         release.reject_forbidden_strings(io.BytesIO(b'https://github.com/srt8hellcat2-ui/niftydesign'), 'good.txt')
 
     def test_bad_executable_never_reaches_upload(self):
