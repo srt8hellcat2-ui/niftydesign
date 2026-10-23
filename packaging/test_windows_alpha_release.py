@@ -12,10 +12,10 @@ import windows_alpha_release as release
 
 class AlphaRelease(unittest.TestCase):
     def test_rejects_mismatched_or_unsafe_version_before_creating_files(self):
-        for version in ('1.0.0', '0.12.0-nifty-alpha.2', '../bad', '0.12.0-nifty-alpha.1;whoami'):
+        for version in ('1.0.0', '0.12.0-nifty-alpha.2', '../bad', '0.12.0-nifty-alpha.3;whoami'):
             with self.assertRaises(ValueError): release.validate_version(version)
         self.assertEqual(release.validate_version(release.alpha.VERSION),
-                         'NiftyDesign-0.12.0-nifty-alpha.1-windows-x64.zip')
+                         'NiftyDesign-0.12.0-nifty-alpha.3-windows-x64.zip')
 
     def test_copies_complete_zip_and_checksum_into_fresh_upload_directory(self):
         with tempfile.TemporaryDirectory() as temp:
