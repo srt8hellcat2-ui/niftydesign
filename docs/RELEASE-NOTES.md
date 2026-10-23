@@ -3,13 +3,12 @@
 
 NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer, lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.12.0 by the ArtCraft team, with a Publisher importer added. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
 
-## What changed since alpha.1
+## What changed since 0.9.0-nifty-alpha.2
 
-- Table cell text is now drawn.
-- Added the converted-copy notice and import notes.
-- Clearer note wording for skipped formatting settings.
-- Test-only maintenance.
-- Desktop demo workflow fix.
+- Rebuilt on DesignCraft 0.12.0 (it was 0.9.0). Upstream added work on guides and column guides, IDML, paste behaviour, keyboard-shortcut import and the French interface, among other changes.
+- The Publisher importer is unchanged. On our checks it gives the same results as alpha.2: the same scores on the controlled sample files, the same outcome on the 24 real Apache test files (9 with notes, 10 with warnings, 2 refused, 3 damaged), and all 48 table cell texts still present.
+- Documents saved by alpha.2 open, save and reopen in this version without content changes.
+- Not changed: the limits listed below, such as table fills and borders, curved WordArt, numbered lists and tab stops.
 
 ## This is a test build, and we need your help
 
