@@ -75,6 +75,12 @@ File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on m
 - **The SmartScreen / unsigned warning** wording and steps, as seen after downloading the zip through a browser.
 - **That files stay on your computer** (no network use): not stated or tested in the docs.
 
+## Windows Smart App Control can block this app
+
+Windows 11 has a protection called Smart App Control. When it is On, it blocks apps that are not signed or have no reputation yet, and it gives no "Run anyway" option. The message is "An Application Control policy has blocked this file." This happened to us: on the maintainer's PC, with Smart App Control On, the first alpha build ran, but a rebuilt version of the same app (small wording and bug-fix changes, a different file) was blocked. NiftyDesign is not signed yet, so on PCs with Smart App Control On it may not run, and we do not know how many PCs are affected.
+
+Your options: use a PC where Smart App Control is Off, wait for a signed build (we plan to apply for free open-source code signing once the project is public and has a release), or turn Smart App Control off yourself in Windows Security under App and browser control. Turning it off cannot be undone without reinstalling Windows, so we do not recommend it unless you understand the trade-off.
+
 ## Crashes
 
 Please report any crash with what you did just before, at https://github.com/srt8hellcat2-ui/niftydesign/issues. If you can, attach `%APPDATA%\DesignCraft\logs\designcraft.log`.
