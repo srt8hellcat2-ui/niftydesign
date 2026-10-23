@@ -1,6 +1,16 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # Real-file robustness triage — 2026-10-19, updated for stored row endings
 
+## Deferred T2: exact paired-sample request — 2026-10-23
+
+Needed: redistributable Publisher 2002-or-newer pairs with the same small 2×2 unmerged table, distinctive text in every cell, and multiple ordinary text boxes outside it. Keep text, fonts, grid, dimensions and all unrelated settings identical within each pair. Supply the original `.pub` files plus a plain description identifying the row/column and the one changed setting; a Publisher screenshot or PDF can identify the intended appearance, but is not an encoding specification.
+
+- **Cell fills:** baseline with no fill versus the same file with a solid fill in one named cell (e.g. row 1, column 2); a second pair changing only that fill's colour. State exact colour model/values and opacity/tint. Keep table-frame/background fill unchanged.
+- **Cell borders:** separate pairs changing only one named cell edge's visibility, colour, weight, or line style. Include an interior edge and an outside edge; identify both adjacent cells for an interior edge. Keep table-frame stroke unchanged. Do not change several edge properties at once.
+- **Association:** repeat a known one-cell change on a different cell without other edits, so record-to-cell mapping can be tested independently. Include an ordinary text box before and after the table to distinguish story/table associations. A second table can be added as a separate association pair once the one-table cases are established.
+
+No personal information, third-party branding or copied template artwork. A statement that contributors may redistribute these synthetic samples is needed. Padding, merged-cell formatting and other features require separate single-setting pairs; do not combine them with the fill/border pairs above. T2 remains deferred; no fill/border encoding is guessed.
+
 ## T1 validation update — 2026-10-23
 
 Current branch: `codex/importer-improvements`, based on `main@fc1f3f1`. The remaining sections below describe earlier runs.
