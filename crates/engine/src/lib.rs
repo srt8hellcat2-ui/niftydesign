@@ -92,6 +92,10 @@ pub struct DocState {
     pub path: Option<String>,
     /// A native Save As suggestion for an unsaved import; never an overwrite destination.
     pub import_save_path: Option<String>,
+    /// Nonfatal import information, separate from actual feature-loss warnings.
+    pub import_notes: Vec<String>,
+    /// Conversion notice for this open document, not persisted into the native file.
+    pub import_notice: Option<&'static str>,
     /// Names the document state for caches keyed `(uid, revision)` (see
     /// [`DocState::bump_revision`]).
     pub revision: u64,
@@ -154,6 +158,8 @@ impl DocState {
             history: History { limit: 1000, ..Default::default() },
             path,
             import_save_path: None,
+            import_notes: Vec::new(),
+            import_notice: None,
             revision,
             saved_revision: revision,
             active_layer,

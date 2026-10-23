@@ -48,7 +48,9 @@ fn apache_table_render_diagnostics() {
         let mut bytes = Vec::new();
         std::fs::File::open(Path::new(&root).join(name)).unwrap().take(16 * 1024 * 1024 + 1).read_to_end(&mut bytes).unwrap();
         assert!(bytes.len() <= 16 * 1024 * 1024);
-        let document = designcraft_pub::import_pub(&bytes).unwrap().document;
+        let imported = designcraft_pub::import_pub(&bytes).unwrap();
+        assert!(!imported.warnings.iter().any(|w| w.contains("multiple stories/TCD") || w.contains("cell-text association")), "{name}");
+        let document = imported.document;
         let cache = designcraft_compose::Cache::new();
         let host = document.stories.values().find(|s| !s.tables.is_empty()).unwrap();
         let composed = cache.get(&document, host.id, None);
@@ -61,13 +63,25 @@ fn apache_table_render_diagnostics() {
             .map(|f| f.lines.iter().filter(|l| !l.glyphs.is_empty()).count())
             .sum();
         let nonempty_cells = host.tables.values().flat_map(|t| &t.cells).filter(|c| !c.text.text.trim().is_empty()).count();
+        let table = host.tables.values().next().unwrap();
+        assert_eq!((table.nrows(), table.ncols()), (3, 2), "{name}");
+        let expected = ["Table on page 2", "Top right", "P2 table left", "P2 table right", "Bottom Left", "Bottom Right"];
+        assert_eq!(table.cells.iter().map(|c| c.text.text.as_str()).collect::<Vec<_>>(), expected, "{name}");
+        assert_eq!(nonempty_cells, 6, "{name}");
+        assert_eq!(cell_lines, 6, "all six cells must reach composition: {name}");
+
         let fallback_lines: usize = composed.frames.iter().flat_map(|f| &f.lines).filter(|l| !l.glyphs.is_empty()).count();
         println!(
             "{name}: host_frames={} nonempty_cells={nonempty_cells} cell_glyph_lines={cell_lines} retained_text_lines={fallback_lines} overset={:?}",
             composed.frames.len(),
             composed.overset_at
         );
+        let pdf = designcraft_pdf::export_pdf(&document, &cache, &designcraft_pdf::PdfOptions::default()).unwrap();
+        std::fs::write(Path::new(&out).join(format!("{name}.pdf")), &pdf).unwrap();
         for page in 0..document.page_count() {
+            let raster = designcraft_render::pdf_page_png(&pdf, page, 800, &[], None).unwrap();
+            assert!(!raster.is_empty(), "{name} PDF page {page}");
+            std::fs::write(Path::new(&out).join(format!("{name}-pdf-{}.png", page + 1)), raster).unwrap();
             let image = designcraft_render::Renderer::new()
                 .render_page(&document, &cache, page, 1.0, false, &designcraft_render::RenderOptions::default())
                 .unwrap();

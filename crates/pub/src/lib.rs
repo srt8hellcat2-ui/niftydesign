@@ -77,12 +77,17 @@ pub enum PubError {
 
 pub type Result<T> = std::result::Result<T, PubError>;
 
+/// Always display for an opened Publisher conversion, independently of diagnostics.
+pub const CONVERSION_NOTICE: &str = "This is a converted copy. It can look different from what Publisher shows; some features are lost or simplified, and not every loss gives a warning. Compare it with your original.";
+
 /// An imported publication and what the import could not bring over.
 #[derive(Debug)]
 pub struct Imported {
     pub document: Document,
     /// One line per kind of problem that did not stop the import.
     pub warnings: Vec<String>,
+    /// Informational diagnostics for unidentified formatting settings; field IDs are retained.
+    pub notes: Vec<String>,
 }
 
 const CFB_SIGNATURE: [u8; 8] = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
@@ -138,7 +143,8 @@ pub fn import_pub(bytes: &[u8]) -> Result<Imported> {
     let delay = stream(&mut cf, "/Escher/EscherDelayStm")?.unwrap_or_default();
 
     let c = contents::parse(&contents)?;
-    let q = quill::parse(&quill)?;
+    let mut q = quill::parse(&quill)?;
+    tables::recover_single_table_text(&c, &mut q, &quill)?;
     let dr = escher::parse(&escher, &delay)?;
     let mut b = Builder::new(&c, &q, &dr)?;
     b.warnings.extend(c.warnings.iter().cloned());
@@ -146,13 +152,26 @@ pub fn import_pub(bytes: &[u8]) -> Result<Imported> {
     b.warnings.extend(dr.warnings.iter().cloned());
     b.build()?;
     let mut warnings: Vec<String> = Vec::new();
+    let mut notes = Vec::new();
     let mut seen = HashSet::new();
     for w in b.warnings {
         if seen.insert(w.clone()) {
-            warnings.push(w);
+            if let Some((kind, rest)) = w.strip_prefix("Publisher ").and_then(|w| w.split_once(" formatting is unsupported for fields: "))
+                && matches!(kind, "character" | "paragraph")
+                && let Some((fields, detail)) = rest.split_once(". Supported attributes were retained.")
+            {
+                notes.push(format!(
+                    "A formatting setting this version does not understand was skipped; the text is kept. Publisher {kind} fields: {fields}."
+                ));
+                if !detail.trim().is_empty() {
+                    warnings.push(format!("Publisher {kind} formatting loss: {}", detail.trim()));
+                }
+            } else {
+                warnings.push(w);
+            }
         }
     }
-    Ok(Imported { document: b.doc, warnings })
+    Ok(Imported { document: b.doc, warnings, notes })
 }
 
 struct Builder<'a> {

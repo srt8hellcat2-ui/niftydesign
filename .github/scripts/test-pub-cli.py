@@ -18,8 +18,8 @@ SOURCES = {
     "real": "https://raw.githubusercontent.com/apache/poi/bf7c9b6a1490046517cbd8e1504e702a89be4bc9/test-data/publisher/",
 }
 EXPECTED = {
-    "controlled": ({"OK": 79, "warnings": 63}, 146, 151, 0),
-    "real": ({"warnings": 19, "refused": 2, "failed": 3}, 31, 280, 1),
+    "controlled": ({"OK": 130, "warnings": 12}, 146, 151, 0),
+    "real": ({"OK": 9, "warnings": 10, "refused": 2, "failed": 3}, 31, 280, 1),
 }
 
 

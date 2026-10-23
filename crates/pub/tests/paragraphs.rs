@@ -144,7 +144,7 @@ fn warns_for_unrecognized_list_descriptor_fields_and_spacing() {
     let unknown_list = [vec![0x57, 0x8a], record(&number(0, 999))].concat();
     for props in [unknown_list, number(0xee, 1), number(0x34, 3), number(0x34, 0)] {
         let imported = import_pub(&publication(&props, &[], "One\r")).unwrap();
-        assert!(imported.warnings.iter().any(|w| w.contains("paragraph formatting is unsupported")));
+        assert!(imported.notes.iter().any(|w| w.contains("Publisher paragraph fields:")));
         assert!(imported.document.stories.values().next().unwrap().paras[0].para.list_type.is_none());
     }
 }
@@ -242,7 +242,7 @@ fn imports_confirmed_caps_superscript_tracking_and_character_defaults() {
 fn warns_for_unknown_character_fields_and_unconfirmed_position_values() {
     for props in [vec![0x0f, 0x12, 2, 0], vec![0xee, 0x0a], vec![0x1f, 0x22, 1, 0, 0, 0]] {
         let imp = import_pub(&character_publication(&props, &[])).unwrap();
-        assert!(imp.warnings.iter().any(|w| w.contains("character formatting is unsupported")));
+        assert!(imp.notes.iter().any(|w| w.contains("Publisher character fields:")));
         let c = &imp.document.stories.values().next().unwrap().char_format_at(0).over;
         assert!(c.position.is_none());
         assert!(c.strikethrough.is_none());
@@ -297,25 +297,25 @@ fn warning_unused_defaults_without_text_or_mapped_story_are_silent() {
                 }
             });
             let imp = import_pub(&bytes).unwrap();
-            assert!(imp.warnings.iter().all(|w| !w.contains("formatting")), "{:?}", imp.warnings);
+            assert!(imp.notes.iter().all(|w| !w.contains("formatting")), "{:?}", imp.notes);
         }
     }
     let imp = import_pub(&publication(&[], &number(0x30, 5), "")).unwrap();
-    assert!(imp.warnings.iter().all(|w| !w.contains("formatting")));
+    assert!(imp.notes.iter().all(|w| !w.contains("formatting")));
 }
 
 #[test]
 fn warning_actual_fields_are_precise_deduplicated_and_still_report_defaults() {
     let run = [number(0xee, 1), number(0xee, 2)].concat();
     let imp = import_pub(&character_publication(&run, &number(0x39, 127_000))).unwrap();
-    let warnings: Vec<_> = imp.warnings.iter().filter(|w| w.contains("character formatting is unsupported")).collect();
+    let warnings: Vec<_> = imp.notes.iter().filter(|w| w.contains("Publisher character fields:")).collect();
     assert_eq!(warnings.len(), 1);
     let warning = warnings[0];
     assert!(warning.contains("defaults [0x39]; runs [0xEE]"));
     assert!(!warning.contains("strikethrough") && !warning.contains("subscript"));
     assert_eq!(warning.matches("0xEE").count(), 1);
     let imp = import_pub(&publication(&number(0xee, 1), &number(0x30, 5), "One\r")).unwrap();
-    assert!(imp.warnings.iter().any(|w| w.contains("defaults [0x30]; runs [0xEE]")));
+    assert!(imp.notes.iter().any(|w| w.contains("defaults [0x30]; runs [0xEE]")));
 }
 
 #[test]
@@ -327,9 +327,10 @@ fn observed_warning_fields_match_real_fixtures() {
         let imp = import_pub(&std::fs::read(path).unwrap()).unwrap();
         if name == "fill__fill-green" {
             assert!(imp.warnings.is_empty(), "{:?}", imp.warnings);
+            assert!(imp.notes.is_empty(), "{:?}", imp.notes);
         } else {
-            assert!(!imp.warnings.iter().any(|w| w.contains("character formatting is unsupported")), "{:?}", imp.warnings);
-            assert!(imp.warnings.iter().any(|w| w.contains("paragraph formatting is unsupported for fields: defaults [0x30]; runs [none]")));
+            assert!(!imp.notes.iter().any(|w| w.contains("Publisher character fields:")), "{:?}", imp.notes);
+            assert!(imp.notes.iter().any(|w| w.contains("Publisher paragraph fields: defaults [0x30]; runs [none]")));
         }
         if name == "table__2x2" {
             assert!(imp.warnings.iter().any(|w| w.contains("cell fills, borders")));
@@ -348,7 +349,7 @@ fn warning_names_only_documented_dropped_features_in_defaults_and_runs() {
     ] {
         for (run, defaults) in [(&props[..], &[][..]), (&[][..], &props[..]), (&props[..], &props[..])] {
             let imp = import_pub(&character_publication(run, defaults)).unwrap();
-            let warnings: Vec<_> = imp.warnings.iter().filter(|w| w.contains("character formatting is unsupported")).collect();
+            let warnings: Vec<_> = imp.warnings.iter().filter(|w| w.contains("Publisher character formatting loss:")).collect();
             assert_eq!(warnings.len(), 1);
             assert!(warnings[0].contains(&format!("Not fully imported: {label}.")), "{:?}", warnings);
             assert_eq!(warnings[0].matches(label).count(), 1);
@@ -363,12 +364,22 @@ fn warning_names_only_documented_dropped_features_in_defaults_and_runs() {
         }
     }
     // Unidentified fields could represent tabs, numbering or strike, but no key is assigned
-    // to those features without a describer's evidence. They must still produce a warning.
+    // to those features without a describer's evidence. Keep them as numeric notes.
     let unknown = [number(0x39, 1), number(0x48, 1), number(0xee, 1)].concat();
     let imp = import_pub(&character_publication(&unknown, &[])).unwrap();
-    let warning = imp.warnings.iter().find(|w| w.contains("character formatting is unsupported")).unwrap();
+    let warning = imp.notes.iter().find(|w| w.contains("Publisher character fields:")).unwrap();
     assert!(warning.contains("0x39, 0x48, 0xEE"));
     assert!(!warning.contains("Not fully imported:") && !warning.contains("strikethrough"));
     let imp = import_pub(&publication(&number(0xee, 1), &number(0x30, 1), "One\r")).unwrap();
-    assert!(imp.warnings.iter().any(|w| w.contains("defaults [0x30]; runs [0xEE]") && !w.contains("Not fully imported:")));
+    assert!(imp.notes.iter().any(|w| w.contains("defaults [0x30]; runs [0xEE]") && !w.contains("Not fully imported:")));
+}
+
+#[test]
+fn unknown_formatting_is_a_note_with_fields_and_preserves_document_text() {
+    let imp = import_pub(&publication(&number(0xee, 1), &number(0x30, 5), "Text stays\r")).unwrap();
+    assert!(imp.warnings.is_empty(), "{:?}", imp.warnings);
+    assert_eq!(imp.notes.len(), 1);
+    assert!(imp.notes[0].starts_with("A formatting setting this version does not understand was skipped; the text is kept."));
+    assert!(imp.notes[0].contains("defaults [0x30]; runs [0xEE]"));
+    assert_eq!(imp.document.stories.values().next().unwrap().text, "Text stays");
 }
