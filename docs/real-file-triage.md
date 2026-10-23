@@ -1,6 +1,32 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # Real-file robustness triage — 2026-10-19, updated for stored row endings
 
+## T1 validation update — 2026-10-23
+
+Current branch: `codex/importer-improvements`, based on `main@fc1f3f1`. The remaining sections below describe earlier runs.
+
+| Measurement | Before T1 | After T1 |
+|---|---:|---:|
+| Corpus imported | 142/142 | 142/142 |
+| Corpus objects found | 152/152 | 152/152 |
+| Corpus positions within 1 pt | 111/152 | 111/152 |
+| Corpus exact texts | 52/52 | 52/52 |
+| Corpus styles | 111/111 | 111/111 |
+| Real files OK / warnings / refused / damaged | 0 / 19 / 2 / 3 | 0 / 19 / 2 / 3 |
+| Real successful pages / objects | 31 / 280 | 31 / 280 |
+| Nonempty native cells in the eight Sample* tables | 0 | 48 |
+| Table-cell glyph lines in those eight imports | not remeasured | 48 |
+| Files with multi-story/TCD association warning (historical W4) | 8 | 0 |
+| Files with retained-after-table association warning (historical W6) | 8 | 0 |
+| Files with unsupported cell-formatting warning (W3) | 8 | 8 |
+| Files with stored-ending difference warning (W5) | 8 | 8 |
+
+All eight source tables link Contents sequence **299** to Quill story **6**, with a **3×2** unmerged row-major grid. Each file has **6** stories and **1** TCD section. Its six boundaries **15, 25, 39, 54, 66, 80** uniquely validate against that linked 80-unit story, including the CR separators. The three controlled table fixtures still import. The rendered eight tables each have **6** nonempty cells, **6** cell glyph lines, **0** duplicate fallback lines and **0** reported table overset. All **48** expected texts were extracted from the exported PDFs; all **16** pages from these eight files were rendered outside the checkout. These are importer/composition/export checks, not an independent Publisher layout comparison.
+
+Reused only the existing 24 Apache binaries at `bf7c9b6a1490046517cbd8e1504e702a89be4bc9` and the controlled binaries at `0ccdf27`; hashes of all 24 Apache files were checked against `.github/test-data/publisher-fixtures.csv`. Inputs, CSVs, PDFs, stream extracts and rendered images stay outside the checkout. The corpus runner used Publisher `truth/*.json` solely to score imports before/after; no encoding was inferred from those files. Existing source provenance is in `pub-format/SOURCES.md`; that protected file was not edited.
+
+T2 changes no importer behavior, so its before/after numbers are the T1-after column above. No fill/border interpretation was added. T3–T8 were not started because the task requires stopping at an item that cannot be verified.
+
 ## Inputs and current run
 
 Current run: `codex/queue`, after merging `pub-import@96580a94`; C2/C3 warning rules applied. The earlier row-ending baseline is retained for comparison.

@@ -138,7 +138,8 @@ pub fn import_pub(bytes: &[u8]) -> Result<Imported> {
     let delay = stream(&mut cf, "/Escher/EscherDelayStm")?.unwrap_or_default();
 
     let c = contents::parse(&contents)?;
-    let q = quill::parse(&quill)?;
+    let mut q = quill::parse(&quill)?;
+    tables::recover_single_table_text(&c, &mut q, &quill)?;
     let dr = escher::parse(&escher, &delay)?;
     let mut b = Builder::new(&c, &q, &dr)?;
     b.warnings.extend(c.warnings.iter().cloned());
