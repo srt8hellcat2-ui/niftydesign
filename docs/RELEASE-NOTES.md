@@ -15,7 +15,7 @@ Opening a .pub never modifies your original file on disk. NiftyDesign opens a co
 
 The app is not signed. Windows SmartScreen will warn. After verifying the checksum, if you choose to run it, select **More info**, then **Run anyway**. Extract the entire zip before starting `designcraft.exe`.
 
-On Windows 11 PCs where Smart App Control is turned On, Windows can block an unsigned app completely, with the message "An Application Control policy has blocked this file" and no Run anyway option. This happened on the maintainer's own PC to a rebuilt copy of this app. If you see it, read the Smart App Control section of Known limitations for your options. We plan to apply for free open-source code signing.
+On Windows 11 PCs where Smart App Control is turned On, Windows can block an unsigned app completely, with the message "An Application Control policy has blocked this file" and no Run anyway option. This happened on the maintainer's own PC to a rebuilt copy of this app, which was blocked the first time and ran normally a few hours later with no change on our side. If you see it, read the Smart App Control section of Known limitations for your options. We plan to apply for free open-source code signing.
 
 ## Check your download
 
