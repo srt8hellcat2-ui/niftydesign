@@ -9,21 +9,23 @@ Thanks for trying this. NiftyDesign is an early, unofficial alpha. It opens Micr
 - Save proposes a `.designcraft` file next to the original. Saving back to `.pub` is not offered.
 - Only Publisher 2002 and later files are supported.
 
+NiftyDesign now shows a notice on every converted .pub: 'This is a converted copy. It can look different from what Publisher shows; some features are lost or simplified, and not every loss gives a warning. Compare it with your original.' The import notes list stays available in the app and in the command-line report.
+
 ## What works
 
 - **Opening.** All 142 controlled sample files open. These were generated for testing, not made in Publisher, and each shows one feature. Page size, orientation, page count and master pages come over.
 - **Text.** Text frames, fonts, sizes, colours, alignment, indents, line spacing, bullets, tab characters, all caps, small caps, superscript and letter spacing.
 - **Shapes and lines.** Position, size, rotation and flips; common shapes (rectangles, ovals, rounded rectangles, triangles, diamonds, hexagons, stars, arrows, lines); solid and gradient fills; fill transparency; line colour, weight, dashes and arrowheads; shadows; groups.
 - **Pictures.** PNG, JPEG, BMP and similar, with rectangular crops and borders.
-- **Tables.** Editable tables with rows, columns, sizes and merged cells in the controlled samples. Real files with tables now open, but cell text is not drawn yet.
+- **Tables.** Editable tables with rows, columns, sizes and merged cells in the controlled samples. In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original.
 - **WordArt.** Editable text with its font, colours, outline and shadow.
 - **Saving and exporting.** Save as `.designcraft` and reopen; export PDF. An automated pass covers all 142 samples. A person has not yet checked the PDFs by hand.
 
 ## What does not work yet
 
-- **Real files often open with warnings.** In a check of 24 real files (pinned test files from another project, not ours): none opened with no warnings, 19 opened with warnings, 2 were refused as too old, and 3 were deliberately damaged files that were correctly rejected. Check any file against the original.
+- **Real files often open with warnings.** Of 24 real Apache test files: 9 opened with only notes about formatting settings we do not understand and skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. The 9 are not a claim that they match Publisher; we have not compared them with Publisher. Earlier counts called these 9 'warnings'; only the labelling changed, not the importer's fidelity. Check any file against the original.
 - **Publisher 97, 98 and 2000 files are refused** with a message asking you to open and save the file in Publisher 2002 or later.
-- **Tables in real files draw no cell text yet.** Tables lose cell shading and borders. Rows and columns stay.
+- In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. Tables lose cell shading and borders. Rows and columns stay.
 - **Numbered lists and custom tab stops are lost.**
 - **Page numbers and dates are left out** of the text.
 - **Arched or circular WordArt comes out straight.**

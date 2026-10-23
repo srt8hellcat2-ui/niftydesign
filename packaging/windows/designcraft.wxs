@@ -2,7 +2,7 @@
 <!--
   NiftyDesign MSI (WiX Toolset v5: `dotnet tool install -g wix`). Built by package.ps1:
 
-    wix build designcraft.wxs installer-ui.wxs -arch x64 -d Version=0.9.0 -d DisplayVersion=0.9.0-nifty-alpha.1 -d BinDir=... -d IconPath=... -o out.msi
+    wix build designcraft.wxs installer-ui.wxs -arch x64 -d Version=0.9.0 -d DisplayVersion=0.9.0-nifty-alpha.2 -d BinDir=... -d IconPath=... -o out.msi
 
   Per-machine install into Program Files, a Start Menu shortcut, `.designcraft` owned by
   NiftyDesign, and NiftyDesign offered under "Open with" for IDML (without taking over the user's

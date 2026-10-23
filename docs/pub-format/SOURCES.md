@@ -905,3 +905,32 @@ production CLI executable is byte-identical. The full suite reports the same
 2,940 passed / 0 failed / 19 ignored; all seven CI steps and the packaging tests
 pass. Changes are limited to test-only edits and this
 source-use record; no runtime or protected-reader code changed.
+
+### Builder (Codex): alpha.2 preparation (2026-10-23)
+
+Reused the already recorded 142 controlled binary fixtures at `0ccdf27` and the
+24 Apache binaries at `bf7c9b6a1490046517cbd8e1504e702a89be4bc9`, outside the
+checkout, for regression checks. Publisher `truth/*.json` data is used by the
+existing corpus runner for scoring only, never to infer encodings. No new
+Publisher format source was consulted; reader logic and importer test text are
+unchanged.
+
+Ported only the owner's desktop-demo automation from
+`srt8hellcat2-ui/designcraft-pub` PR #26
+(`9dcbfdbf7fc49f06b59854f298fa557874dc9b70`) and PR #27
+(`a408df8acaf95ca9e49ca35eb677bbf4a2a78680`):
+`.github/workflows/windows-desktop-demo.yml`, `packaging/windows_desktop_demo.py`,
+`packaging/test_windows_desktop_demo.py` and
+`packaging/stage_windows_desktop_evidence.ps1`. The final PR #27 versions include
+the earlier evidence-retention changes; the public workflow's copyright line
+was retained. These are our existing automation, not a format source. Local
+helper tests do not establish Windows desktop, graphics or spooler behavior;
+no hosted workflow was dispatched.
+
+Validation: all seven `cargo xtask ci` steps passed, including 2,947 tests and
+wasm checks. Packaging: 33 tests, 3 platform-specific skips; actionlint passed
+for the three changed workflows. Corpus scores remain **142/142, 152/152,
+111/152, 52/52, 111/111**. The real batch remains **9 with notes / 10 with
+warnings / 2 refused / 3 damaged**, **31 pages / 280 objects**. All 48 expected
+cell texts occur in the eight table PDFs. The local CLI reports
+`0.9.0-nifty-alpha.2`; Windows execution was not tested locally.

@@ -1,4 +1,4 @@
-NiftyDesign 0.9.0-nifty-alpha.1 - unofficial alpha
+NiftyDesign 0.9.0-nifty-alpha.2 - unofficial alpha
 Windows x64 only. Not for ARM64, 32-bit Windows, macOS or Linux.
 
 
@@ -20,9 +20,9 @@ before running designcraft.exe. The command-line tool is designcraft-cli.exe.
 
 
 Verify the zip before extracting. Download both the zip and its separate
-niftydesign-0.9.0-nifty-alpha.1-windows-x64.zip.sha256 file into the same folder.
+niftydesign-0.9.0-nifty-alpha.2-windows-x64.zip.sha256 file into the same folder.
 In PowerShell, from that folder:
-  $zip = 'niftydesign-0.9.0-nifty-alpha.1-windows-x64.zip'
+  $zip = 'niftydesign-0.9.0-nifty-alpha.2-windows-x64.zip'
   $expected = ((Get-Content -LiteralPath "$zip.sha256").Trim() -split '  ', 2)[0]
   if ((Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash -ne $expected) {
     throw "SHA256 mismatch: $zip"
@@ -55,7 +55,7 @@ Known gaps: numbered lists and custom tab stops are unsupported; table cell
 shading and borders are not decoded; merged-cell text is unconfirmed;
 curved WordArt becomes straight text. Text inside WMF/EMF pictures is left out.
 Publisher 97-2000 files are refused.
-In the eight Apache test tables, rows and columns import but cell text is not shown yet. The synthetic 2x2 table now draws A1, B1, A2 and B2. Cell fills, borders and uncertain merged-cell text remain unsupported.
+In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. The synthetic 2x2 table now draws A1, B1, A2 and B2. Cell fills, borders and uncertain merged-cell text remain unsupported.
 
 
 The earlier same-session picture disappearance was a screenshot-timing bug in the app's ui.screenshot command, now fixed. No document or image data was lost.
@@ -75,9 +75,7 @@ Other unsupported features can produce warnings or different-looking output.
 Keep the original .pub and check any exported PDF carefully.
 
 
-The 24-file Apache test set in docs/real-file-triage.md produced:
-  0 opened without warnings; 19 opened with warnings;
-  2 refused as the Publisher 97/98/2000 family; 3 damaged files failed.
+Of 24 real Apache test files: 9 opened with only notes about formatting settings we do not understand and skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. The 9 are not a claim that they match Publisher; we have not compared them with Publisher. Earlier counts called these 9 'warnings'; only the labelling changed, not the importer's fidelity.
 These are test files, including deliberately damaged inputs, not a representative
 survey of real users' publications. A warning is not a promise of visual accuracy.
 
