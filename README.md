@@ -114,7 +114,7 @@ NiftyDesign is an early, unofficial alpha built to open and edit existing .pub f
 Not yet. Those files are refused with a message. Re-save them in Publisher 2002 or newer first.
 
 **Microsoft is retiring Publisher. What happens to my files?**
-Microsoft has announced that Publisher will be retired and lose support on October 1, 2026. Your .pub files stay on your computer, but the program that edits them goes away. NiftyDesign is one way to keep opening them. Keep your original files either way.
+Microsoft set October 1, 2026 as the date Publisher is retired and loses support. Your .pub files stay on your computer, but the program that edits them is going away. NiftyDesign is one way to keep opening them. Keep your original files either way.
 
 **Why does Windows warn me or block it?**
 The alpha is not code-signed yet, so Windows SmartScreen or Smart App Control may warn about it or block it the first time. The [install steps](#install) explain what to do, and [Known limitations](docs/KNOWN-LIMITATIONS.md) says what we saw on our own test PC.
