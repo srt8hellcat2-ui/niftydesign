@@ -21,7 +21,7 @@ If something couldn't be brought over exactly, a message lists it, for example "
 
 ## Keep a copy you can edit
 
-DesignCraft never changes your original `.pub` file. The opened publication is a new, unsaved document.
+NiftyDesign never modifies your original `.pub` file on disk. It opens a converted copy as a new, unsaved document. That copy can look different from what Publisher shows, because some features are lost or simplified, and not every loss gives a warning. Always compare it with your original.
 
 - Choose **File › Save** (Ctrl+S or Cmd+S). For `flyer.pub`, the dialog proposes `flyer.designcraft` in the same folder. You can choose another name or folder. Only the DesignCraft format (`.designcraft`) is offered; your `.pub` stays unchanged.
 - Next time, open that DesignCraft file instead of the `.pub`.
