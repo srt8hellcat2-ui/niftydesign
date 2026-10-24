@@ -47,6 +47,7 @@
 mod contents;
 mod escher;
 mod metafile;
+mod paths;
 mod quill;
 mod read;
 mod tables;
@@ -607,7 +608,7 @@ impl<'a> Builder<'a> {
                 let (a, b) = (Point::new(r.x0, r.y0), Point::new(r.x1, r.y1));
                 (Shape::GraphicLine, shapes::line(a, b))
             }
-            0 => match freeform(sh, r) {
+            0 => match paths::freeform(sh, r, &mut self.warnings) {
                 Some(p) => (Shape::Path, p),
                 None => {
                     self.warnings.push("Freeform shapes with unsupported segments were imported as rectangles.".into());
@@ -1048,56 +1049,6 @@ fn transform(r: Rect, rotation: f64, flip_h: bool, flip_v: bool) -> Affine {
         xf = Affine::rotate_about(rotation.to_radians(), c) * xf;
     }
     xf
-}
-
-/// MS-ODRAW freeform: `pVertices` (0x0145) and `pSegmentInfo` (0x0146) in the shape's
-/// coordinate space `geoLeft/Top/Right/Bottom` (0x0140–0x0143), mapped onto `r`.
-fn freeform(sh: &escher::EShape, r: Rect) -> Option<PathData> {
-    let verts = array(sh.complex.get(&0x0145)?)?;
-    let segs = array(sh.complex.get(&0x0146)?)?;
-    let (gl, gt) = (f64::from(sh.prop(0x0140).unwrap_or(0) as i32), f64::from(sh.prop(0x0141).unwrap_or(0) as i32));
-    let (gr, gb) = (f64::from(sh.prop(0x0142).unwrap_or(21_600) as i32), f64::from(sh.prop(0x0143).unwrap_or(21_600) as i32));
-    let (sx, sy) = (r.width() / (gr - gl).max(1.0), r.height() / (gb - gt).max(1.0));
-    let points: Vec<Point> = verts
-        .iter()
-        .map(|v| {
-            let (x, y) = if v.len() >= 8 {
-                (f64::from(read::i32_at(v, 0).ok()?), f64::from(read::i32_at(v, 4).ok()?))
-            } else {
-                (f64::from(read::u16_at(v, 0).ok()? as i16), f64::from(read::u16_at(v, 2).ok()? as i16))
-            };
-            Some(Point::new(r.x0 + (x - gl) * sx, r.y0 + (y - gt) * sy))
-        })
-        .collect::<Option<Vec<_>>>()?;
-    let mut bp = BezPath::new();
-    let mut i = 0usize;
-    let mut next = || {
-        let p = points.get(i).copied();
-        i += 1;
-        p
-    };
-    for s in segs {
-        let w = u16::from_le_bytes([*s.first()?, *s.get(1)?]);
-        let (kind, count) = (w >> 13, (w & 0x1fff).max(1));
-        match kind {
-            0 => {
-                for _ in 0..count {
-                    bp.line_to(next()?);
-                }
-            }
-            1 => {
-                for _ in 0..count {
-                    let (a, b, c) = (next()?, next()?, next()?);
-                    bp.curve_to(a, b, c);
-                }
-            }
-            2 => bp.move_to(next()?),
-            3 => bp.close_path(),
-            4 => {}
-            _ => return None,
-        }
-    }
-    (!bp.elements().is_empty()).then(|| PathData::from_bezpath(&bp))
 }
 
 /// An MS-ODRAW array property: u16 count, u16 count in memory, u16 element size (0xFFF0 = 4),
