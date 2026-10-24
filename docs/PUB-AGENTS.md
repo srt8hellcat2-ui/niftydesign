@@ -7,7 +7,8 @@ The importer readers must be written without any other .pub reader. No libmspub,
 
 ## 2. Allowed inputs
 - The notes in docs/pub-format/ and docs/CLEANROOM.md.
-- The public Microsoft specifications MS-CFB and MS-ODRAW. Nothing else is allowed unless the owner approves it in the words above (for example, the public ECMA-376 preset shape definitions are NOT allowed until then).
+- The public Microsoft specifications MS-CFB and MS-ODRAW.
+- The public ECMA-376 standard (5th edition, Part 1): presetShapeDefinitions.xml and presetTextWarpDefinitions.xml only, to draw preset shapes and WordArt (tasks C8 and C9). The owner said on 2026-10-24: "If you believe the ECMA-376 still sticks with our clean-room then research it". It describes shape outlines only and says nothing about how .pub files store anything. Nothing else is allowed unless the owner approves it in the words above.
 - Data files only: the pubsmith fixtures (FuncularLabs/pubsmith, tests/fixtures/pub, commit 0ccdf27), the Apache sample .pub files (apache/poi, test-data/publisher, commit bf7c9b6a1490046517cbd8e1504e702a89be4bc9; .pub files only), and files the owner adds. Their names and SHA-256 values are listed in .github/test-data/publisher-fixtures.csv. Keep data files outside the repo; never commit them. Record what you used in docs/pub-format/SOURCES.md.
 - truth/*.json files and golden images are for scoring imports only, never for working out how anything is encoded.
 - Anything else: stop that item and ask under "Needs you" in docs/REPORTS.md.
@@ -49,7 +50,7 @@ Describer lanes (notes only, docs/pub-format/):
 Code lane (after the data-folder test passes):
 - [ ] D. Font fallback: a missing font (for example Arial Black, Elephant, Franklin Gothic Book, Rockwell Condensed, Sylfaen) should be replaced by the closest installed or bundled face by family type and width, keep the original name, and not open the Find/Replace Font dialog. Read the existing substitution chain first and report what it does. Add a README known-limits line that Microsoft fonts may be substituted.
 - [ ] C7. Freeform curves, from docs/pub-format/odraw-geometry.md. First settle the three open observations in that note from the fixtures (cbElem and x/y split, type-bit end of the 16-bit record, guide index base) in a notes update, then implement.
-- BLOCKED C8. Preset shapes such as the heart: the spec names them but does not define their geometry. Needs the owner approval in section 2, or fixtures that store vertices.
-- BLOCKED C9. WordArt warp (arch, circle, wave): same block as C8. Reading the text, font, size and WordArt flag is allowed now.
+- [ ] C8. Preset shapes such as the heart: draw them from the ECMA-376 definitions summarized in docs/pub-format/preset-geometry.md (MS-ODRAW supplies the shape numbers). Check against the heart, star, arrow and other fixtures.
+- [ ] C9. WordArt warps (arch, circle, wave): place the text along the paths in docs/pub-format/preset-geometry.md. The standard gives the path but not how letters stretch along it, so compare with the arch and circle fixtures and record what stays UNKNOWN.
 - [ ] A-code and B-code: implement lists, tab stops, and table formatting from the finished notes A and B.
 - Later, research only: Publisher 97, 98 and 2000 files (currently refused).
