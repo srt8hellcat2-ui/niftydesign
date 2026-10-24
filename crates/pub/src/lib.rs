@@ -48,6 +48,7 @@ mod contents;
 mod escher;
 mod metafile;
 mod paths;
+mod presets;
 mod quill;
 mod read;
 mod tables;
@@ -608,6 +609,13 @@ impl<'a> Builder<'a> {
                 let (a, b) = (Point::new(r.x0, r.y0), Point::new(r.x1, r.y1));
                 (Shape::GraphicLine, shapes::line(a, b))
             }
+            74 => match presets::heart(r) {
+                Ok(path) => (Shape::Path, path),
+                Err(reason) => {
+                    self.warnings.push(format!("The heart outline could not be drawn: {reason}; it was imported as a rectangle."));
+                    (Shape::Rectangle, shapes::rectangle(r))
+                }
+            },
             0 => match paths::freeform(sh, r, &mut self.warnings) {
                 Some(p) => (Shape::Path, p),
                 None => {
@@ -1092,6 +1100,25 @@ fn dib_to_bmp(dib: &[u8]) -> Option<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn preset_outline_errors_and_unknown_types_keep_a_warned_rectangle() {
+        let c = contents::Contents { width_emu: 612 * 12_700, height_emu: 792 * 12_700, ..Default::default() };
+        let q = quill::Quill::default();
+        let dr = escher::Drawing::default();
+        let mut builder = Builder::new(&c, &q, &dr).unwrap();
+        let heart = escher::EShape { kind: 74, ..Default::default() };
+        let frame = Rect::new(10.0, 20.0, 106.0, 140.0);
+        assert_eq!(builder.geometry(&heart, frame).0, Shape::Path);
+        assert!(builder.warnings.is_empty());
+        assert_eq!(builder.geometry(&heart, Rect::new(10.0, 20.0, 0.0, 140.0)).0, Shape::Rectangle);
+        assert!(builder.warnings.last().unwrap().contains("heart outline could not be drawn"));
+        let unknown = escher::EShape { kind: 8, ..Default::default() };
+        let (shape, path) = builder.geometry(&unknown, frame);
+        assert_eq!(shape, Shape::Rectangle);
+        assert_eq!(path, shapes::rectangle(frame));
+        assert_eq!(builder.warnings.last().unwrap(), "Shape type 8 is not supported yet; it was imported as a rectangle of the same size.");
+    }
 
     fn frame(seq: u32, left_pt: f64) -> escher::EShape {
         let e = |p: f64| p * EMU_PER_PT;

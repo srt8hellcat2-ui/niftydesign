@@ -346,6 +346,8 @@ list) · [roadmap.md](docs/roadmap.md) (milestones, plan) · [parity-checklist.m
 
 ## Progress log
 
+- **2026-10-24 (C8)** · Publisher heart shapes use the standard's guide formulas and two editable cubic curves. Six existing preset outlines are unchanged. Windows and comparison with Publisher's own drawing remain untested.
+
 Newest first.
 
 - **2026-10-17** · `.pub` import: shaded fills become gradient swatches, and dashed lines and arrowheads come over. No readiness percentage change.
