@@ -970,3 +970,166 @@ package string guard passed. The catalogue check initially found six unused
 French descriptions for upstream About content absent from our About screen;
 removing those entries kept our About text intact and made the check pass.
 Windows execution and printing were not tested for this upgrade.
+
+## Builder — 2026-10-24 C7 baseline checks
+
+- Read this repository's binding rules, clean-room record and odraw-geometry.md. No geometry encoding conclusions were derived in this attempt.
+- Used only the 142 controlled .pub data files at FuncularLabs/pubsmith commit `0ccdf27fc3f381f0897515e226ea485165c699b2`, `tests/fixtures/pub`, and the 24 listed Apache .pub data files at apache/poi commit `bf7c9b6a1490046517cbd8e1504e702a89be4bc9`, `test-data/publisher`. Local folders: `/tmp/niftydata/pubsmith-fixtures` and `/tmp/niftydata/apache-pub`; all 166 SHA-256 values match .github/test-data/publisher-fixtures.csv. No source code from either repository was read.
+- Ran the controlled import report and CLI real-file batch on unchanged main `d0a93ae9`. The controlled folder has no truth exports: no truth files were used, and layout comparisons were not verified. Real batch: 9 converted with notes, 10 with warnings, 2 refused, 3 damaged rejected; 31 pages, 280 objects. Stopped at the task's baseline condition without implementation.
+
+## Builder — 2026-10-24 pinned layout scoring data
+
+Downloaded only JSON scoring data from `https://github.com/FuncularLabs/pubsmith/tree/0ccdf27fc3f381f0897515e226ea485165c699b2/tests/fixtures/pub/truth` via individual raw URLs at that exact commit. The fixture directory listing contains 142 .pub files plus the golden and truth directories; golden images were not downloaded. No reader source was opened. The gate in crates/pub/tests/corpus.rs expects `<PUB_CORPUS folder>/truth/<fixture basename>.json`. Files are stored outside the checkout at `/tmp/niftydata/pubsmith-fixtures/truth/` and used only to score imports, never to infer path storage. The fixture CSV lists .pub hashes only, so the downloaded scoring-data SHA-256 values follow.
+
+| Scoring data file | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `fill__fill-green.json` | 513 | `abacf3c8dc9741d49e8f683d5803a9a3836b502ce1b94f2c5235a8b98cfe3b98` |
+| `fill__fill-grey.json` | 512 | `eb252b667bb9dfd3cfbb67568a87460a3e5b392dfca9ba01b68815ba3347903f` |
+| `fill__fill-orange.json` | 514 | `33a4308fc5719447c750679df1e6675236b784a514a66c6e5e5c2a0b4dd220e1` |
+| `fill__fill-red.json` | 511 | `5f211a5e908fc155ea86c2a3ee7b7aae76e0422310adbb075ea873b141def652` |
+| `fill__fill-white.json` | 513 | `2205c1fd4198af5e344840be4d98b7f56d8de6c2dcf840a6759c779cfed9d85a` |
+| `fill__gradient.json` | 505 | `a8744e675a7ca815c87eea20322ac0304a85bc7e66a979e82cb62ead221baff0` |
+| `fill__no-fill.json` | 505 | `6196b56edecda700c2dddb3a93f5831eb04f1d03217900ead49331fea0df5773` |
+| `fill__scheme-accent1.json` | 517 | `44e990389d6452b9af11f7b2cb0d62f7cf9cd51eb51ecb3fd506d5342a7c305e` |
+| `fill__transparency-50.json` | 520 | `2e2dc705a14e886d9033e0e763be6423960aeb3da62da06e403107cfce4e966c` |
+| `geometry__base.json` | 507 | `f69d8eee249964c62d3cfc1a07f283186e0ba2dd45823923175ac39d57b6225d` |
+| `geometry__flip-h.json` | 509 | `fef8aa1cfad5fe3b7c9192f3b55481797bdd90eff83807b49b2eed7618021cc6` |
+| `geometry__flip-v.json` | 509 | `37449040006684b676188a8d1957b59d01c906a5bb2ee73b51c983058eeeafc2` |
+| `geometry__height-10.json` | 512 | `46759071c0d526810b99611dad3223a0e11503664a69c214a9cbd468733f5759` |
+| `geometry__height-300.json` | 514 | `86da80afcefadc884d944186e7b4099750103337ada615171c5a72edc5efe3be` |
+| `geometry__left-0.json` | 508 | `db68d2ad4e4f4276f3a02cd027f509a12b75085979d5306234d07f7f9620327a` |
+| `geometry__left-1.json` | 508 | `47ea61b8c40d2d5aaedb5008e5e6115210dd0e76d731db1f4e389d5148316f2b` |
+| `geometry__left-100.json` | 512 | `7e72baec0c5752aa2241c167d5b3535fb95c169c313e68601b293d01c2609ae1` |
+| `geometry__left-306.json` | 512 | `a34a13065dd1a76b86c6627efd377d2254dd834468d538d7a51d49fd546132b7` |
+| `geometry__left-500.json` | 512 | `452190c070eb9237dbd4ac7520bcaa748e63a4f53eba3643c5ff7d70c8da1991` |
+| `geometry__left-73.json` | 510 | `19dba829d8affb55ed5ce464877e1652d7fd6405c858baa0180d58357355440b` |
+| `geometry__rot-1.json` | 508 | `05df223693a8ce66e92a2c1ea7267fc92c88da22e3af7b7f7eea8897d3269c82` |
+| `geometry__rot-180.json` | 512 | `7d008986fdd208897ad3710ded02f99243e89ec76e9f3f1e40afa039d6414e66` |
+| `geometry__rot-270.json` | 512 | `5cac30368354166d4d6026d244f17596e933caad71254619618dc1beada3ee46` |
+| `geometry__rot-30.json` | 510 | `6f3c69b84562ddc69a18adeb958d2ea008d614903a222a7fd26f6c1ff53f8673` |
+| `geometry__rot-359.json` | 512 | `e38b554d0ec816230f9a0f58673e4bb3cda7b40c7b02146fa91fdc880ecc7a30` |
+| `geometry__rot-90.json` | 510 | `b335d018cb162ce0332646dcdd538fdb175af50ebbba1d79f38d32f88e195886` |
+| `geometry__top-0.json` | 507 | `41f751579445f8f3f49ad0955eaeb5d92427664287c2a74fd747a4583ae842a4` |
+| `geometry__top-396.json` | 511 | `dacaa25345ff68532c971a9c2305df1273a79fe2c8b61da9b62e754637fb3c12` |
+| `geometry__top-700.json` | 511 | `ca3af72d5a9aa202d6157a109e5b97e31c82275784cd71b3b70ddf67cb7ebf7e` |
+| `geometry__top-74.json` | 509 | `cc900033f8e0dbe1130220f3f839f5936376fa2ab437de9dd745c970869a0d1a` |
+| `geometry__two-rects-swapped.json` | 884 | `737e026ac242d476afdf75d4611acf29edb872a24801c5470f7f3e9b5cce4c0d` |
+| `geometry__two-rects.json` | 876 | `ab9e578b0f5c3857a8845d468727c95517e678bc1f5492b5f95aa5b4f95d16fa` |
+| `geometry__width-1.json` | 508 | `3919ccc9903c646ec9abbcf2d69f2ed05733b0cae86099ebe54b9c0b24e93832` |
+| `geometry__width-150.json` | 512 | `e05c8d3de76f34ebcb09695f67cdb047720cfc0df1f758a0b06c09db5f69b1ed` |
+| `geometry__width-612.json` | 512 | `c44db54a4ed2276a055b4a9d88568dd7b9c05a020a0b4a548de0a999fa52e558` |
+| `group__rotated.json` | 505 | `9871b3ce88b3c4e9b56e9eb7320b3e9a9408e9ee6234e58ed19758ad7765772c` |
+| `group__two.json` | 868 | `0156f080a45b7ef28c84abea38191af5ed3298d827e82e5d5416df7a69c89d87` |
+| `line__color-red.json` | 512 | `36f91c64b0008cfbcf132dfb42e4d3d3c3f6f2942c76b5819fa2e01b1d067518` |
+| `line__dash-2.json` | 501 | `8c67a469f58694b309535c37067a8d8550e7f6ded73fcd5116d7df24fd498e04` |
+| `line__dash-4.json` | 499 | `c13ae12f07bf601246903bc2b1701cf85fe48ef0df5efed602106d5c9c180ce7` |
+| `line__dash-5.json` | 500 | `d050c049736cb2f0ff74fce119b0ddb8e6c68923fe507c3917f31ba5333b94dd` |
+| `line__no-line.json` | 444 | `f944392abfb87a7abc2b54d2dfe816d3f8abc998e9617eeda9c3d815eb716dd8` |
+| `line__weight-0.25.json` | 515 | `65aaaa7f08fb7e0bb893e8d00bf3d76de354f70dcaee62e680f278aa469f3535` |
+| `line__weight-1.json` | 511 | `f4b2de06f85a66ebce8c92441e314f3ba4756e110ceba2494587a7a2077e4587` |
+| `line__weight-10.json` | 513 | `f3888f78d0f891830077d56ea00960449a7319222bf10b69937d7acfa37112ef` |
+| `line__weight-4.json` | 511 | `a79d9516829787c0bf0efd928bd05fef58dddb661a65bb831fa0e773eee15581` |
+| `pages__landscape.json` | 514 | `70658c1d1e2113044478fe43c2b204c10ec36f9fce7754f2285c000247112789` |
+| `pages__master-ignored.json` | 517 | `18c38979ead53c003dc0c303047d00032bef209649d215bbd6953cc20a5113ed` |
+| `pages__master-rect.json` | 879 | `f50efb123459ad180d540a9d1fca4b75467f7f2bbb76c0e1d19edd4ca8a6a583` |
+| `pages__master-text.json` | 1487 | `6dbae81f25eb9030ced57cfffc18451dfbf32a85916999eddc0b56b082e877ca` |
+| `pages__one.json` | 506 | `97c8f79a4af219d14ffd3461e5ed4e6e4ad09d9d1df48069233826627b8a4cfd` |
+| `pages__size-5.75x4.75.json` | 149 | `5914e77cbc5def6454900eb460116b6d996f226c151c0128b96dd4288cd45e43` |
+| `pages__three-rect-p3.json` | 1045 | `6ae699251f122eb9a033bf45d7831196baf5b5c3da6e2fee5e0bda151f43e731` |
+| `pages__two-rect-p2.json` | 964 | `875381d804178bdef3a8ec102127adfd74c0aebe9ac2c2adc6570c5da6b3a9db` |
+| `pages__two.json` | 585 | `b7ab336cd53c9e1504a6fcfa76c26c3a7164362489a96a41489f3953720eae43` |
+| `picture__base.json` | 495 | `a99efa79a00db65ff0d5cfad99380003901afb3018cadea1804594ddbc82913b` |
+| `picture__border.json` | 500 | `0f23bb66de5ee1372d2f5b7059407c5b0b6f82929c15c0263a2ff46d98273591` |
+| `picture__crop-all.json` | 506 | `00b020af199beb38bb8300f15b081acc8f9b11d23c4d09eb570cc5431df7110e` |
+| `picture__crop-left.json` | 506 | `a33ea465c16b102bedd691e785c8d96bc9bc881d566bfe59dd29259211ccfd35` |
+| `picture__crop-top.json` | 504 | `72a056355fc4aed5bf71a56810ba7285fabffdd0d93b233a0b184ced68611654` |
+| `picture__flip-h.json` | 499 | `93ecd7761cb0c65cb36f27c6afbec672f791df00fd2b2b359a451095de30b7e8` |
+| `picture__moved.json` | 513 | `49dbaabb57c5a3b83d7f14db734da5efa61259c2b0d741e86a5876b3885abd37` |
+| `picture__oval-mask.json` | 505 | `ee719cba1555cc6fc9a6544f7839c3bab34f290070f4668addabcbd821205ec4` |
+| `picture__rotated-30.json` | 481 | `b3139f435d01cf6ae774f70f60731fd95b32a464d9dc2eabf9fb3ad849a16deb` |
+| `picture__stretched.json` | 505 | `ed86ffebcdf72949895ca18c01183c83996d6e3e7d921221d015ae2b4fbcd676` |
+| `picture__two.json` | 832 | `9331559f78988917d317c496ce1c7f57355f12a006ab8359abefd9d2dfdfcff3` |
+| `shadow__offset.json` | 501 | `378f131064e5cd398a752169fe8e3f449954708a8dd04b115221474346e9e980` |
+| `shadow__on.json` | 504 | `f96264699705b1d9365b41c2f23427a64ce9c2725fa18d90ce49846bafa8e02b` |
+| `shapes__curve.json` | 487 | `6b55e7b39c172d7a9346e7d06466b41e0f8eba52062ccc57ba36d2992ae3185d` |
+| `shapes__diamond.json` | 504 | `eca5320bb3887af1fe25f7d9ead5296a72e6d08111d0bb28e9edefc7da19cf7b` |
+| `shapes__heart.json` | 487 | `a0825afdf7a51a49610136bbe3e08a0b8016170ede3f18f8f87b81637d6a16a3` |
+| `shapes__hexagon.json` | 503 | `298f396b5688756a5d9ab747a0aa1437b913a82ba2dc668ae0eda59c7e3fcb75` |
+| `shapes__line-arrow.json` | 496 | `c633b340b400cf4449701fd412dc28fc185f0789aa853dd267a0f4550a2b72f2` |
+| `shapes__line.json` | 496 | `50f4e5cb9ff60450ee3ccc0e03f5cceab1466bca2522f9e06c3b1b821273be74` |
+| `shapes__oval.json` | 506 | `7c78b32e8731e1be06b67f15284407bef268e8e179470ff7a1d971a7269f572c` |
+| `shapes__polyline.json` | 506 | `55a2fa113b7e0977d2d2b9e03b473c180b9cb995f2501fa64f81320caea080c7` |
+| `shapes__rect.json` | 508 | `7e576e7fd52eb12ce9f7ce4cc9e38d4e044d5771e9f4c6b6217766385243dfbb` |
+| `shapes__rightarrow.json` | 509 | `9a12f6cc35329c522deaf8cdd4be1a15f138385b108f80d52c831c99ed28912b` |
+| `shapes__roundrect.json` | 506 | `6d70c8ba417bac0bb64021813514c092cdeae3961030c305d34c36b0d6cc99ca` |
+| `shapes__star5.json` | 500 | `0a7ce721f3509ee30852b9a528cfe52f07663a3e4adac78a4b8eede235bbc1a7` |
+| `shapes__triangle.json` | 491 | `d2dfcd3e2897f8a6f5d13a749b407c7fb1dc710473b5de55e141ee3a7c606d82` |
+| `table__2x2.json` | 507 | `eb61750e7bb5bdfe8426daf226bf17691cd63cdb85ee8f8cc7b3da60f8ddfe7c` |
+| `table__3x2.json` | 508 | `6d5df5bb7445293f09da5e61eebefbf03100e9033cc23a00eafdb9abb00d936b` |
+| `table__merged.json` | 512 | `1f5921ee2a918a296d46fc4da561b6de72124c8f0c1cb96583ab4eedebb37fcb` |
+| `text2__base.json` | 1668 | `b9fb28ad379e47b186820b571df2c5ace507ca32a46c1767ee0227890faa1382` |
+| `text2__p2-bold.json` | 1670 | `fd241f145675c014c1b7334237b7bf62468c81941ef2d00e55b146e178ceaeee` |
+| `text2__p2-center.json` | 1675 | `33b1e018c8c9d65c6c773a3c81d2928f093cb592d08181cbc078425947161ca2` |
+| `text2__text-in-oval.json` | 1484 | `45ac7c36a2c8d39d8b58a61af6c90cd00088f1c5aed199e15ba401d1f69cdbf9` |
+| `text2__two-boxes.json` | 2644 | `b95b44ff6a990e745735f0b1dc1e5a59ff5dd3eae7c226197acc1614f46aebd8` |
+| `text__align-center.json` | 1139 | `440ab7e67521d172533fc3c0603c86511de232c6d021c852a1871c0dd17e5f1d` |
+| `text__align-justify.json` | 1141 | `fbe66fa90560ca1be33f3110299fc292075e20f0e41d4bd3915f160b3e39297a` |
+| `text__align-right.json` | 1137 | `2cbb77ca97a05f81de2b4f8b83b2f1e490764be5924ffa4487fedf8434d3928d` |
+| `text__allcaps.json` | 1132 | `71d470d7e0f83c69a94dd11154dce8925af2404b94890a29e75ec949e64f8fa1` |
+| `text__base.json` | 1129 | `012a1811d13c37a14a5a95d390004355005c29ae297b2cd56ca7501e2ac915e8` |
+| `text__bold.json` | 1128 | `8692ae25de7b3e5e35312c1026f1d7f5f5de75258e9b732dc069eb512fbe16c2` |
+| `text__bullets.json` | 1132 | `3b5faaa196fcce8d136c76a76de4333bc36b0acc826fb56c6be60ef682716d3f` |
+| `text__color-custom.json` | 1137 | `34b81ab388c2592c2b8121c254ae11f0fc98093fb5ec9cd65201bf498cf336fc` |
+| `text__color-red.json` | 1134 | `397358e8dfabb8c05149a96eee3a24032f2e3b2dcdc46c221df71b592112757b` |
+| `text__font-Arial.json` | 1133 | `b5581711b72b0218de4ba1bac5f720030d109a293929a168e5e067268cd4281e` |
+| `text__font-ArialBlack.json` | 1144 | `6687886d1255846037c7374f96d6a725991ad91219cf1a4ae14b33414288b09d` |
+| `text__font-CourierNew.json` | 1144 | `03f98c9e71dda65ac34f10a4ec6d763063ca04956a3896b8bd14b35779a9ed98` |
+| `text__font-TimesNewRoman.json` | 1151 | `b360279aab663df356b1109d672c1ccd5513e85eab893a929b641fd0f1a63308` |
+| `text__frame-fill-line.json` | 1503 | `c0b7848b9c79ee0ff862b25eafd027817d1a6b6c2b53d770d25ff0b31d484eab` |
+| `text__indent-first-18.json` | 1140 | `4bf4b74cdecbce53a0cf3275c38d67073375cb7864bebe4eb8d6c1e21f3c2763` |
+| `text__indent-left-18.json` | 1139 | `29a68ff6d4faad7cf359f8f6e25e54dcccfb7694eaf23f8b4da73c9c7cc3c579` |
+| `text__indent-right-18.json` | 1140 | `13fc434a5a1d7b35e976958ee058caf6d8d4538d5d491072a7fc9db7197d3847` |
+| `text__italic.json` | 1130 | `7a7504cf6a50084a05aa7754d976edc7eb75570a6e64e2c09f75a4ed7716bab7` |
+| `text__line-break.json` | 1136 | `5fde5764105da1c47e4489e53cbe79507c6d89f696564ee062de8c5c72333a80` |
+| `text__ls-double.json` | 1121 | `4d59f630da71c5eb8fc2c2bd9abf8bc3b23c097e3498ec86402dffe6d8d133f7` |
+| `text__ls-exact-14.json` | 1123 | `e234067edb3197946abb1cf810e61e11d3507e7e054b03a3539d81fa5490c868` |
+| `text__ls-exact-30.json` | 1123 | `59a8b043f844fb5c33c6c72d2cdb18c459f5e0e0623d878fdbf742a918c235c3` |
+| `text__ls-multiple-1.5.json` | 1127 | `0e4c0cfffed4fb9d729e5373bfc87dfb2454096c4e8222924abff15946e83372` |
+| `text__ls-single.json` | 1121 | `7ae5795f6658b02717b06ae9040f49500c62372e960c646e232fd46a0033dcf4` |
+| `text__margins-10.json` | 1083 | `680d09775a86704dc6bbdeca9f13d9e32a9147c54c3a20bfee33d327f5524239` |
+| `text__rotated-270.json` | 1138 | `8f52403c695ea7b2689b748248aaf2145fcf534e885460822aa323dd9711b682` |
+| `text__run-bold-word.json` | 1741 | `b20176550202523fcb46cfa133b27e371af57e458ea71356fec8307926d9ab8a` |
+| `text__run-font-word.json` | 1740 | `de42ca9f021e3b0ea8867b87829e5df1c3e03269a87e1f38b5c2bb0340a5a2d6` |
+| `text__run-red-word.json` | 1741 | `12512f99be8d88fd207d9c28e30ced37c4e47546b2a73c1b2ac8f7f18b6e0a3f` |
+| `text__run-size-word.json` | 1742 | `f964f16a56e1a2ebce47de575d84d96835508ed11fe53681f8be9cba7b78138e` |
+| `text__size-12.json` | 1132 | `3fe403dca3d46ddabcd81d389edd874dcc5f19eec17c3fcafa29c70dbdf66af6` |
+| `text__size-24.json` | 1132 | `8161d16f76e1e49bb88b3e4c571878ab3047df59bc3d869943444dc4ed4df613` |
+| `text__size-36.5.json` | 1134 | `60c2d79ea0c28acb3f91c8c9a26b5230f8b4df84c520b537cac585f67bc02017` |
+| `text__size-72.json` | 1132 | `c150dab99a98e6a93ee3be0439b08706574198d70c1b479072bffd1ad652a4f3` |
+| `text__size-8.json` | 1130 | `ef3c6c825f968efea0a321497892ba3d686e8ec104a306974edebc96c84b7371` |
+| `text__smallcaps.json` | 1134 | `6274877d4eef42458103bef4d4a9f0a61097ec9314e3a081ba015e56e8458706` |
+| `text__space-after-0.json` | 1138 | `1c1762c7449daa0b1d31637e6f74b0d6292fae8aa22ca4c3b329fbc0093892f3` |
+| `text__space-before-12.json` | 1141 | `ee8ff0f3d42c9c03b5b016942a1d9459be7d28c893a0b2ade09abb3aee59923a` |
+| `text__superscript.json` | 1136 | `e881728ec2384cdf41043a90d78a640816f001c6391b0bece60e994fe8f2a7fc` |
+| `text__text-changed.json` | 1137 | `6c9df741ac7fc60ef5055a954f8e97d1be57d3a339403261411f4f9200f1fb8d` |
+| `text__text-longer.json` | 1164 | `4ea2932bab798f68c2e295779f9c205ab720eb68445738db7474e21cbee67db5` |
+| `text__tracking-200.json` | 1137 | `be2f35c68651b832d4be69d920bb38d6225a5a2a8c163ff8e1751b7f37aa7d78` |
+| `text__underline.json` | 1134 | `4a8753398323db5d03bf5c2e7f12d25d8b89baf14995a5d3931cff715c1ef256` |
+| `text__vanchor-bottom.json` | 1139 | `7ff0965664124ee17b4e3b5e71eb9cf88e6c169ba3b2d983ea5a3d11d48dc19c` |
+| `text__vanchor-middle.json` | 1139 | `6e169450389dbe4f7c19d770e76f35faa3e11e66b73d5c36c6307b47c9f6be7a` |
+| `wordart__arch.json` | 497 | `9f0ef4e62604e1ab1f7d911c982814577f86d5bf26f63ac9172f335b239e9728` |
+| `wordart__base.json` | 485 | `905bdb30f35e37ac7d8a939e13c228dd10fb04c4528029e27e54cb9c4484ee3e` |
+| `wordart__circle.json` | 503 | `29ae8beb795c40859c636cc4af560c66a16b276ba22dae8699ec0501a1b2fe21` |
+| `wordart__fill-red.json` | 493 | `ef0504f585524e7dbc8a469dbe2e1d454c622faa80eea8793bb6a7d18639e279` |
+| `wordart__font.json` | 485 | `b6f1aebea5b07b2bce3bc72376655f7fe79c6b01b9c069f4f6504cd1b90f50b6` |
+| `wordart__line-white.json` | 498 | `86f0a62ccd64dde6c7b2eb40efaf4ebdf492095307248342e034b71a3c9997c9` |
+| `wordart__shadow.json` | 488 | `c4caf94c8202a22b8a669ed403ee40fb55e80376e055862facae32f7c6c58780` |
+| `wordart__text.json` | 486 | `6563bc7a2872593f622ae892371c6a967cdd7a897f17badd2819224d7b41fd8a` |
+
+## Builder — 2026-10-24 C7 path observations and validation
+
+Used only the .pub bytes of shapes__curve.pub and shapes__polyline.pub from the pinned controlled set to inspect path arrays through this project's existing escher::parse. Section 5 of odraw-geometry.md records the words and coordinates. No scoring exports or images were used to infer path storage. Neither sample settles four-byte vertices or guide indexes, which remain unsupported. Existing Escher property retention suffices; contents.rs, quill.rs and read.rs were not changed.
+
+The scored corpus before/after is identical: 142/142 imported, 152/152 objects, 111/152 positions within 1 pt, 52/52 exact texts, 111/111 styles. The 24-file batch before/after is identical per file, including all diagnostic strings and page/object counts: 9 converted with notes only, 10 with warnings, 2 old-version refusals, 3 damaged-file rejections; 31 pages, 280 objects. CLI PNG renders of both controlled paths were inspected outside the checkout; a cubic and the closed polyline are drawn. No Windows execution or comparison against Publisher's screen output was performed.
+
+Validation: three new unit tests and the external fixture test pass. Workspace formatting, clippy -D warnings and 3,061 tests pass (20 ignored). Full CI stops at the six existing unregistered examples/csv-merge assets; the same asset checker reproduces that failure on clean origin/main. No unrelated asset files or attributions were changed. Layers pass for all 22 checked crates; wasm checks pass for all 17 selected crates. The remaining path limitations are recorded in odraw-geometry.md §5.
