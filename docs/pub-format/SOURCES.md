@@ -1153,3 +1153,19 @@ Downloaded only 142 `.pub` files and 142 scoring JSON files from FuncularLabs/pu
 Untouched main `bc1b23c` and the heart change both score 142/142 imports, 152/152 objects, 111/152 positions within 1 pt, 52/52 texts and 111/111 styles. The real batch before and after remains 9 notes, 10 warnings, 2 refused and 3 damaged, with 31 pages and 280 objects. The CLI heart PNG was inspected: two rounded lobes and a pointed bottom, retaining fill and stroke. This is our own rendered output, not comparison with Publisher. Windows, Publisher's own drawing and non-default preset adjustments were not tested.
 
 Validation: all seven workspace CI steps passed (formatting, PDF dependencies, warnings-denied lint, tests, assets, layers and WASM). Workspace tests: 3,065 passed, zero failed, 21 ignored. Separate controlled scoring, 142-file save/reopen/edit/PDF, real-file batch regression and seven-preset fixture checks passed.
+
+## Missing-font substitution — 2026-10-24
+
+Reused the pinned 142 controlled `.pub` files, 142 scoring JSON files and 24 Apache
+`.pub` files already recorded here; all hashes and sizes matched their ledgers.
+Scoring JSON was used only by the unchanged corpus scorer. Consulted this
+repository's font-resolution/UI code, bundled font metadata, the available Linux
+font catalog and the read-fonts post-header accessor. No Microsoft fonts were
+downloaded, no other Publisher reader was read and no protected reader changed.
+
+Missing-name type and width hints are substitution policy; the absent originals'
+metrics remain UNKNOWN. Controlled and real corpus numbers stayed unchanged;
+all seven workspace CI steps passed, with the imported-font UI test also run
+separately. [font-fallback.md](font-fallback.md) records the exact choices,
+validation and visible Newsletter clipping/reflow, including 1,809 versus 1,747
+rendered glyphs without a claim of improved fidelity.
