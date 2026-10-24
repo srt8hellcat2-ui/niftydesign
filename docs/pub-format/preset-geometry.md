@@ -19,3 +19,21 @@ SPEC: 40 text-warp shapes are defined: textArchDown, textArchDownPour, textArchU
 SPEC, textArchUp as the example: one adjust value (default 180 degrees, written as 10800000 in 60000ths of a degree) sets where the arc starts; the formulas turn that into a start point on the shape ellipse; the path is a move to that point followed by an arc using half the width and half the height as radii. So the shape gives the PATH that the text follows.
 UNKNOWN: how each letter is stretched, turned and spaced along that path is not spelled out in these files. Decide it by comparing renders with the arch and circle fixtures and the scoring-only reference images, and record what stays UNKNOWN.
 INFERENCE for the name mapping: TextArchUpCurve (144) is textArchUp, TextArchDownCurve (145) is textArchDown, TextCircleCurve (146) is textCircle, TextButtonCurve (147) is textButton. Confirm on the fixtures before relying on it.
+
+## C8 input audit — 2026-10-24
+
+OBSERVATION: read the seven pinned .pub fixture files with the existing `escher::parse` and `import_pub` functions on main `550357e3`. Each contains a linked shape with Contents sequence 293. None has an adjust property in 0x0147..0x0150. This measures stored values and current output; it does not confirm an ECMA preset match or the conversion of adjust units.
+
+| Fixture | Stored shape number | Current drawing |
+| --- | ---: | --- |
+| shapes__heart.pub | 74 | Rectangle; unsupported-shape warning |
+| shapes__star5.pub | 12 | Ten-vertex polygon forming a five-point star; fixed inner-radius ratio 0.381966 |
+| shapes__diamond.pub | 4 | Four-vertex diamond polygon |
+| shapes__hexagon.pub | 9 | Six-vertex polygon; default horizontal inset one quarter of the frame width |
+| shapes__rightarrow.pub | 13 | Seven-vertex arrow polygon; default head base at three quarters of the width, shaft top at one quarter of the height |
+| shapes__triangle.pub | 5 | Three-vertex polygon; default apex at the horizontal centre |
+| shapes__roundrect.pub | 2 | Rounded rectangle; default corner radius one sixth of the smaller frame dimension |
+
+OBSERVATION about current code: except for the unsupported heart, these are the existing hand-coded `Builder::geometry` branches, not results of an ECMA formula interpreter. The rounded-rectangle item is classified as Rectangle but has rounded path geometry. The existing code reads adjusts for triangle, hexagon, right arrow and rounded rectangle; no sample in this group exercises a non-default adjust. No ECMA adjust conversion is confirmed here. CLI PNG exports of heart, star5 and roundrect were also inspected outside the checkout: the heart is a plain rectangle, the star has five points, and the rounded rectangle has rounded corners. These are baseline renders, not validation against the standard or Publisher.
+
+UNKNOWN / blocked: this environment could not retrieve `https://ecma-international.org/publications-and-standards/standards/ecma-376/` on 2026-10-24: the proxy rejected the connection with HTTP 403 Forbidden. No new standard text or XML was obtained, so no download SHA-256 is available. The C8 task requires the official presetShapeDefinitions.xml and reading operator meanings before using them. No alternate source was consulted, no new formulas or paths were implemented, and the text-warp definitions were not opened. The earlier notes above remain prior recorded observations, not a claim that this attempt fetched or verified that XML.
