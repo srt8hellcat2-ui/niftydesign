@@ -85,7 +85,7 @@ Used only existing pub-format notes and our converter's fresh output. No other
 reader/output or web format search was used. C7, C8 and C9 each attempted the
 public MS-ODRAW landing page; the proxy rejected CONNECT with 403, so no spec
 text or new geometry was obtained. Final corpus score remains **142/142 imports,
-152/152 objects, 111/152 positions, 52/52 texts, 111/111 styles**. Truth exports
+152/152 objects, 111/111 scored shape/text positions, 52/52 texts, 111/111 styles**. Truth exports
 were used for scoring only. Fmt, clippy with warnings denied and ordinary tests
 passed (69 passed, 10 ignored); the opt-in fixture warning test also passed.
 

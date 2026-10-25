@@ -31,10 +31,10 @@ Scores are ordered **imports / objects / positions within 1 pt / exact texts / s
 
 | Item | Corpus before | Corpus after | Real batch before: OK / warnings / refused / damaged | Real batch after | Pages / objects before → after |
 |---|---|---|---|---|---|
-| T5 | 142/142; 152/152; 111/152; 52/52; 111/111 | same | 9 / 10 / 2 / 3 | 9 / 10 / 2 / 3 | 31 / 280 → 31 / 280 |
-| T6 | 142/142; 152/152; 111/152; 52/52; 111/111 | same | 9 / 10 / 2 / 3 | 9 / 10 / 2 / 3 | 31 / 280 → 31 / 280 |
-| T7 | 142/142; 152/152; 111/152; 52/52; 111/111 | same | 9 / 10 / 2 / 3 | 9 / 10 / 2 / 3 | 31 / 280 → 31 / 280 |
-| T8 | 142/142; 152/152; 111/152; 52/52; 111/111 | same | 9 / 10 / 2 / 3 | 9 / 10 / 2 / 3 | 31 / 280 → 31 / 280 |
+| T5 | 142/142; 152/152; 111/111 scored positions; 52/52; 111/111 | same | 9 / 10 / 2 / 3 | 9 / 10 / 2 / 3 | 31 / 280 → 31 / 280 |
+| T6 | 142/142; 152/152; 111/111 scored positions; 52/52; 111/111 | same | 9 / 10 / 2 / 3 | 9 / 10 / 2 / 3 | 31 / 280 → 31 / 280 |
+| T7 | 142/142; 152/152; 111/111 scored positions; 52/52; 111/111 | same | 9 / 10 / 2 / 3 | 9 / 10 / 2 / 3 | 31 / 280 → 31 / 280 |
+| T8 | 142/142; 152/152; 111/111 scored positions; 52/52; 111/111 | same | 9 / 10 / 2 / 3 | 9 / 10 / 2 / 3 | 31 / 280 → 31 / 280 |
 
 The nine OK entries still have informational notes; their status is the T3 severity reclassification, not a fidelity claim. Fmt and clippy (`-D warnings`, all targets of pub/engine/UI/CLI) pass. Default pub tests: **48 passed**; CLI: **27 passed**; engine library: **846 passed**; UI library: **548 passed**. Intentionally ignored tests are separate; the external corpus was explicitly run for every item. Windows desktop/spooler behavior and comparison against Publisher remain unverified here. No protected readers or owner-maintained files were edited.
 
@@ -44,11 +44,11 @@ Every successful `.pub` open now returns a separate notice in the engine result.
 
 > This is a converted copy. It can look different from what Publisher shows; some features are lost or simplified, and not every loss gives a warning. Compare it with your original.
 
-Engine and UI-harness tests check delivery, retained diagnostics, visible non-modal text and document association; a CLI test checks report delivery/round-trip. All **19** successful real imports carry the notice. Before/after real counts are **9 OK with notes / 10 warnings / 2 refused / 3 damaged**, **31 pages / 280 objects**; each file's status, warning list and notes match T3. Before/after corpus scores remain **142/142, 152/152, 111/152, 52/52, 111/111** (truth files scored only). Native Windows appearance is not tested here.
+Engine and UI-harness tests check delivery, retained diagnostics, visible non-modal text and document association; a CLI test checks report delivery/round-trip. All **19** successful real imports carry the notice. Before/after real counts are **9 OK with notes / 10 warnings / 2 refused / 3 damaged**, **31 pages / 280 objects**; each file's status, warning list and notes match T3. Before/after corpus scores remain **142/142, 152/152, 111/111 scored positions, 52/52, 111/111** (truth files scored only). Native Windows appearance is not tested here.
 
 ## T3 diagnostic-severity update — 2026-10-23
 
-Before/after corpus: **142/142 imports, 152/152 objects, 111/152 positions, 52/52 texts, 111/111 styles**, unchanged. Real batch before **0 OK / 19 warnings / 2 refused / 3 damaged**; after **9 OK with informational notes / 10 warnings / 2 refused / 3 damaged**. Successful output totals remain **31 pages / 280 objects**. All **19** successful native document JSONs match T1 outputs after excluding creation/modification timestamps. This is diagnostic reclassification, not a fidelity improvement. Every unidentified formatting field remains in the separate notes column/array; named, confirmed losses remain full warnings. Controlled conversion status changes from **79 OK / 63 warnings** to **130 OK / 12 warnings**, with **142/142** conversions and unchanged corpus scores.
+Before/after corpus: **142/142 imports, 152/152 objects, 111/111 scored shape/text positions, 52/52 texts, 111/111 styles**, unchanged. Real batch before **0 OK / 19 warnings / 2 refused / 3 damaged**; after **9 OK with informational notes / 10 warnings / 2 refused / 3 damaged**. Successful output totals remain **31 pages / 280 objects**. All **19** successful native document JSONs match T1 outputs after excluding creation/modification timestamps. This is diagnostic reclassification, not a fidelity improvement. Every unidentified formatting field remains in the separate notes column/array; named, confirmed losses remain full warnings. Controlled conversion status changes from **79 OK / 63 warnings** to **130 OK / 12 warnings**, with **142/142** conversions and unchanged corpus scores.
 
 ## Deferred T2: exact paired-sample request — 2026-10-23
 
@@ -68,7 +68,7 @@ Current branch: `codex/importer-improvements`, based on `main@fc1f3f1`. The rema
 |---|---:|---:|
 | Corpus imported | 142/142 | 142/142 |
 | Corpus objects found | 152/152 | 152/152 |
-| Corpus positions within 1 pt | 111/152 | 111/152 |
+| Corpus scored shape/text positions within 1 pt | 111/111 | 111/111 |
 | Corpus exact texts | 52/52 | 52/52 |
 | Corpus styles | 111/111 | 111/111 |
 | Real files OK / warnings / refused / damaged | 0 / 19 / 2 / 3 | 0 / 19 / 2 / 3 |
@@ -251,7 +251,7 @@ labeled numbering, and filenames do not establish file contents or encodings.
 Fmt, clippy for pub and CLI with `-D warnings`, and full pub/CLI tests passed:
 **69 passed / 10 ignored**. The opt-in fixture warning test passed, including
 justification. The opt-in real harness was also explicitly run successfully.
-Final corpus: **142/142 imports, 152/152 objects, 111/152 positions within 1 pt,
+Final corpus: **142/142 imports, 152/152 objects, 111/111 scored shape/text positions within 1 pt,
 52/52 texts exact, 111/111 styles**, unchanged. Truth exports were for scoring
 only, never for this warning diagnosis or encoding inference.
 
@@ -267,7 +267,7 @@ current scorer. `crates/pub/tests/corpus.rs::score` increments the geometry
 numerator only for non-image truth elements. The 152 scoring elements comprise
 59 shapes, 52 texts and 41 images. All 111 evaluated non-image frames pass;
 all 152 elements are found. The fresh corpus emits no `off by` or `missing`
-notes. Thus **111/152 remains the published score**, with **111/111 evaluated
+notes. Thus **111/152 remains the historical log ratio**, with **111/111 evaluated
 frames within 1 pt**, rather than 41 measured failures.
 
 The existing `Builder::rect` page-centre conversion, `pt` EMU conversion and
@@ -359,7 +359,7 @@ code changed in this queue. C2/C3's warning changes remain blocked by scope.
 All item runs passed fmt, clippy with warnings denied, CLI/pub tests and the
 corpus. Final ordinary suites: **67 passed / 10 ignored**; the new C5 opt-in
 24-file test additionally passed when explicitly enabled. Corpus baseline →
-final: **142/142 imports, 152/152 objects, 111/152 positions, 52/52 texts,
+final: **142/142 imports, 152/152 objects, 111/111 scored shape/text positions, 52/52 texts,
 111/111 styles → unchanged**. The C4 audit above explains the 41 image elements
 excluded from the position numerator; no evaluated position miss was found.
 The separate fresh controlled batch was **79 OK / 63 warnings / 0 failed**.

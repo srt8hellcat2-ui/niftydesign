@@ -20,7 +20,7 @@ Never write that the owner authorized, approved or confirmed something unless th
 Do not edit crates/pub/src/contents.rs, quill.rs or read.rs unless a task in the queue below or the prompt names that file. Even then, change only what the notes in docs/pub-format/ document. Never guess an encoding. The docs lane never edits anything outside docs/.
 
 ## 5. Quality gates (code changes)
-cargo fmt --check, cargo clippy -D warnings and the tests must pass. The 142-fixture corpus score must not drop below 142/142 imports, 152/152 objects, 111/152 positions within 1 pt, 52/52 texts, 111/111 styles. If a change drops it, undo that change and report it. Run the 24-file real-file batch before and after and record the counts in docs/REPORTS.md (last known: 0 OK, 19 warnings, 2 refused, 3 failed).
+cargo fmt --check, cargo clippy -D warnings and the tests must pass. The 142-fixture corpus score must not drop below 142/142 imports, 152/152 objects, 111/111 scored shape/text positions within 1 pt, 52/52 texts, 111/111 styles. If a change drops it, undo that change and report it. Run the 24-file real-file batch before and after and record the counts in docs/REPORTS.md (last known: 0 OK, 19 warnings, 2 refused, 3 failed).
 
 ## 6. Git rules
 - Never push to main. Never force-push. Work on the branch the task names.
@@ -39,6 +39,8 @@ Do not stop to ask the owner questions. Put them under "Needs you" in docs/REPOR
 
 ## 9. Data folders for agent environments
 Some environments cannot reach the network. Expected locations: controlled fixtures at /home/user/pubsmith/tests/fixtures/pub (142 .pub files) and the Apache files at /home/user/apache-pub (24 .pub files; the PUB_REAL_CORPUS variable points there). DATA-FOLDER TEST: the first action of any describer or regression task is to count the .pub files in both folders. If a count is wrong, stop and report it under "Needs you"; do not substitute another source and do not read anything under pubsmith src/ or tools/. Check hashes against .github/test-data/publisher-fixtures.csv.
+
+Expected corpus numbers: 142/142 imports, 152/152 legacy overlap coverage, 111 of 111 scored shape/text objects within 1 pt, 52/52 exact texts and 111/111 styles. The separate picture position result is an informational baseline, not a quality gate: 41 image-labelled reference elements are considered, but only imported pictures are eligible; report matched passes, measured misses and unmatched references separately. See [picture-positions.md](pub-format/picture-positions.md).
 
 ## 10. Start every session here
 Read this file, the queue below, every "Needs you" in docs/REPORTS.md (if it exists) and docs/CLEANROOM.md. Then take the first unticked item in your lane.

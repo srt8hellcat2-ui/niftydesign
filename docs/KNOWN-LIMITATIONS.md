@@ -66,7 +66,7 @@ File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on m
 
 - Round trip (save `.designcraft`, reopen) and PDF export for the 142 samples: automated only. One manual round trip was done on Windows (see the top of this page).
 - Side-by-side comparisons use only nine Publisher reference images; other files remain unverified. Differences in colour, gradient direction or spacing are possible.
-- 41 of 152 reference objects are image exports excluded from position scoring; their placement accuracy is UNKNOWN.
+- The picture position baseline matches 12 of 41 image-labelled reference objects within 1 pt; 29 exports of other kinds of object are unmatched. Those 29 placements remain unmeasured by this picture check.
 
 ## UNVERIFIED
 

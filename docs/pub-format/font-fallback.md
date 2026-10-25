@@ -138,7 +138,7 @@ ledger. Scoring JSON was used only by the unchanged corpus scorer.
 | --- | ---: | ---: |
 | Controlled imports | 142/142 | 142/142 |
 | Objects found | 152/152 | 152/152 |
-| Positions within 1 pt | 111/152 | 111/152 |
+| Scored shape/text positions within 1 pt | 111/111 | 111/111 |
 | Exact texts | 52/52 | 52/52 |
 | Styles | 111/111 | 111/111 |
 | Real files converted with notes | 9 | 9 |
