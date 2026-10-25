@@ -47,6 +47,7 @@
 mod contents;
 mod escher;
 mod metafile;
+mod overset;
 mod paths;
 mod presets;
 mod quill;
@@ -174,6 +175,7 @@ pub fn import_pub(bytes: &[u8]) -> Result<Imported> {
             }
         }
     }
+    notes.extend(overset::notes(&b.doc));
     Ok(Imported { document: b.doc, warnings, notes })
 }
 
