@@ -20,6 +20,8 @@ SPEC, textArchUp as the example: one adjust value (default 180 degrees, written 
 UNKNOWN: how each letter is stretched, turned and spaced along that path is not spelled out in these files. Decide it by comparing renders with the arch and circle fixtures and the scoring-only reference images, and record what stays UNKNOWN.
 INFERENCE for the name mapping: TextArchUpCurve (144) is textArchUp, TextArchDownCurve (145) is textArchDown, TextCircleCurve (146) is textCircle, TextButtonCurve (147) is textButton. Confirm on the fixtures before relying on it.
 
+OBSERVATION (C9): the pinned `wordart__arch.pub` stores 144 and `wordart__circle.pub` stores 146, with no stored adjustments. Their mapping to the corresponding ECMA default paths remains an INFERENCE from the names and measured renders; the two numbers are confirmed by the binary audit. UNKNOWN: fixture confirmation of 145 or 147. Default arch and circle now use existing editable path text with approximate glyph fitting; other warps retain straight text and a warning. See [wordart.md](wordart.md) for the audit, geometry checks, scores and remaining limits.
+
 ## C8 input audit — 2026-10-24
 
 OBSERVATION: read the seven pinned .pub fixture files with the existing `escher::parse` and `import_pub` functions on main `550357e3`. Each contains a linked shape with Contents sequence 293. None has an adjust property in 0x0147..0x0150. This measures stored values and current output; it does not confirm an ECMA preset match or the conversion of adjust units.

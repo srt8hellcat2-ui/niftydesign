@@ -29,8 +29,8 @@
 //! to score imports, never to infer format encoding.
 //!
 //! ## Not supported yet
-//! Table cell fills, borders and unconfirmed cell formatting; WordArt shapes and stretching (it comes over
-//! as straight, editable text with its font, colours, line and shadow, sized to fit its frame),
+//! Table cell fills, borders and unconfirmed cell formatting; non-default WordArt warps and exact
+//! stretching (default arch/circle use approximate editable path text; other warps stay straight),
 //! pattern/texture fills (approximated by the fill colour), picture crops
 //! other than rectangular, PICT pictures (an empty graphic frame keeps their place), custom tab stops,
 //! numbering and unrecognized paragraph formatting. Bullets and exact/multiple line spacing are imported. WMF/EMF pictures come over as vector SVG without their text,
@@ -52,6 +52,7 @@ mod presets;
 mod quill;
 mod read;
 mod tables;
+mod wordart;
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::io::Read;
@@ -352,8 +353,11 @@ impl<'a> Builder<'a> {
         let wordart = sh.complex.get(&0x00c0).map(|raw| utf16z(raw));
         let picture = sh.prop(0x0104).filter(|p| *p > 0);
 
-        // Frames of tables and WordArt are rectangles whatever their Office shape type.
-        let (shape_kind, path) = if text_id.is_some() && (info.is_table || sh.kind == 201) || wordart.is_some() {
+        // Tables and straight WordArt keep rectangular frames. Curved WordArt uses its baseline path.
+        let curved = wordart.as_ref().and_then(|text| Self::wordart_path(sh, rect, text));
+        let (shape_kind, path) = if let Some(path) = curved {
+            (Shape::Path, path)
+        } else if text_id.is_some() && (info.is_table || sh.kind == 201) || wordart.is_some() {
             (Shape::Rectangle, shapes::rectangle(rect))
         } else {
             self.geometry(sh, rect)
@@ -417,13 +421,25 @@ impl<'a> Builder<'a> {
         Ok(())
     }
 
+    fn wordart_path(sh: &escher::EShape, rect: Rect, text: &str) -> Option<PathData> {
+        // Non-default adjusts have no confirmed Publisher-to-ECMA unit conversion.
+        // Multi-line geometry text remains unsupported.
+        if (0x0147..=0x0150).any(|id| sh.prop(id).is_some()) || text.contains(['\r', '\n']) {
+            return None;
+        }
+        wordart::default_path(sh.kind, rect)
+    }
+
     /// WordArt (MS-ODRAW Geometry Text) as an editable text frame: its font, bold/italic,
     /// underline and strikethrough, alignment, the shape's fill and line as the letters' fill and
-    /// stroke, and the shadow as a drop shadow. Publisher stretches WordArt to fill its frame; the
-    /// text gets the largest size that surely fits instead (no font metrics here), centred.
+    /// stroke, and the shadow as a drop shadow. Default arch/circle use editable path text;
+    /// sizes are estimates, not Publisher stretch rules. Other warps stay straight and centred.
     fn wordart_frame(&mut self, r: SpreadRef, rect: Rect, sh: &escher::EShape, raw: &str) -> Result<ItemId> {
         let text: String = raw.replace("\r\n", "\n").replace('\r', "\n").chars().filter(|c| *c == '\n' || !c.is_control()).collect();
-        if sh.kind != 136 {
+        let curved = Self::wordart_path(sh, rect, &text);
+        if curved.is_some() {
+            self.warnings.push("Curved WordArt uses editable path text; letter sizing and spacing are approximate.".into());
+        } else if sh.kind != 136 {
             self.warnings.push("WordArt shapes (arches, circles, waves) were imported as straight text.".into());
         }
         let (id, sid) = self.doc.add_text_frame(r, rect, self.layer, &text, ParaFormat::default()).map_err(|e| PubError::Malformed(e.to_string()))?;
@@ -438,19 +454,26 @@ impl<'a> Builder<'a> {
             (false, true) => "Italic",
             _ => "Regular",
         };
-        // Size: the frame's height per line, capped so the longest line fits at ~0.7 em a letter.
+        // Straight size: frame height per line, capped at an estimated 0.7 em per letter.
         let inset = 2.88;
         let lines = text.split('\n').count().max(1) as f64;
-        let longest = text.split('\n').map(|l| l.chars().count()).max().unwrap_or(0).max(1) as f64;
+        let letters = text.split('\n').map(|l| l.chars().count()).max().unwrap_or(0).max(1);
+        let longest = letters as f64;
         let by_height = (rect.height() - 2.0 * inset).max(0.0) / lines * 0.8;
         let by_width = (rect.width() - 2.0 * inset).max(0.0) / (longest * 0.7);
         let mut ops: Vec<(&'static str, serde_json::Value)> = vec![("fontStyle", json!(face))];
         if let Some(font) = sh.complex.get(&0x00c5).map(|f| utf16z(f)).filter(|f| !f.trim().is_empty()) {
             ops.push(("fontFamily", json!(font)));
         }
-        let size = by_height.min(by_width);
+        let size = curved.as_ref().and_then(|path| wordart::estimated_size(path, letters)).unwrap_or(by_height.min(by_width));
         if size.is_finite() && size >= 0.1 {
             ops.push(("size", json!(size.min(1296.0))));
+            if curved.is_some() {
+                // Visual approximations, not stored values or measured font metrics.
+                ops.push(("hScale", json!(1.1)));
+                // Keep the lettering slightly inside the ellipse.
+                ops.push(("baselineShift", json!(-size.min(1296.0) / 4.0)));
+            }
         }
         ops.push(("fill", json!(if fill.swatch.is_empty() { designcraft_color::swatch::NONE.to_string() } else { fill.swatch.clone() })));
         if stroke.weight > 0.0 && !stroke.swatch.is_empty() && stroke.swatch != designcraft_color::swatch::NONE {
@@ -487,6 +510,11 @@ impl<'a> Builder<'a> {
         {
             t.options.inset = [inset; 4];
             t.options.vertical_justification = VerticalJustification::Center;
+            if curved.is_some() {
+                t.options.path = Some(designcraft_doc::PathType::default());
+                t.options.vertical_justification = VerticalJustification::Top;
+                t.options.inset = [0.0; 4];
+            }
         }
         self.shadow(id, sh);
         Ok(id)
@@ -1355,7 +1383,7 @@ mod tests {
             (0x0205, 38_100),
             (0x0206, 50_800),
         ]);
-        sh.kind = 144;
+        sh.kind = 145;
         let font: Vec<u8> = "Arial Black".encode_utf16().flat_map(u16::to_le_bytes).collect();
         sh.complex.insert(0x00c5, font);
         let id = b.wordart_frame(SpreadRef::Doc(0), Rect::new(72.0, 72.0, 333.0, 124.0), &sh, "Sample Text!").unwrap();
@@ -1377,5 +1405,28 @@ mod tests {
         assert!(ds.on && ds.color == "R=134 G=134 B=134");
         assert!((ds.distance - 5.0).abs() < 1e-9 && (ds.angle - 4f64.atan2(-3.0).to_degrees()).abs() < 1e-9);
         assert_eq!(b.warnings, vec!["WordArt shapes (arches, circles, waves) were imported as straight text.".to_string()]);
+    }
+    #[test]
+    fn unconfirmed_wordart_inputs_keep_the_straight_fallback() -> std::result::Result<(), String> {
+        let rect = Rect::new(10.0, 20.0, 110.0, 120.0);
+        let mut sh = escher::EShape { kind: 144, ..Default::default() };
+        if Builder::wordart_path(&sh, rect, "Text").is_none() {
+            return Err("default arch declined".into());
+        }
+        sh.props.insert(0x0147, 0);
+        if Builder::wordart_path(&sh, rect, "Text").is_some() {
+            return Err("unconfirmed adjust accepted".into());
+        }
+        sh.props.clear();
+        if Builder::wordart_path(&sh, rect, "Text\nTwo").is_some() {
+            return Err("multiple rows accepted".into());
+        }
+        for kind in [145, 147, 156, 157, 158, 159] {
+            sh.kind = kind;
+            if Builder::wordart_path(&sh, rect, "Text").is_some() {
+                return Err("unsupported warp accepted".into());
+            }
+        }
+        Ok(())
     }
 }
