@@ -97,25 +97,26 @@ The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PN
 
 **Done**
 
-- ✅ Opens Publisher 2002 and newer files as an editable copy (your original file is never changed)
+- ✅ Opens Publisher 2002+ files as an editable copy; originals untouched
 - ✅ Text, colours and bullets
 - ✅ Pictures (PNG, JPEG, BMP)
 - ✅ Lines, fills, shadows and common shapes
 - ✅ Curves and polylines as editable paths (new in alpha.4)
 - ✅ The heart shape (new in alpha.4)
 - ✅ Upward-arch WordArt as editable curved text (new in alpha.4)
-- ✅ Missing fonts replaced by the closest available font, and no pop-up window when you open a file (new in alpha.4)
+- ✅ Missing fonts replaced by the closest available font (new in alpha.4)
+- ✅ No font pop-up window when you open a file (new in alpha.4)
 - ✅ Table text
 - ✅ Save as `.designcraft` and reopen
 - ✅ Export to PDF, and printing (tested on one printer)
 
 **Partly**
 
-- 🟡 Fonts: Microsoft fonts that are not installed are substituted, so spacing and line breaks can change, and some headlines can be cut off
-- 🟡 Tables: cell fills, borders, padding and merged cells are not decoded yet
+- 🟡 Fonts: missing Microsoft fonts are substituted; line breaks can change
+- 🟡 Tables: fills, borders, padding and merged cells not decoded yet
 - 🟡 Other shape types can still come in as rectangles, with a warning
 - 🟡 WordArt: circle and other warps stay straight text
-- 🟡 Real files: most open with warnings, so check against your original
+- 🟡 Real files: most open with warnings; check them against the original
 
 **Not yet**
 
@@ -125,9 +126,9 @@ The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PN
 
 **Still needs research** (we do not yet know how Publisher stores or does these)
 
-- 🔬 How Publisher fits text to a frame (some headlines are cut off where our substitute fonts run longer)
+- 🔬 How Publisher fits text to a frame (some headlines get cut off)
 - 🔬 Table cell fills, borders, padding and the small row-position drift
-- 🔬 How Publisher bends the letters of circle, wave and other WordArt shapes
+- 🔬 How Publisher bends letters in circle, wave and other WordArt
 - 🔬 Numbered lists and custom tab stops (we need sample files)
 - 🔬 Publisher 97, 98 and 2000 files (refused today)
 
