@@ -1,9 +1,9 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 <h1 align="center"><img src="assets/nifty/nifty-wordmark.png" alt="NiftyDesign" width="420"></h1>
 
-<p align="center"><b>Open Your Publisher Files · Edit Them · Export PDF · Save as .designcraft</b></p>
+<p align="center"><b>Design Page Layouts · Open Publisher Files · Export PDF · Save as .designcraft</b></p>
 
-<p align="center">A free, open-source alternative for opening, editing and converting Microsoft Publisher (.pub) files to PDF on Windows, with no Publisher needed.<br><b>Works with files from Publisher 2002 and newer.</b> Publisher 97, 98 and 2000 files are not supported yet.<br>NiftyDesign is an early, unofficial test build. You do not need Publisher installed.<br><i>Built on DesignCraft by the ArtCraft team.</i></p>
+<p align="center">A free, open-source page-layout app for Windows. Design flyers, newsletters and brochures with text frames, shapes, curves and pictures, or open and edit Microsoft Publisher (.pub) files, with no Publisher needed.<br><b>Opens Publisher files from 2002 and newer.</b> Publisher 97, 98 and 2000 files are not supported yet.<br>NiftyDesign is an early, unofficial test build.<br><i>Built on DesignCraft by the ArtCraft team.</i></p>
 
 <p align="center">
   <img alt="status: unofficial alpha" src="https://img.shields.io/badge/status-unofficial%20alpha-d9822b">
