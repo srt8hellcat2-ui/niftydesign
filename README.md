@@ -72,9 +72,39 @@ Microsoft fonts may be substituted with available fonts when they are not instal
 
 The full list is in [Known limitations](docs/KNOWN-LIMITATIONS.md).
 
-## In progress
+## Where NiftyDesign stands (alpha.4)
 
-We are using every test file we have to find out why files open with warnings, and fixing the biggest causes first. Of 24 real Apache test files: 9 opened with only notes about formatting settings we do not understand and skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. The 9 are not a claim that they match Publisher; we have not compared them with Publisher. Earlier counts called these 9 'warnings'; only the labelling changed, not the importer's fidelity. In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. Numbered lists, tab stops and other WordArt warps need sample files. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
+**Done**
+
+- ✅ Opens Publisher 2002 and newer files as an editable copy (your original file is never changed)
+- ✅ Text, colours and bullets
+- ✅ Pictures (PNG, JPEG, BMP)
+- ✅ Lines, fills, shadows and common shapes
+- ✅ Curves and polylines as editable paths (new in alpha.4)
+- ✅ The heart shape (new in alpha.4)
+- ✅ Upward-arch WordArt as editable curved text (new in alpha.4)
+- ✅ Missing fonts replaced by the closest available font, and no pop-up window when you open a file (new in alpha.4)
+- ✅ Table text
+- ✅ Save as `.designcraft` and reopen
+- ✅ Export to PDF, and printing (tested on one printer)
+
+**Partly**
+
+- 🟡 Fonts: Microsoft fonts that are not installed are substituted, so spacing and line breaks can change, and some headlines can be cut off
+- 🟡 Tables: cell fills, borders, padding and merged cells are not decoded yet
+- 🟡 Other shape types can still come in as rectangles, with a warning
+- 🟡 WordArt: circle and other warps stay straight text
+- 🟡 Real files: most open with warnings, so check against your original
+
+**Not yet**
+
+- ⬜ Numbered lists and custom tab stops (we need sample files)
+- ⬜ Page numbers and dates
+- ⬜ Publisher 97, 98 and 2000 files
+- ⬜ A signed download (Windows shows a warning for now)
+- ⬜ Testing on more than one Windows PC and printer
+
+Real-file check: of 24 real Apache test files, 9 opened with only notes about formatting settings we skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. We have compared only nine test files with Publisher's own images, so none of this is a claim that files match Publisher. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
 
 ## Install
 
