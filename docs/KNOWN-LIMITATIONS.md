@@ -39,6 +39,7 @@ NiftyDesign now shows a notice on every converted .pub: 'This is a converted cop
 - On the Windows test PC, installed fonts such as Arial and Times New Roman were found and used.
 - If a font is not installed, the closest available font by type and width is substituted; text can wrap differently. Original font names are kept. Arial Black, Franklin Gothic, Rockwell, Elephant, Sylfaen and others are likely to be substituted on PCs that lack them.
 - The Find/Replace Font dialog is available in the menu; it no longer opens by itself for Publisher imports.
+- When imported text does not fit its frame, a note names the page and its first words; the text is kept.
 - Finding installed fonts was tested on one Windows PC. Tell us if your fonts are not found.
 
 ## Printing
