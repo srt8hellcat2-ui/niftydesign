@@ -13,7 +13,7 @@ NS = {'w': 'http://wixtoolset.org/schemas/v4/wxs'}
 class WindowsPackageContract(unittest.TestCase):
     def test_alpha_version_and_install_contract(self):
         version = tomllib.loads((ROOT / 'Cargo.toml').read_text())['workspace']['package']['version']
-        self.assertEqual(version, '0.12.0-nifty-alpha.3')
+        self.assertEqual(version, '0.12.0-nifty-alpha.4')
         wix = ET.parse(ROOT / 'packaging/windows/designcraft.wxs')
         self.assertEqual(wix.find('w:Package', NS).attrib['Name'], 'NiftyDesign $(var.DisplayVersion)')
         self.assertEqual(wix.find(".//w:Directory[@Id='INSTALLFOLDER']", NS).attrib['Name'], 'NiftyDesign')

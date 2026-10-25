@@ -19,7 +19,7 @@ What this does **not** show: other Windows PCs, other printers, other graphics c
 
 - Only Publisher 2002 and later files are supported. **Publisher 97, 98 and 2000 files are refused** with a message asking you to open and save the file in Publisher 2002 or later.
 - **Real-file check (24 files, test files from a software project, pinned by commit):** Of 24 real Apache test files: 9 opened with only notes about formatting settings we do not understand and skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. The 9 are not a claim that they match Publisher; we have not compared them with Publisher. Earlier counts called these 9 'warnings'; only the labelling changed, not the importer's fidelity. Earlier, 8 files with tables failed; they open now (with warnings) after a fix. Treat 24 files as a small sample: your files may behave differently, and no test of 40 or more files made by real users has been done.
-- **Controlled sample files:** all 142 open (79 with no warnings, 63 with warnings). These are one-feature files, easier than real documents. They are scored against the answer files that came with them, not against Publisher.
+- **Controlled sample files:** all 142 open (134 with no warnings, 8 with warnings). These are one-feature files, easier than real documents. They are scored against the answer files that came with them. Nine also have Publisher reference images for comparison.
 - **What the 24 files contain:** 15 of the 24 hold only generic content, per our scan. The newsletter and brochure hold Microsoft template content, so their images are not published.
 - A warning is not proof something is missing, and no warning does not prove the file is perfect. Warnings with hex numbers (for example "unsupported character formatting 0x...") name settings the importer does not understand; no visible problem has been established for them.
 
@@ -37,9 +37,9 @@ NiftyDesign now shows a notice on every converted .pub: 'This is a converted cop
 
 - Publisher files use Microsoft fonts that NiftyDesign cannot include.
 - On the Windows test PC, installed fonts such as Arial and Times New Roman were found and used.
-- If a font is not installed, a default font is substituted and text can wrap differently. Arial Black, Franklin Gothic, Rockwell, Elephant, Sylfaen and others are likely to be substituted on PCs that lack them.
-- A Find/Replace Font dialog lists the missing fonts.
-- We have only checked this on one Windows PC. Tell us if your fonts are not found.
+- If a font is not installed, the closest available font by type and width is substituted; text can wrap differently. Original font names are kept. Arial Black, Franklin Gothic, Rockwell, Elephant, Sylfaen and others are likely to be substituted on PCs that lack them.
+- The Find/Replace Font dialog is available in the menu; it no longer opens by itself for Publisher imports.
+- Finding installed fonts was tested on one Windows PC. Tell us if your fonts are not found.
 
 ## Printing
 
@@ -56,7 +56,7 @@ File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on m
 - Page-number and date fields are left out of text.
 - Objects parked outside the page (scratch area) are left out.
 - Subscript and strikethrough are not recognised.
-- Freeform curves and some preset shapes (for example a heart) become rectangles of the same size. Work on these is blocked pending access to a public specification.
+- Unsupported freeform segment types give a warning. Curves and polylines are editable paths, and the heart draws as a heart.
 - PICT pictures show an empty frame; WMF/EMF clip art and non-rectangular crops may look wrong.
 - Pattern and texture fills keep only their first colour.
 - Objects with shadows are exported to PDF as images (look the same, softer when enlarged). The editable copy keeps the shadow.
@@ -65,7 +65,7 @@ File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on m
 ## Checked only by automated tests, never by a person
 
 - Round trip (save `.designcraft`, reopen) and PDF export for the 142 samples: automated only. One manual round trip was done on Windows (see the top of this page).
-- No side-by-side comparison against Publisher has been done, so small differences in colour, gradient direction or spacing are possible.
+- Side-by-side comparisons use only nine Publisher reference images; other files remain unverified. Differences in colour, gradient direction or spacing are possible.
 - 41 of 152 reference objects are image exports excluded from position scoring; their placement accuracy is UNKNOWN.
 
 ## UNVERIFIED

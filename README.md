@@ -51,14 +51,14 @@ We opened Apache's public `Sample2.pub` test file in NiftyDesign, then built a f
 
 ## Will my file open?
 
-These are results from our own checks. We have not compared them side by side with Publisher yet.
+These are results from our own checks. Only nine test files have been compared side by side with Publisher reference images.
 
 | What | Status | Detail |
 |---|---|---|
 | Publisher 2002 and newer files | Opens, with warnings | Most real files open with warnings. Check against your original. |
 | Publisher 97, 98, 2000 files | Not supported | Refused with a message. Re-save in Publisher 2002 or newer first. |
 | Text, fonts, colours, bullets | Works | Tested on our sample files. Windows system fonts such as Arial and Times New Roman were found on the test PC. |
-| Shapes, lines, fills, shadows | Works | Common shapes. Some freeforms become rectangles. |
+| Shapes, lines, fills, shadows | Works | Curves and polylines are editable paths; unsupported segments give a warning. The heart draws as a heart. |
 | Pictures | Mostly works | PNG, JPEG, BMP. PICT and some clip art may look wrong. |
 | Tables | Partly | In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. |
 | WordArt | Partly | Default upward arch uses editable paths fitted from measured font advances. Circle and other warps stay straight. |
