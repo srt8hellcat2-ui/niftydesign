@@ -61,7 +61,7 @@ These are results from our own checks. We have not compared them side by side wi
 | Shapes, lines, fills, shadows | Works | Common shapes. Some freeforms become rectangles. |
 | Pictures | Mostly works | PNG, JPEG, BMP. PICT and some clip art may look wrong. |
 | Tables | Partly | In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. |
-| WordArt | Partly | Default arch and circle use editable paths with approximate lettering. Other warps stay straight. |
+| WordArt | Partly | Default upward arch uses editable paths fitted from measured font advances. Circle and other warps stay straight. |
 | Numbered lists, custom tab stops | Not yet | Lost on import. |
 | Save as `.designcraft` and reopen | Works | Tested after a full restart. |
 | Export to PDF | Works | Tested on Windows. |

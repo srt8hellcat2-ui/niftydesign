@@ -15,7 +15,7 @@ fn check(ok: bool, message: &str) -> Result<()> {
 fn wordart_paths_keep_original_editable_text_and_straight_cases() -> Result<()> {
     let folders = std::env::var("PUB_CORPUS")?;
     for (suffix, curved) in
-        [("arch", true), ("circle", true), ("base", false), ("fill-red", false), ("line-white", false), ("shadow", false), ("font", false)]
+        [("arch", true), ("circle", false), ("base", false), ("fill-red", false), ("line-white", false), ("shadow", false), ("font", false)]
     {
         let name = format!("wordart__{suffix}.pub");
         let file = folders.split(':').map(|p| std::path::Path::new(p).join(&name)).find(|p| p.is_file()).ok_or("missing fixture")?;
@@ -44,12 +44,31 @@ fn wordart_paths_keep_original_editable_text_and_straight_cases() -> Result<()> 
             let half = warp.at(warp.length() / 2.0).ok_or("no midpoint")?.0;
             let expected = if suffix == "arch" { Point::new(202.125, 72.0) } else { Point::new(332.25, 97.5) };
             check((half - expected).hypot() < 0.002, "wrong baseline midpoint")?;
-            check(imported.warnings.iter().any(|w| w.contains("spacing are approximate")), "missing approximation warning")?;
+            check(imported.warnings.iter().any(|w| w.contains("measured font advances")), "missing approximation warning")?;
             check(!imported.warnings.iter().any(|w| w.contains("as straight text")), "unexpected fallback")?;
+            let composed = designcraft_compose::compose_story(&imported.document, story_id, &Default::default());
+            check(!composed.is_overset(), "fitted text is overset")?;
+            let frame = composed.frame(item.id).ok_or("no composed frame")?;
+            check(frame.lines.len() == 1, "fitted text broke into lines")?;
+            let line = frame.lines.first().ok_or("no composed line")?;
+            let advance: f64 = line.glyphs.iter().map(|g| g.adv).sum();
+            let faces: std::collections::BTreeSet<_> = line.glyphs.iter().map(|g| (g.face.family.clone(), g.face.style.clone())).collect();
+            println!("  resolved faces: {faces:?}");
+            check((advance - warp.length()).abs() < 0.01, "actual advances do not fill the path")?;
+            check(format.over.h_scale.is_none(), "fixed horizontal scale was added")?;
+            println!(
+                "  measured advances={advance:.9}, path={:.9}, size={:?}, baseline shift={:?}",
+                warp.length(),
+                format.over.size,
+                format.over.baseline_shift
+            );
+        }
+        if suffix == "circle" {
+            check(imported.warnings.iter().any(|w| w.contains("as straight text")), "circle fallback warning missing")?;
         }
         // Editing still targets a normal story rather than a baked graphic.
         let story = imported.document.story_mut(story_id).ok_or("no editable story")?;
-        story.text.insert_str(story.text.len(), " More");
+        story.insert(story.text.len(), " More");
         check(story.text == "Sample Text! More", "story edit failed")?;
         println!("{name}: editable, path={curved}, font={expected_font}");
     }

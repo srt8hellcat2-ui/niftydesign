@@ -26,65 +26,68 @@ OBSERVATION about the implementation: `crates/doc/src/item.rs` has `PathType` (s
 
 OBSERVATION from the downloaded `presetTextWarpDefinitions.xml`: `textArchUp` defaults `adj` to 10800000 (180 degrees). At that default its named guides reduce to a start at `(left, vertical centre)`, radii `(width/2,height/2)`, start angle 180 degrees and positive sweep 180 degrees. `textCircle` has the same default start and radii; its conditional guides select `d3=10799999` and `swAng=21599998`, just two angle units short of a complete turn. One angle unit is 1/60000 degree. The paths are open, not closed polygons. `textArchDown` was read too: its default starts at the left midpoint and sweeps the lower half in the opposite direction. It is not mapped because there is no confirming fixture in this task.
 
-OBSERVATION about the implementation: `crates/pub/src/wordart.rs` reduces only these two default definitions to elliptical arcs, then uses the existing geometry library's cubic approximation at 0.001 point tolerance. Radial angles are converted to ellipse parameter angles, including the circle's two-unit gap on noncircular frames. It is not a general warp-formula interpreter. No XML is bundled or read at runtime. Unknown shape numbers, any stored adjustment and multiline WordArt retain straight editable text with a warning. Invalid or excessively large frames decline path construction. Shapes 145 and 147, waves, pour warps and other variants remain unsupported.
+OBSERVATION about the implementation: the geometry helper retains the two checked XML default arcs, but the importer enables only upward arch 144. Circle 146, other warps, any stored adjustment, multiline text and unsupported measurements keep their original straight editable frame and warning. The circle arc remains unit-tested geometry, not enabled import behavior. No XML is bundled or read at runtime.
 
-INFERENCE, chosen by render comparison rather than storage: rigid glyphs turned at their advance midpoints are a useful approximation for arch and circle. The first attempt used path length divided by `0.7 × character count` and baseline alignment. Arch SSIM improved to 0.982004, but circle dropped to 0.949788, with visibly incorrect fit. A second attempt used `0.6 × character count` and a downward baseline shift of one quarter of the estimated size; arch scored 0.982285 and circle 0.950472. The final approximation also uses existing horizontal character scale 1.1. These constants are explicit visual heuristics, not Publisher properties, font measurements or standard-defined glyph rules. Font size remains capped at 1296 points. Straight WordArt sizing is unchanged.
+## Measured fitting
 
-OBSERVATION about the implementation: the document keeps normal stories, original text and font names; the path is editable and `TextFrameOptions.path` selects existing path composition. Paragraph alignment and font/style, fill, stroke and shadow import code are retained. The six older shape presets and heart are unchanged. No document schema, composer, renderer, font substitution or protected reader was changed. No additional dependency was added.
+OBSERVATION about the implementation: the importer now calls the existing composer on a temporary document clone with a straight baseline. The text is shaped at one point with normal horizontal scale and no baseline shift, using the same font resolution, substitute face, kerning and glyph shaping as rendering. It sums the real composed glyph advances, including spaces. The final size is the curved path's measured arc length divided by that one-point advance sum. No character count or guessed average advance enters the curved fit, and no horizontal scale override is added.
 
-UNKNOWN: Publisher's exact glyph stretching, tracking, kerning, best-fit rules, adjustment-unit conversion, vertical/reversed text, multiline warp behavior and combinations with decorations or shadows. This implementation does not infer these from scoring JSON or reference images. Reference images were used only to judge the resulting drawing. The mapping from Office preset names to the corresponding ECMA defaults remains an inference, supported by the two observed numbers and the measured renders.
+INFERENCE, chosen by visual comparison: arch lettering sits slightly inside the ellipse. Its inward amount is now the actual shaped text's ink descent, measured from the composed glyph outlines at one point and scaled to the fitted size. This replaces the fixed size/4 shift. It is a placement choice, not a Publisher storage rule. Original text and requested font names remain normal editable stories; the six presets, heart, fills, outlines and shadows are unchanged.
+
+OBSERVATION: the one-point reference is unit normalization, not a tuned visible size. A million-point temporary straight path avoids wrapping while measuring, and a 16,384-byte text limit bounds the probe; oversized or overset probes decline. The final size takes one representable floating-point step downward to avoid endpoint rounding beyond the path, a numerical guard rather than a visible margin. Fits outside the existing 0.1–1296 point size range decline. None of these bounds was fitted to an image. The existing workspace composer is a new importer dependency; no external package was added.
+
+OBSERVATION: in this Linux environment the arch's measured advances total 272.966213280 points, matching the path length. The resulting font size is 41.715902156 points and baseline shift is -10.021593682 points. The resolved face is Open Sans Extrabold; the original Arial Black name remains stored. The external test reports the actual resolved face and checks advance sum against path length, a single non-overset line and no horizontal scale override.
+
+## Circle trials and decision
+
+OBSERVATION: the rejected first version used path length and character count, horizontal scale 1.1 and size/4 baseline shift. It scored arch 0.983278719 / 0.006359358 and circle 0.953396313 / 0.013665241 (SSIM / differing fraction). Those visual constants have been removed from curved fitting.
+
+OBSERVATION: measured-advance circle at size 83.431792742 with measured ink-descent placement scored 0.953676350 / 0.013636364. Letters still overlapped at the join. A second measured trial used the font's natural baseline with no shift: overlap was removed by eye, but the letters sat farther outside the reference and scored 0.942521982 / 0.014551872. Neither met the straight-text baseline of 0.960595137 / 0.009868449. Circle therefore remains straight with the existing warning. This does not establish that every possible circle-fitting design would fail; only the measured trials are claimed.
 
 ## Reference scoring
 
-OBSERVATION: before is untouched main, after is this change, using the same fonts, fixed scoring settings and nine pinned reference images described in pixel-diff.md. All nine compared image sizes remain 850×1100 with no mismatch. Values below are fractions, not percentages.
+OBSERVATION: the final comparison uses the original c9-baseline production source and the reviewed arch-only implementation with the same fonts and settings. All nine sizes match at 850×1100. The table is generated from the recorded measurements; values are fractions, not percentages.
 
 | Fixture | SSIM before | SSIM after | Differing fraction before | Differing fraction after |
 | --- | ---: | ---: | ---: | ---: |
 | group__rotated.pub | 0.999980060 | 0.999980060 | 0.001000000 | 0.001000000 |
 | shadow__offset.pub | 0.999993784 | 0.999993784 | 0.000983957 | 0.000983957 |
 | shadow__on.pub | 0.999994589 | 0.999994589 | 0.000963636 | 0.000963636 |
-| wordart__arch.pub | 0.976310406 | 0.983278719 | 0.006426738 | 0.006359358 |
+| wordart__arch.pub | 0.976310406 | 0.983892067 | 0.006426738 | 0.006321925 |
 | wordart__base.pub | 0.980074652 | 0.980074652 | 0.006571123 | 0.006571123 |
-| wordart__circle.pub | 0.960595137 | 0.953396313 | 0.009868449 | 0.013665241 |
+| wordart__circle.pub | 0.960595137 | 0.960595137 | 0.009868449 | 0.009868449 |
 | wordart__fill-red.pub | 0.979558751 | 0.979558751 | 0.012936898 | 0.012936898 |
 | wordart__line-white.pub | 1.000000000 | 1.000000000 | 0.000000000 | 0.000000000 |
 | wordart__shadow.pub | 0.979426457 | 0.979426457 | 0.009779679 | 0.009779679 |
 
-OBSERVATION: arch and circle final side-by-side images were inspected, with our rendering on the left. Arch has the expected upward curve; SSIM improves, but it still differs in letter forms and fit. Circle turns the text around the ellipse; its score is worse than the old straight-text baseline and its differing fraction increases. Some letters remain too close or overlap, and their positions and proportions differ visibly. This is path support, not a claim of improved circle fidelity. The other seven reference scores are unchanged.
+OBSERVATION by eye: arch lettering follows the upward curve continuously, with no apparent overlapping letters. It fills the baseline without the old added horizontal stretch. Letter forms and some spacing still differ from the reference. Circle is straight again and visibly differs from its curved reference; it is explicitly unsupported. The other seven reference images and scores are unchanged. Both metrics meet the requested baseline for all nine, but this is not a fidelity match.
 
-INFERENCE: unavailable Arial Black and substituted glyph outlines contribute to the differences, alongside this deliberately approximate fit. The images do not isolate how much each factor contributes. Do not use the score to assert a correct parse: sparse white pages, font differences and antialiasing can conceal or exaggerate errors. The blank white-line pair still scores 1.0. Only nine Publisher references exist, six WordArt; other warps and fonts have no reference validation here.
+INFERENCE: the remaining arch differences are consistent with substitute glyph shapes and the unconfirmed placement rule. Their separate contributions remain UNKNOWN. Sparse white margins, substituted fonts and antialiasing affect the scores; a good score does not establish correct reading. Only nine Publisher references exist, six WordArt.
+
+## Own-output regression
+
+OBSERVATION: `c9-review-final` compared with `c9-baseline` reports one changed fixture, `wordart__arch.pub`: SSIM 0.971664035, differing fraction 0.007701608. There are no size mismatches or added/removed fixtures. Against the rejected `c9-after` run, only arch and circle differ (circle reverted to the baseline). No non-WordArt fixture changed. These are comparisons of our own output, not Publisher references.
 
 ## Reproduce
-
-From the checkout root with the Rust environment active:
 
 ```sh
 export PUB_CORPUS=/tmp/niftydata/pubsmith-fixtures
 export PUB_REAL_CORPUS=/tmp/niftydata/apache-pub
 cargo test --locked -p designcraft-pub --test wordart -- --ignored --nocapture
 PUB_PIXEL_MODE=publisher cargo test --locked -p designcraft-cli --test pub_pixel_diff pub_pixel_diff -- --ignored --exact --nocapture
-# The two recorded runs already exist; use fresh names for new runs.
+# Existing runs are immutable; choose a new name when repeating the snapshot.
 PUB_PIXEL_MODE=snapshot PUB_PIXEL_RUN=my-wordart-change cargo test --locked -p designcraft-cli --test pub_pixel_diff pub_pixel_diff -- --ignored --exact --nocapture
 PUB_PIXEL_MODE=compare PUB_PIXEL_BEFORE=c9-baseline PUB_PIXEL_AFTER=my-wordart-change cargo test --locked -p designcraft-cli --test pub_pixel_diff pub_pixel_diff -- --ignored --exact --nocapture
 ```
 
-Publisher CSV, report and side-by-side images remain outside the checkout in `/tmp/niftydata/pixel-report/`. Recorded own-output snapshots are `/tmp/niftydata/pixel-snapshots/c9-baseline/` and `c9-after/`. These snapshots compare our output with our output, not with Publisher. Baseline reports and verification logs are preserved in `/tmp/niftydata/c9/`.
+Reference CSV, markdown and all nine side-by-side images remain outside the repository in `/tmp/niftydata/pixel-report/`. Review trials, logs and rejected images are under `/tmp/niftydata/c9-review/`; snapshots remain under `/tmp/niftydata/pixel-snapshots/`. The original audit's input hashes remain recorded in SOURCES.md, and all 317 data files were reverified for the review.
 
-## Validation
+OBSERVATION: the final 142-page snapshot took 1.236 seconds, excluding compilation/startup. The other 141 PNGs are byte-identical to c9-baseline. All 142 final PNGs are byte-identical to the pre-guard measured-fit preview.
 
-OBSERVATION: hand-computed tests use a radius-50 semicircle: endpoints `(10,70)` and `(110,70)`, top `(60,20)`, length `50π`, tangent zero at the top and a glyph centre placed there upright. The circle test places its halfway glyph at the right midpoint with a quarter-turn tangent. A 200×100 ellipse test checks the final radial-angle gap: endpoint approximately `(0,50.00005817764173)`. Further tests decline invalid frames, unsupported shapes, adjustments and multiple rows. The ignored binary-fixture test checks seven cases, original names and text, editable stories and the two expected path midpoints.
+## Checks and limits
 
-OBSERVATION: an initial audit harness had a cursor-type compile error; initial fixture-test checks also needed the string insertion method and the existing stroke-none predicate corrected. These were test-harness errors, not input or importer failures. The corrected checks pass. An endpoint review added the ellipse radial-angle test and correction after the initial render trials; final checks and measurements use that correction.
+OBSERVATION: hand-computed path endpoints, tangents, glyph transforms and ellipse-angle tests are retained. A synthetic four-point measured advance on a 200-point path requires a 50-point font and a measured 0.2-point descent gives a -10-point shift. A separate shaping test confirms that equal character counts (`iiii` and `WWWW`) produce different fitted sizes. The seven-fixture test checks actual advance sum, absence of overset, original names/text, editable stories, no horizontal scale override and circle's straight-text warning. Initial audit and fixture harness errors from the first revision were corrected; the review tests pass.
 
-OBSERVATION: final workspace CI passed all seven steps (fmt, dependency check, clippy, tests, assets, layers and WebAssembly): 3,086 tests passed, zero failed, 24 ignored. The five new hand-computed/fallback tests run in normal CI; the external seven-fixture test passed separately. The untouched-main and final full corpus gates both report 142/142 imports, 152/152 objects, 111/152 positions within 1 point, 52/52 exact texts and 111/111 styles. All 142 native save/reopen/edit/PDF cases pass. The real batch remains 9 notes, 10 warnings, 2 refused and 3 damaged, with 31 pages and 280 objects; every file's status/page/object count matches the preserved baseline report. Baseline statuses were rerun on untouched main; the preserved page/object report comes from the same production sources before the pixel runner was added.
+OBSERVATION: final CI passed all seven steps, including fmt, clippy and WebAssembly: 3,088 tests passed, zero failed, 24 ignored. The full controlled gate remains 142/142 imports, 152/152 objects, 111/152 positions, 52/52 exact texts and 111/111 styles. All 142 native save/reopen/edit/PDF cases pass. The real batch remains 9 notes, 10 warnings, 2 refused and 3 damaged, 31 pages and 280 objects; every real file's status/page/object counts are unchanged. The numeric guard declines non-finite measurements; its regression case passes, and it changes none of the controlled renders.
 
-OBSERVATION: `c9-baseline` rendered 142 first pages in 1.233 seconds and `c9-after` in 1.164 seconds, excluding compilation/startup. Own-output comparison reports exactly these changes, with no inventory or size mismatch:
-
-| Fixture | Own-output SSIM | Own-output differing fraction |
-| --- | ---: | ---: |
-| wordart__circle.pub | 0.954743407 | 0.011322374 |
-| wordart__arch.pub | 0.972439561 | 0.007449908 |
-
-OBSERVATION: the other 140 PNGs are byte-identical; only WordArt fixtures changed. No Publisher image was used in that self-comparison. The earlier, pre-endpoint-correction after snapshot is archived separately under `/tmp/niftydata/c9/initial-snapshot-after/`; neither baseline was overwritten.
-
-UNKNOWN / not tested: Windows, real-PC fonts, Publisher's own drawing beyond the nine pinned references, interactive desktop editing, later pages, non-default adjustments, other warps and combined curved-text decorations or shadows. Native roundtrip and story editing are tested; that does not establish every desktop interaction or visual effect.
+UNKNOWN: Publisher's exact stretching, kerning, tracking, vertical/reversed and multiline rules, non-default adjustments and combinations with decorations or shadows. Font substitution remains active, and a later font replacement may change line fit; continuous refitting after edits or font installation is not implemented. Circle and other warps remain unsupported. Windows, real-PC fonts, interactive desktop editing and Publisher drawing beyond the nine references were not tested.

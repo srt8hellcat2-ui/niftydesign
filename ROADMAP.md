@@ -349,7 +349,7 @@ list) · [roadmap.md](docs/roadmap.md) (milestones, plan) · [parity-checklist.m
 - 2026-10-24: Missing fonts now use available substitutes by family type and stated width; Publisher imports keep original names and leave Find/Replace Font available on request.
 
 - **2026-10-24 (C8)** · Publisher heart shapes use the standard's guide formulas and two editable cubic curves. Six existing preset outlines are unchanged. Windows and comparison with Publisher's own drawing remain untested.
-- **2026-10-25 (C9)** · Publisher default arch and circle WordArt use editable path text. Letter fitting remains approximate; other warps keep the straight-text fallback. Reference scores and limits are recorded in docs/pub-format/wordart.md.
+- **2026-10-25 (C9)** · Publisher default upward arch WordArt uses editable path text fitted from measured font advances. Circle and other warps keep the straight-text fallback. Reference scores and limits are recorded in docs/pub-format/wordart.md.
 
 Newest first.
 
