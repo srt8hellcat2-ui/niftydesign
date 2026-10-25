@@ -1226,3 +1226,23 @@ OBSERVATION: accessed only the following public MS-ODRAW pages on learn.microsof
 ## U: import-time overset notes — 2026-10-25
 
 OBSERVATION: reused all 317 pinned controlled/Apache binaries and scoring JSON/reference PNG files after checking existing sizes and SHA-256 values. Only this repository's importer and existing composer supplied the new diagnostics; no new format source was consulted. JSON and PNG inputs remained scoring oracles only. Read-only composition adds one lower-severity note per overset framed story: seven in SampleNewsletter, three in SampleBrochure and one in text__size-72; no warning category changes. [text-fit.md](text-fit.md#import-time-overset-notes--2026-10-25) records exact wording, file counts, warmed and first-pass timing, unchanged corpus/pixel/snapshot results and remaining UNKNOWN items. No layout, text, font or frame change was made.
+
+## Older Publisher research — 2026-10-25
+
+OBSERVATION: notes-only census on main `71adf6a`, using the unchanged importer on all 142 controlled and 24 Apache binaries at the previously recorded pinned commits. All 317 existing binary, truth and golden files matched their recorded sizes and hashes; no data download was needed. Truth/golden data were used only by existing scoring checks, never to infer version fields. The two old-family binary hashes are repeated in [publisher-97-2000.md](publisher-97-2000.md). No older record layouts were decoded.
+
+OBSERVATION: every Microsoft resource read for this investigation is listed below, accessed 2026-10-25. The catalog root redirected to its listed canonical page; the MS-CFB root likewise redirected to its overview. Contents metadata was used only to locate pages. No linked external download or other reader was opened. Page update timestamps identify page revisions where no published protocol revision is stated; metadata and the missing resource have no supplied page version.
+
+| Resource URL | Page version or result |
+| --- | --- |
+| [MS-PUB requested path](https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-pub/) | HTTP 404; no page version available |
+| [Office File Formats catalog](https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-offfflp/8aea05e3-8c1e-4a9a-9614-31f71e679456) | No protocol revision stated; updated 2025-07-11T20:45:00Z |
+| [Catalog contents metadata](https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-offfflp/toc.json) | No version label provided |
+| [Technical-document list](https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-offfflp/6ae2fd93-51fc-4e75-a54a-1b175c627b51) | No protocol revision stated; updated 2025-07-11T20:45:00Z |
+| [MS-CFB overview](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/53989ce4-7b05-4f8d-829b-d08d6148375b) | Revision 12.0, 2024-04-23; page updated 2024-10-30T21:10:00Z |
+| [MS-CFB contents metadata](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/toc.json) | No version label provided; navigation for revision 12.0 |
+| [MS-CFB applicability](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/a35cc9d5-d3d9-488d-8976-d3a121f719db) | Revision 12.0; page updated 2024-04-23T17:55:00Z |
+| [MS-CFB versioning](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/0dfb84e2-4b22-4878-827f-96ef8e4dcdac) | Revision 12.0; page updated 2024-04-23T17:55:00Z |
+| [MS-CFB header](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/05060311-bfce-4b12-874d-71fd4ce63aea) | Revision 12.0; page updated 2024-10-30T21:10:00Z |
+
+UNKNOWN: the requested MS-PUB resource returned HTTP 404, and neither inspected Office File Formats list contained Publisher/MS-PUB. No Publisher applicability statement was obtained; this does not establish that no specification exists elsewhere. MS-CFB documents the common container, not the older Publisher payload. See [the research boundary and full census](publisher-97-2000.md).
