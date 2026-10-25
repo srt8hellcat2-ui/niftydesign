@@ -896,8 +896,7 @@ Apache binaries at `bf7c9b6a1490046517cbd8e1504e702a89be4bc9`, outside the check
 All 24 hashes still match `.github/test-data/publisher-fixtures.csv`. Publisher
 `truth/*.json` files were used by the existing corpus test **for scoring only**;
 no encoding was inferred from them and no new format source was consulted.
-Before/after scores: **142/142 imports, 152/152 objects, 111/152 positions within
-1 pt, 52/52 exact texts, 111/111 styles**. Both real batches: **0 OK / 19 warnings /
+Before/after scores: **142/142 imports, 152/152 objects, 111/111 scored shape/text positions within 1 pt, 52/52 exact texts, 111/111 styles**. Both real batches: **0 OK / 19 warnings /
 2 refused / 3 damaged**, 31 pages and 280 objects. All 19 native document payloads
 and assets, PDF drawing streams/text and all 31 page pixel buffers match;
 only normal document/PDF creation/modification metadata was excluded. The
@@ -930,7 +929,7 @@ no hosted workflow was dispatched.
 Validation: all seven `cargo xtask ci` steps passed, including 2,947 tests and
 wasm checks. Packaging: 33 tests, 3 platform-specific skips; actionlint passed
 for the three changed workflows. Corpus scores remain **142/142, 152/152,
-111/152, 52/52, 111/111**. The real batch remains **9 with notes / 10 with
+111/111 scored positions, 52/52, 111/111**. The real batch remains **9 with notes / 10 with
 warnings / 2 refused / 3 damaged**, **31 pages / 280 objects**. All 48 expected
 cell texts occur in the eight table PDFs. The local CLI reports
 `0.9.0-nifty-alpha.2`; Windows execution was not tested locally.
@@ -957,7 +956,7 @@ without content or asset changes; the native format version remained 2.
 
 Used the existing controlled 142-fixture corpus and its Publisher `truth/*.json`
 layout exports for scoring only, never for inferring encodings. Scores remained
-142/142 imported, 152/152 objects, 111/152 positions within 1 pt, 52/52 exact texts
+142/142 imported, 152/152 objects, 111/111 scored shape/text positions within 1 pt, 52/52 exact texts
 and 111/111 styles. The Apache batch remained 9 with notes / 10 with warnings /
 2 refused / 3 damaged, 31 pages and 280 objects; all 48 expected table cell texts
 were found in the eight exported PDFs. Report warnings, notes and refusal reasons
@@ -1130,7 +1129,7 @@ Downloaded only JSON scoring data from `https://github.com/FuncularLabs/pubsmith
 
 Used only the .pub bytes of shapes__curve.pub and shapes__polyline.pub from the pinned controlled set to inspect path arrays through this project's existing escher::parse. Section 5 of odraw-geometry.md records the words and coordinates. No scoring exports or images were used to infer path storage. Neither sample settles four-byte vertices or guide indexes, which remain unsupported. Existing Escher property retention suffices; contents.rs, quill.rs and read.rs were not changed.
 
-The scored corpus before/after is identical: 142/142 imported, 152/152 objects, 111/152 positions within 1 pt, 52/52 exact texts, 111/111 styles. The 24-file batch before/after is identical per file, including all diagnostic strings and page/object counts: 9 converted with notes only, 10 with warnings, 2 old-version refusals, 3 damaged-file rejections; 31 pages, 280 objects. CLI PNG renders of both controlled paths were inspected outside the checkout; a cubic and the closed polyline are drawn. No Windows execution or comparison against Publisher's screen output was performed.
+The scored corpus before/after is identical: 142/142 imported, 152/152 objects, 111/111 scored shape/text positions within 1 pt, 52/52 exact texts, 111/111 styles. The 24-file batch before/after is identical per file, including all diagnostic strings and page/object counts: 9 converted with notes only, 10 with warnings, 2 old-version refusals, 3 damaged-file rejections; 31 pages, 280 objects. CLI PNG renders of both controlled paths were inspected outside the checkout; a cubic and the closed polyline are drawn. No Windows execution or comparison against Publisher's screen output was performed.
 
 Validation: three new unit tests and the external fixture test pass. Workspace formatting, clippy -D warnings and 3,061 tests pass (20 ignored). Full CI stops at the six existing unregistered examples/csv-merge assets; the same asset checker reproduces that failure on clean origin/main. No unrelated asset files or attributions were changed. Layers pass for all 22 checked crates; wasm checks pass for all 17 selected crates. The remaining path limitations are recorded in odraw-geometry.md §5.
 
@@ -1138,9 +1137,9 @@ Validation: three new unit tests and the external fixture test pass. Workspace f
 
 - Used main `550357e3b25b55e078f2e6d0463c51d879cf8bfd` with merged C7 paths. Read the binding rules, preset-geometry.md and the existing Builder::geometry implementation. Inspected only the pinned .pub data for shapes__heart, shapes__star5, shapes__diamond, shapes__hexagon, shapes__rightarrow, shapes__triangle and shapes__roundrect through this project's existing escher::parse and import_pub. The audit is recorded in preset-geometry.md; no new preset mapping or adjust conversion was inferred.
 - Verified all 166 .pub hashes against publisher-fixtures.csv and all 142 scoring JSON hashes against the table above. Local folders: `/tmp/niftydata/pubsmith-fixtures`, its `truth` subfolder, and `/tmp/niftydata/apache-pub`. Pinned commits and data-only restrictions remain as recorded above. The scoring JSONs were used only by the corpus test, never to infer path storage or definitions. No source from fixture repositories was opened.
-- Untouched-main baseline: 142/142 imports, 152/152 objects, 111/152 positions within 1 pt, 52/52 exact texts, 111/111 styles. Real batch: 9 notes only, 10 warnings, 2 refused, 3 damaged; 31 pages, 280 objects.
+- Untouched-main baseline: 142/142 imports, 152/152 objects, 111/111 scored shape/text positions within 1 pt, 52/52 exact texts, 111/111 styles. Real batch: 9 notes only, 10 warnings, 2 refused, 3 damaged; 31 pages, 280 objects.
 - Attempted official source on 2026-10-24: `https://ecma-international.org/publications-and-standards/standards/ecma-376/`. The environment proxy returned `Tunnel connection failed: 403 Forbidden`. No standard archive or XML was downloaded; its SHA-256 is unavailable. No other source was used and no text-warp file was read. Implementation is blocked on the required official definition file and operator meanings.
-- Verification after the audit: cargo xtask ci passes all seven steps (fmt, PDF dependencies, clippy -D warnings, 3,061 tests with 20 ignored, assets, layers and wasm). The repeated corpus score is unchanged at 142/142, 152/152, 111/152, 52/52, 111/111. The repeated real batch is unchanged per file, including diagnostic text, pages and objects: 9 notes / 10 warnings / 2 refused / 3 damaged, 31 pages, 280 objects. No product code was changed.
+- Verification after the audit: cargo xtask ci passes all seven steps (fmt, PDF dependencies, clippy -D warnings, 3,061 tests with 20 ignored, assets, layers and wasm). The repeated corpus score is unchanged at 142/142, 152/152, 111/111 scored positions, 52/52, 111/111. The repeated real batch is unchanged per file, including diagnostic text, pages and objects: 9 notes / 10 warnings / 2 refused / 3 damaged, 31 pages, 280 objects. No product code was changed.
 
 ## C8 heart outline — 2026-10-24
 
@@ -1150,7 +1149,7 @@ OBSERVATION: the official heart entry matches the previously documented seven ou
 
 Downloaded only 142 `.pub` files and 142 scoring JSON files from FuncularLabs/pubsmith at `0ccdf27fc3f381f0897515e226ea485165c699b2`, and the 24 listed real `.pub` files from apache/poi at `bf7c9b6a1490046517cbd8e1504e702a89be4bc9`. All 166 `.pub` sizes and SHA-256 values match publisher-fixtures.csv; all 142 JSON sizes and hashes match the scoring-data table above. Files remain under `/tmp/niftydata`, outside the checkout. JSON was used only by the existing scoring regression, never to infer encoding or geometry. No golden images were downloaded. A local `c8-input-sha256.txt` records all 310 input hashes including the standard archive and XML.
 
-Untouched main `bc1b23c` and the heart change both score 142/142 imports, 152/152 objects, 111/152 positions within 1 pt, 52/52 texts and 111/111 styles. The real batch before and after remains 9 notes, 10 warnings, 2 refused and 3 damaged, with 31 pages and 280 objects. The CLI heart PNG was inspected: two rounded lobes and a pointed bottom, retaining fill and stroke. This is our own rendered output, not comparison with Publisher. Windows, Publisher's own drawing and non-default preset adjustments were not tested.
+Untouched main `bc1b23c` and the heart change both score 142/142 imports, 152/152 objects, 111/111 scored shape/text positions within 1 pt, 52/52 texts and 111/111 styles. The real batch before and after remains 9 notes, 10 warnings, 2 refused and 3 damaged, with 31 pages and 280 objects. The CLI heart PNG was inspected: two rounded lobes and a pointed bottom, retaining fill and stroke. This is our own rendered output, not comparison with Publisher. Windows, Publisher's own drawing and non-default preset adjustments were not tested.
 
 Validation: all seven workspace CI steps passed (formatting, PDF dependencies, warnings-denied lint, tests, assets, layers and WASM). Workspace tests: 3,065 passed, zero failed, 21 ignored. Separate controlled scoring, 142-file save/reopen/edit/PDF, real-file batch regression and seven-preset fixture checks passed.
 
@@ -1205,3 +1204,7 @@ OBSERVATION, C9 review: reverified all 317 data sizes and hashes, reusing the sa
 ## Q: position scoring and headline clipping — 2026-10-25
 
 OBSERVATION: reused the pinned 142 controlled binaries, 142 scoring JSON files, 24 Apache binaries and nine reference PNGs; all 317 existing sizes and SHA-256 values matched. Read-only diagnostics outside the checkout used this repository's existing parser, importer and composer; their 161 successful documents matched the unmodified importer apart from timestamps. Truth JSON supplied only scoring bounds; PNGs were hash-checked, not used for storage inference. [position-misses.md](position-misses.md) records the 41 image exclusions; [headline-clipping.md](headline-clipping.md) records stored text, complete parsed properties, composition and an inspected newsletter render. No product code changed. The permitted MS-ODRAW page returned `curl: (56) CONNECT tunnel failed, response 403`; no new specification text was obtained, and additional fit-flag meanings remain UNKNOWN.
+
+## R: separate picture position scoring — 2026-10-25
+
+OBSERVATION: reused all 317 pinned controlled, Apache, scoring JSON and reference PNG files; their existing sizes and SHA-256 values matched. The existing drawing parser and importer were run on the controlled binary bytes outside the checkout; only truth JSON scoring comparisons selected the comparison bounds, never storage interpretations. Golden PNGs were hash-checked only; no new format source was consulted. The picture-only baseline is 12 within 1 pt, zero measured misses and 29 unmatched image-labelled references; [picture-positions.md](picture-positions.md) records bounds, source observations, INFERENCE/UNKNOWN limits and the historical-denominator wording corrections. Only test code and documentation changed; the old coverage, text and style totals remain unchanged.

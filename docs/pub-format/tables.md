@@ -224,7 +224,7 @@ unchanged as required when code is unchanged. The fresh all-24 batch retained
 converter CSV combines refusals/failures into 13 failed rows. Exact failure
 messages and warning lists are unchanged, including these eight table errors;
 no successful import of these eight is claimed. The 142-fixture scores also
-remain 142/142 imports, 152/152 objects, 111/152 positions within 1 pt, 52/52
+remain 142/142 imports, 152/152 objects, 111/111 scored shape/text positions within 1 pt, 52/52
 texts exact and 111/111 styles.
 
 ## Cautious row handling: drawn-height prerequisite blocked — 2026-10-19
@@ -290,7 +290,7 @@ Unaffected verification completed: before/after all-24 counts are **0 OK /
 11 warnings / 2 refused / 11 failed**, with the eight still rejected. The
 three-control real-fixture test still passes. Fmt, CLI/pub clippy and existing
 full tests pass; the separate 142-fixture score remains **142/142 imports,
-152/152 objects, 111/152 positions within 1 pt, 52/52 texts, 111/111 styles**.
+152/152 objects, 111/111 scored shape/text positions within 1 pt, 52/52 texts, 111/111 styles**.
 `real-file-triage.md` remains unchanged because code is unchanged. This section
 records an incomplete, input-blocked task, not a completed implementation.
 

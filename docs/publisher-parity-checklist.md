@@ -151,7 +151,7 @@ These are numbers already in the docs. Nothing was re-run.
 |---|---|
 | Files imported | 142/142 |
 | Objects found | 152/152 |
-| Positions within 1 pt | 111/152 (the other 41 are image objects with no position in the answer files, so they are unscored) |
+| Scored shape/text positions within 1 pt | 111/111; 41 image-labelled elements were unscored in that check |
 | Texts exact | 52/52 |
 | Styles match | 111/111 |
 
@@ -172,7 +172,7 @@ Editing (move, resize, replace text, save as `.designcraft`, reopen, export PDF)
 
 ## Caveat
 
-The summary above is higher than the real-file results justify. Rows were scored from the project's own documents, mostly by the agents that built the features, using sample files made to show one feature at a time. Not one real file has been compared with what Publisher itself shows. The 142-file score is measured against the answer files that came with the samples, not against Publisher, and 41 of the 152 objects cannot be position-checked at all. No real file opened without warnings, and the desktop window, in-app printing and the web file picker have never been observed. Read 75.2% as an upper bound, and treat the P0 figure (92.9%) with the most suspicion, because it rests on one-feature samples.
+The summary above is higher than the real-file results justify. Rows were scored from the project's own documents, mostly by the agents that built the features, using sample files made to show one feature at a time. Not one real file has been compared with what Publisher itself shows. The 142-file score is measured against the answer files that came with the samples, not against Publisher, and 41 image-labelled elements were omitted from that position check; the separate picture baseline now checks only imported pictures. No real file opened without warnings, and the desktop window, in-app printing and the web file picker have never been observed. Read 75.2% as an upper bound, and treat the P0 figure (92.9%) with the most suspicion, because it rests on one-feature samples.
 
 ## How to get a real number
 
