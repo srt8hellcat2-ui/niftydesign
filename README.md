@@ -61,7 +61,7 @@ These are results from our own checks. We have not compared them side by side wi
 | Shapes, lines, fills, shadows | Works | Common shapes. Some freeforms become rectangles. |
 | Pictures | Mostly works | PNG, JPEG, BMP. PICT and some clip art may look wrong. |
 | Tables | Partly | In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. |
-| WordArt | Partly | Arched or circular WordArt comes out straight. |
+| WordArt | Partly | Default upward arch uses editable paths fitted from measured font advances. Circle and other warps stay straight. |
 | Numbered lists, custom tab stops | Not yet | Lost on import. |
 | Save as `.designcraft` and reopen | Works | Tested after a full restart. |
 | Export to PDF | Works | Tested on Windows. |
@@ -73,7 +73,7 @@ The full list is in [Known limitations](docs/KNOWN-LIMITATIONS.md).
 
 ## In progress
 
-We are using every test file we have to find out why files open with warnings, and fixing the biggest causes first. Of 24 real Apache test files: 9 opened with only notes about formatting settings we do not understand and skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. The 9 are not a claim that they match Publisher; we have not compared them with Publisher. Earlier counts called these 9 'warnings'; only the labelling changed, not the importer's fidelity. In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. Numbered lists, tab stops and curved WordArt need sample files. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
+We are using every test file we have to find out why files open with warnings, and fixing the biggest causes first. Of 24 real Apache test files: 9 opened with only notes about formatting settings we do not understand and skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. The 9 are not a claim that they match Publisher; we have not compared them with Publisher. Earlier counts called these 9 'warnings'; only the labelling changed, not the importer's fidelity. In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. Numbered lists, tab stops and other WordArt warps need sample files. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
 
 ## Install
 
@@ -107,7 +107,7 @@ How we handle reports: [docs/TRIAGE.md](docs/TRIAGE.md). Security problems: [SEC
 Download NiftyDesign for Windows from the [latest release](https://github.com/srt8hellcat2-ui/niftydesign/releases), start it, choose **Open** and pick your .pub file. It works with files from Publisher 2002 and newer. It opens a converted copy as a new, unsaved document and never changes your original file.
 
 **Can I convert a .pub file to PDF for free?**
-Yes. Open the file, then export PDF. Check the PDF against your original: some features, such as table fills and borders, curved WordArt and numbered lists, are not converted yet. See [Known limitations](docs/KNOWN-LIMITATIONS.md).
+Yes. Open the file, then export PDF. Check the PDF against your original: some features, such as table fills and borders and numbered lists, are not converted yet. WordArt letter fitting remains approximate. See [Known limitations](docs/KNOWN-LIMITATIONS.md).
 
 **Is there a free alternative to Microsoft Publisher?**
 NiftyDesign is an early, unofficial alpha built to open and edit existing .pub files. It is not a full Publisher replacement. Other free tools that can import Publisher files include LibreOffice Draw and Scribus.

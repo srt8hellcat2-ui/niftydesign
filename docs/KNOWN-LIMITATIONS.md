@@ -51,7 +51,7 @@ File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on m
 - Custom tab stops (tab characters themselves come over).
 - Table cell shading (fills) and borders. In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. Cell fills, borders and uncertain merged-cell text remain unsupported.
 - Text in merged table cells: merged cells come over, but which cell holds the text is not settled; check merged cells against the original.
-- Curved, arched or circular WordArt: comes out straight.
+- Default upward arch WordArt uses editable paths fitted from measured font advances. Circle and other warps come out straight; exact Publisher glyph fitting remains unknown. See [the measured results](pub-format/wordart.md).
 - Publisher 97, 98 and 2000 files.
 - Page-number and date fields are left out of text.
 - Objects parked outside the page (scratch area) are left out.

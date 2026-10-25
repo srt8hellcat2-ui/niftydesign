@@ -1188,3 +1188,16 @@ OBSERVATION: downloaded only the following nine PNG data files from `FuncularLab
 | `wordart__shadow.png` | 74601 | `04f699c60f3136b4b3c63814244ae03dac9040e1af2df22ef8cdc515c5e031bf` |
 
 These Publisher images and the existing truth JSON are scoring oracles only, never inputs for inferring storage. No reference image is committed. Reused the existing 142 controlled `.pub` files, 142 scoring JSON files and 24 Apache `.pub` files after checking their existing manifest hashes and sizes. The new scorer uses this workspace's importer, renderer and PNG decoding/encoding, with no new dependency. [pixel-diff.md](pixel-diff.md) records the visual baseline and limits; own-output snapshots are a separate regression measure, not Publisher comparisons.
+
+## C9 WordArt paths — 2026-10-25
+
+OBSERVATION: downloaded the official ECMA-376 fifth-edition Part 1 archive from `https://ecma-international.org/wp-content/uploads/ECMA-376-1_5th_edition_december_2016.zip`. Listed archive members to locate `OfficeOpenXML-DrawingMLGeometries.zip/presetTextWarpDefinitions.xml`; opened only that XML, not the shape XML, PDF or schemas. The archive and extracted XML remain outside the repository.
+
+| Input | Bytes | SHA-256 |
+| --- | ---: | --- |
+| ECMA-376-1_5th_edition_december_2016.zip | 43501721 | `9d0bcad9cf06054785b03762fcfadbf6bab7e54a5f9d69434e34b7fd464d4129` |
+| presetTextWarpDefinitions.xml | 51599 | `89640bd4aeedfa2c578d1d1acc50d569865ebdef315fd4b468087c25e36acada` |
+
+OBSERVATION: reused the pinned 142 controlled binaries, 142 truth JSON files, 24 Apache binaries and nine reference PNGs; all 317 recorded sizes and hashes matched before work. Storage audit used only the existing parser/importer on seven WordArt binaries and the permitted MS-ODRAW notes. XML supplies only outline paths, not Publisher storage. Truth JSON and PNGs were used only for scoring, and PNGs for visual comparison. INFERENCE and UNKNOWN items, including the 144/146 name mapping and approximate glyph fitting, are recorded in wordart.md. No other reader, repository source or web format search was used.
+
+OBSERVATION, C9 review: reverified all 317 data sizes and hashes, reusing the same XML and scoring references. Upward arch fitting now uses the existing composer's resolved font advances and glyph-ink bounds, with no guessed character width or fixed horizontal scale. Two measured circle trials missed the original reference baseline, so circle remains straight with its warning. The existing workspace composer dependency adds no external package. The trial scores, final nine-reference comparison and remaining INFERENCE/UNKNOWN items are recorded in wordart.md; no new format input was consulted.
