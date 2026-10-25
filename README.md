@@ -72,6 +72,27 @@ Microsoft fonts may be substituted with available fonts when they are not instal
 
 The full list is in [Known limitations](docs/KNOWN-LIMITATIONS.md).
 
+## See it in alpha.4
+
+These are screenshots of the NiftyDesign window itself, opening Publisher test files with the alpha.4 build.
+
+<table>
+<tr>
+<td><img src="docs/demo/alpha4/app-heart.png" width="420" alt="NiftyDesign window showing a heart shape opened from a Publisher file"><br><sub>A heart shape from a Publisher file (new in alpha.4)</sub></td>
+<td><img src="docs/demo/alpha4/app-curve.png" width="420" alt="NiftyDesign window showing a curve opened from a Publisher file"><br><sub>A curve, now an editable path (new in alpha.4)</sub></td>
+</tr>
+<tr>
+<td><img src="docs/demo/alpha4/app-polyline.png" width="420" alt="NiftyDesign window showing a polyline opened from a Publisher file"><br><sub>A polyline, now an editable path (new in alpha.4)</sub></td>
+<td><img src="docs/demo/alpha4/app-arch-wordart.png" width="420" alt="NiftyDesign window showing arched WordArt opened from a Publisher file"><br><sub>Arched WordArt as editable curved text (new in alpha.4)</sub></td>
+</tr>
+<tr>
+<td><img src="docs/demo/alpha4/app-sample2.png" width="420" alt="NiftyDesign window showing Apache's public Sample2.pub test file"><br><sub>A real Publisher file (Apache's public Sample2.pub test file)</sub></td>
+<td><img src="docs/demo/alpha4/app-flyer.png" width="420" alt="NiftyDesign window showing a flyer built in the app"><br><sub>A flyer built in NiftyDesign with text and shapes only</sub></td>
+</tr>
+</table>
+
+The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PNG](docs/demo/alpha4/alpha4-flyer.png) and an [editable `.designcraft` file](docs/demo/alpha4/alpha4-flyer.designcraft). The saved copy of the Sample2 file is [here](docs/demo/alpha4/alpha4-sample2-copy.designcraft); the original `.pub` is never changed. The earlier coffee-shop flyer and business card are still in `docs/demo/coffee-shop`.
+
 ## Where NiftyDesign stands (alpha.4)
 
 **Done**
@@ -98,11 +119,17 @@ The full list is in [Known limitations](docs/KNOWN-LIMITATIONS.md).
 
 **Not yet**
 
-- ⬜ Numbered lists and custom tab stops (we need sample files)
 - ⬜ Page numbers and dates
-- ⬜ Publisher 97, 98 and 2000 files
 - ⬜ A signed download (Windows shows a warning for now)
 - ⬜ Testing on more than one Windows PC and printer
+
+**Still needs research** (we do not yet know how Publisher stores or does these)
+
+- 🔬 How Publisher fits text to a frame (some headlines are cut off where our substitute fonts run longer)
+- 🔬 Table cell fills, borders, padding and the small row-position drift
+- 🔬 How Publisher bends the letters of circle, wave and other WordArt shapes
+- 🔬 Numbered lists and custom tab stops (we need sample files)
+- 🔬 Publisher 97, 98 and 2000 files (refused today)
 
 Real-file check: of 24 real Apache test files, 9 opened with only notes about formatting settings we skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. We have compared only nine test files with Publisher's own images, so none of this is a claim that files match Publisher. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
 
