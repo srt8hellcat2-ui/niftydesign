@@ -44,7 +44,7 @@ def check_archive_strings(path):
 def validate_version(version):
     current = tomllib.loads((alpha.ROOT / 'Cargo.toml').read_text(encoding='utf-8'))['workspace']['package']['version']
     if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+-nifty-alpha\.[0-9]+', version):
-        raise ValueError('version must be a NiftyDesign alpha version, e.g. 0.12.0-nifty-alpha.3')
+        raise ValueError('version must be a NiftyDesign alpha version, e.g. 0.12.0-nifty-alpha.4')
     if version != current or version != alpha.VERSION:
         raise ValueError(f'version must match Cargo.toml and the alpha packager ({current})')
     return f'NiftyDesign-{version}-windows-x64.zip'

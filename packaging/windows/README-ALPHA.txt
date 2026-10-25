@@ -1,4 +1,4 @@
-NiftyDesign 0.12.0-nifty-alpha.3 - unofficial alpha
+NiftyDesign 0.12.0-nifty-alpha.4 - unofficial alpha
 Windows x64 only. Not for ARM64, 32-bit Windows, macOS or Linux.
 
 
@@ -20,9 +20,9 @@ before running designcraft.exe. The command-line tool is designcraft-cli.exe.
 
 
 Verify the zip before extracting. Download both the zip and its separate
-niftydesign-0.12.0-nifty-alpha.3-windows-x64.zip.sha256 file into the same folder.
+niftydesign-0.12.0-nifty-alpha.4-windows-x64.zip.sha256 file into the same folder.
 In PowerShell, from that folder:
-  $zip = 'niftydesign-0.12.0-nifty-alpha.3-windows-x64.zip'
+  $zip = 'niftydesign-0.12.0-nifty-alpha.4-windows-x64.zip'
   $expected = ((Get-Content -LiteralPath "$zip.sha256").Trim() -split '  ', 2)[0]
   if ((Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash -ne $expected) {
     throw "SHA256 mismatch: $zip"
@@ -42,7 +42,7 @@ of who sent the files. Obtain the zip and checksum through a trusted channel.
 
 Headless tests cover .pub import, saving/reopening .designcraft, PDF export and
 page rendering. Imported objects are editable in the document model.
-The maintainer ran the Windows desktop app on ONE Windows 11 PC: launch,
+The maintainer ran an earlier alpha on ONE Windows 11 PC: launch,
 opening a .pub, editing, save and reopen, PDF export, printing to one inkjet
 printer, and Arial and Times New Roman from Windows system fonts worked on
 that PC.
@@ -53,7 +53,8 @@ include the web app.
 
 Known gaps: numbered lists and custom tab stops are unsupported; table cell
 shading and borders are not decoded; merged-cell text is unconfirmed;
-curved WordArt becomes straight text. Text inside WMF/EMF pictures is left out.
+upward-arch WordArt is editable curved text, but circle and other warps stay
+straight. Text inside WMF/EMF pictures is left out.
 Publisher 97-2000 files are refused.
 In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. The synthetic 2x2 table now draws A1, B1, A2 and B2. Cell fills, borders and uncertain merged-cell text remain unsupported.
 

@@ -443,5 +443,5 @@ fn usage_lists_the_automation_root_flags() {
 fn alpha_version_identifies_unofficial_build() {
     let out = cli().arg("--version").output().unwrap();
     assert!(out.status.success());
-    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "NiftyDesign CLI 0.12.0-nifty-alpha.3");
+    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "NiftyDesign CLI 0.12.0-nifty-alpha.4");
 }

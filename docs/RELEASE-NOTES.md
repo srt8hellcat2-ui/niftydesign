@@ -3,20 +3,22 @@
 
 NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer, lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.12.0 by the ArtCraft team, with a Publisher importer added. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
 
-## What changed since 0.9.0-nifty-alpha.2
+## What changed since 0.12.0-nifty-alpha.3
 
-- Rebuilt on DesignCraft 0.12.0 (it was 0.9.0). Upstream added work on guides and column guides, IDML, paste behaviour, keyboard-shortcut import and the French interface, among other changes.
-- The Publisher importer is unchanged. On our checks it gives the same results as alpha.2: the same scores on the controlled sample files, the same outcome on the 24 real Apache test files (9 with notes, 10 with warnings, 2 refused, 3 damaged), and all 48 table cell texts still present.
-- Documents saved by alpha.2 open, save and reopen in this version without content changes.
-- Not changed: the limits listed below, such as table fills and borders, curved WordArt, numbered lists and tab stops.
+- Shapes drawn with Publisher's curve and polyline tools now come in as editable paths instead of rectangles. Segment types we can't draw still give a warning.
+- The heart shape now draws as a heart.
+- Upward-arch WordArt now comes in as editable curved text. Circle WordArt and other WordArt shapes still come in as straight text with a warning. Letter shapes and spacing still differ from Publisher's.
+- Missing fonts are replaced by the closest available font by type and width instead of always the default (for example Arial Black now uses a heavy sans-serif). Original font names are kept in the file. The Find/Replace Font window no longer opens by itself when you open a Publisher file; it is still in the menu. Line breaks and headline fit can change, and some headlines can still be cut off.
+- On our checks the controlled sample results are unchanged (142 of 142 files import, 152 of 152 objects found, 111 of 152 positions within 1 point, 52 of 52 texts and 111 of 111 styles correct) and the 24 real Apache test files give the same outcome (9 with notes, 10 with warnings, 2 refused, 3 damaged). Those checks don't measure how the new curves, heart and arch look. We compared those with Publisher's own images for only nine test files.
+- Not changed: table fills, borders and padding; numbered lists and tab stops; other WordArt shapes; page numbers and dates; Publisher 97, 98 and 2000 files.
 
 ## This is a test build, and we need your help
 
-The maintainer has run this app on one Windows 11 PC with one inkjet printer. There it launched, opened Apache's public Sample2.pub test file, a flyer and a business card were built in it, saved, reopened after a restart, exported to PDF and printed. That is the only Windows testing so far, so you may find problems we have not. We also have no collection of real people's Publisher files: so far we tested with public Apache POI sample files and with files we generated. That is why we are asking you to try your own files and tell us what happens. Whatever you find, good or bad, is useful.
+The maintainer has run an earlier alpha on one Windows 11 PC with one inkjet printer. There it launched, opened Apache's public Sample2.pub test file, a flyer and a business card were built in it, saved, reopened after a restart, exported to PDF and printed. That is the only Windows PC tried by the maintainer so far, so you may find problems we have not. We also have no collection of real people's Publisher files: so far we tested with public Apache POI sample files and with files we generated. That is why we are asking you to try your own files and tell us what happens. Whatever you find, good or bad, is useful.
 
 ## What opening a file does
 
-Opening a .pub never modifies your original file on disk. NiftyDesign opens a converted copy as a new, unsaved document. That copy can look different from what Publisher shows. Some features are lost or simplified (table fills, borders and padding, curved WordArt, numbered lists and tab stops, page numbers and dates, for example), and not every loss gives a warning. Always compare it with your original. Publisher 97, 98 and 2000 files are refused.
+Opening a .pub never modifies your original file on disk. NiftyDesign opens a converted copy as a new, unsaved document. That copy can look different from what Publisher shows. Some features are lost or simplified (table fills, borders and padding, WordArt letter shapes and spacing, numbered lists and tab stops, page numbers and dates, for example), and not every loss gives a warning. Always compare it with your original. Publisher 97, 98 and 2000 files are refused.
 
 ## Unsigned download, SmartScreen and Smart App Control
 
@@ -29,7 +31,7 @@ On Windows 11 PCs where Smart App Control is turned On, Windows can block an uns
 Download the zip and its separate `.zip.sha256` file into the same folder. In PowerShell, change the version below to the version you downloaded:
 
 ```powershell
-$zip = 'NiftyDesign-0.12.0-nifty-alpha.3-windows-x64.zip'
+$zip = 'NiftyDesign-0.12.0-nifty-alpha.4-windows-x64.zip'
 $line = (Get-Content -LiteralPath "$zip.sha256").Trim()
 $hash, $filename = $line -split '  ', 2
 if ($filename -ne $zip -or $hash -notmatch '^[0-9a-fA-F]{64}$' -or
@@ -43,7 +45,9 @@ The sidecar verifies the finished zip before extraction. `SHA256SUMS` inside the
 
 ## Verified and unverified
 
-Worked on the maintainer's one Windows 11 PC: launching, opening a .pub, editing, saving and reopening, PDF export, printing on one inkjet printer, and Arial and Times New Roman found as installed fonts.
+This version (alpha.4): built and smoke-tested automatically on Windows. Not yet tried by hand on a Windows PC.
+
+An earlier alpha worked on the maintainer's one Windows 11 PC: launching, opening a .pub, editing, saving and reopening, PDF export, printing on one inkjet printer, and Arial and Times New Roman found as installed fonts.
 
 Not verified: other PCs and other printers, the native print dialog and file dialogs, and mouse-driven editing in a full session. Real files often open with warnings and can differ from the original layout. Keep your original files and check the exported PDF. See [Known limitations](https://github.com/srt8hellcat2-ui/niftydesign/blob/main/docs/KNOWN-LIMITATIONS.md).
 
