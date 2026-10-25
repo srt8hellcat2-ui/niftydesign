@@ -8,11 +8,15 @@ use std::sync::{Arc, Mutex, RwLock};
 use kurbo::BezPath;
 use skrifa::instance::{Location, LocationRef, Size};
 use skrifa::outline::{DrawSettings, OutlinePen};
-use skrifa::raw::FileRef;
+use skrifa::raw::{FileRef, TableProvider};
+
 use skrifa::string::StringId;
 use skrifa::{GlyphId, MetadataProvider};
 
 use crate::group::{FamilyInfo, FontGroup};
+
+#[path = "substitute.rs"]
+mod substitute;
 
 /// The family used when a requested family is unknown (the UI sans).
 pub const FALLBACK_FAMILY: &str = "Source Sans 3";
@@ -400,9 +404,12 @@ struct CatalogEntry {
     native: Option<String>,
     aliases: Vec<String>,
     postscript: Option<String>,
+    class: crate::kind::FontClass,
+    width: Option<u16>,
+    weight: f32,
 }
 
-/// What the scan reads of one face in a font file: its names and font menu group.
+/// What the scan reads of one face: names, font menu group, and substitution traits.
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, PartialEq)]
 struct ScannedFace {
@@ -413,6 +420,9 @@ struct ScannedFace {
     native: Option<String>,
     aliases: Vec<String>,
     postscript: Option<String>,
+    class: crate::kind::FontClass,
+    width: Option<u16>,
+    weight: f32,
 }
 
 /// Process-wide font database: the fonts every document shares (bundled, installed, added), and
@@ -725,6 +735,16 @@ fn file_face_names(path: &std::path::Path) -> Vec<ScannedFace> {
             if !records.as_chunks::<16>().0.iter().any(|r| OUTLINE_TABLES.iter().any(|t| r.starts_with(*t))) {
                 return None;
             }
+            // Fixed pitch lives in the common 32-byte post header. Glyph-name arrays can
+            // be much larger; the metadata reader does not need or inspect those arrays.
+            let post = records
+                .as_chunks::<16>()
+                .0
+                .iter()
+                .find(|r| r.starts_with(b"post"))
+                .and_then(|r| Some((be32(r, 8)?, be32(r, 12)?)))
+                .filter(|(_, len)| *len >= 32)
+                .and_then(|(offset, _)| read_at(u64::from(offset), 32));
             // Table `tag`, unless missing or over `max` bytes.
             let mut table = |tag: &[u8; 4], max: u32| -> Option<([u8; 4], Vec<u8>)> {
                 let rec = records.as_chunks::<16>().0.iter().find(|r| r.starts_with(tag))?;
@@ -738,6 +758,7 @@ fn file_face_names(path: &std::path::Path) -> Vec<ScannedFace> {
             let mut found = vec![table(b"name", MAX_NAME_TABLE)?];
             found.extend(table(b"OS/2", MAX_SMALL_TABLE));
             found.extend(table(b"meta", MAX_SMALL_TABLE));
+            found.extend(post.map(|header| (*b"post", header)));
             let font = crate::group::sfnt(found.clone())?;
             let f = skrifa::FontRef::new(&font).ok()?;
             let (family, style) = face_names(&f)?;
@@ -749,6 +770,9 @@ fn file_face_names(path: &std::path::Path) -> Vec<ScannedFace> {
                     crate::group::classify(&skrifa::FontRef::new(&font).ok()?, &family)
                 }
             };
+            let class = crate::kind::read_kind(&f, &family).class;
+            let width = font_width(&f);
+            let weight = f.os2().ok().map_or_else(|| style_weight(&style), |t| f32::from(t.us_weight_class()));
             let postscript = name(&f, &[StringId::POSTSCRIPT_NAME]);
             let wws = wws_names(&f, &family, &style);
             Some(ScannedFace {
@@ -759,6 +783,9 @@ fn file_face_names(path: &std::path::Path) -> Vec<ScannedFace> {
                 native,
                 aliases: aliases(&f, &[StringId::TYPOGRAPHIC_FAMILY_NAME, StringId::FAMILY_NAME]),
                 postscript,
+                class,
+                width,
+                weight,
             })
         })
         .collect()
@@ -1038,6 +1065,12 @@ pub fn same_style(a: &str, b: &str) -> bool {
 
 fn norm(s: &str) -> String {
     s.chars().filter(|c| c.is_alphanumeric()).flat_map(|c| c.to_lowercase()).collect()
+}
+
+/// OS/2 width class is an ordinal from ultra-condensed (1) to ultra-expanded (9), normal (5).
+/// Missing or invalid values stay unknown; no advances are estimated for an absent font.
+fn font_width(f: &skrifa::FontRef<'_>) -> Option<u16> {
+    f.os2().ok().map(|t| t.us_width_class()).filter(|w| (1..=9).contains(w))
 }
 
 /// Weight implied by a style name.
@@ -1329,6 +1362,9 @@ impl FontDb {
                         native: f.native,
                         aliases: f.aliases,
                         postscript: f.postscript,
+                        class: f.class,
+                        width: f.width,
+                        weight: f.weight,
                     });
                 }
             }
@@ -1346,6 +1382,9 @@ impl FontDb {
                     native: f.native,
                     aliases: f.aliases,
                     postscript: f.postscript,
+                    class: f.class,
+                    width: f.width,
+                    weight: f.weight,
                 });
             }
         }
@@ -1696,9 +1735,13 @@ impl ScopedFonts<'_> {
             || face.wws.as_ref().is_some_and(|w| w.0.eq_ignore_ascii_case(family) && norm(&w.1) == norm(style))
     }
 
-    /// Prefer known metric-compatible substitutes, then an appropriate script family. This
+    /// Prefer existing metric/script substitutes, then an available type and width match. This
     /// never changes `has_family`: a usable substitute is still a missing original font.
     pub fn substitute_family(&self, family: &str) -> String {
+        self.substitute_match(family, "Regular").0
+    }
+
+    fn preferred_substitute(&self, family: &str) -> Option<String> {
         let lower = family.to_lowercase();
         let candidates: &[&str] = match lower.as_str() {
             "calibri" | "calibri light" => &["Carlito", "Liberation Sans"],
@@ -1714,7 +1757,34 @@ impl ScopedFonts<'_> {
             _ if family.chars().any(|c| ('\u{3400}'..='\u{9fff}').contains(&c)) => &["Songti SC", "Noto Serif CJK SC", "PingFang SC"],
             _ => &[],
         };
-        candidates.iter().find_map(|name| self.canonical_family(name)).unwrap_or_else(|| FALLBACK_FAMILY.to_string())
+        candidates.iter().find_map(|name| self.canonical_family(name))
+    }
+
+    fn substitute_match(&self, family: &str, style: &str) -> (String, String) {
+        if let Some(preferred) = self.preferred_substitute(family) {
+            return (preferred, style.to_string());
+        }
+        let faces = self.db.read_faces();
+        let candidates = self.own().iter().chain(faces.iter()).map(|f| substitute::Candidate {
+            family: &f.family,
+            style: &f.style,
+            class: f.kind().class,
+            width: f.skrifa().as_ref().and_then(font_width),
+            weight: f.weight,
+            italic: f.italic,
+        });
+        #[cfg(not(target_arch = "wasm32"))]
+        let catalog = self.db.read_catalog();
+        #[cfg(not(target_arch = "wasm32"))]
+        let candidates = candidates.chain(catalog.iter().map(|c| substitute::Candidate {
+            family: &c.family,
+            style: &c.style,
+            class: c.class,
+            width: c.width,
+            weight: c.weight,
+            italic: style_italic(&c.style),
+        }));
+        substitute::choose(family, style, candidates).unwrap_or_else(|| (FALLBACK_FAMILY.to_string(), style.to_string()))
     }
 
     /// A replacement suggestion must cover the text being replaced, not just its main script.
@@ -1866,16 +1936,18 @@ impl ScopedFonts<'_> {
         v
     }
 
-    /// Resolve a family + style to a face, falling back to the closest style of the family, then to
-    /// Source Sans 3 Regular. Installed system fonts are found by name whatever ran before. A
+    /// Resolve a family + style to a face, preferring an available substitute of similar type
+    /// and stated width for missing families, then Source Sans 3 Regular. Installed system fonts
+    /// are found by name whatever ran before. A
     /// family that isn't found as written is looked up without surrounding spaces, then without
     /// InDesign's `$ID/` prefix or a format suffix (`Minion Pro (OTF)` → `Minion Pro`).
     pub fn face(&self, family: &str, style: &str) -> Arc<FontFace> {
-        let canonical = self
-            .canonical_family(family)
-            .or_else(|| alternate_names(family).find_map(|f| self.canonical_family(f)))
-            .unwrap_or_else(|| self.substitute_family(alternate_names(family).last().unwrap_or(family)));
-        if let Some(f) = self.find_or_load(&canonical, style) {
+        let canonical = self.canonical_family(family).or_else(|| alternate_names(family).find_map(|f| self.canonical_family(f)));
+        let (canonical, selected_style) = match canonical {
+            Some(name) => (name, style.to_string()),
+            None => self.substitute_match(alternate_names(family).last().unwrap_or(family), style),
+        };
+        if let Some(f) = self.find_or_load(&canonical, &selected_style) {
             return f;
         }
         self.find(FALLBACK_FAMILY, style)

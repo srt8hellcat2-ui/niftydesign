@@ -858,7 +858,10 @@ impl DesignApp {
                 self.ui.dialog = None;
             }
             match self.session.execute("font.list", &json!({})) {
-                Ok(fonts) if fonts.as_array().is_some_and(|fonts| fonts.iter().any(|f| f["missing"] == true || f["styleMissing"] == true)) => {
+                Ok(fonts)
+                    if self.session.active().is_none_or(|state| state.import_notice.is_none())
+                        && fonts.as_array().is_some_and(|fonts| fonts.iter().any(|f| f["missing"] == true || f["styleMissing"] == true)) =>
+                {
                     self.ui.dialog = Some(dialogs::Dialog::new("findFont", json!({"_fonts": fonts, "onOpen": true})));
                 }
                 Err(e) => self.status(e.to_string()),
@@ -1807,6 +1810,34 @@ pub fn drop_key_name_text(raw: &mut egui::RawInput, text_input_focused: bool) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    #[ignore = "needs PUB_CORPUS containing the pinned text__font-ArialBlack.pub fixture"]
+    fn publisher_import_keeps_missing_names_and_offers_replacement_only_on_request() {
+        let folders = std::env::var("PUB_CORPUS").unwrap();
+        let file = folders.split(':').map(|p| std::path::Path::new(p).join("text__font-ArialBlack.pub")).find(|p| p.is_file()).unwrap();
+        let mut bytes = std::fs::read(file).unwrap();
+        let db = designcraft_fonts::FontDb::global().scoped(0);
+        let family = (0..10_000).map(|n| format!("Q{n:010}")).find(|name| !db.has_family(name)).unwrap();
+        let original: Vec<u8> = "Arial Black".encode_utf16().flat_map(u16::to_le_bytes).collect();
+        let replacement: Vec<u8> = family.encode_utf16().flat_map(u16::to_le_bytes).collect();
+        assert_eq!(original.len(), replacement.len());
+        // Replace only the documented, same-length FONT names in memory. The pinned file on
+        // disk is unchanged; the generated name is known to be absent on this machine.
+        let offsets: Vec<_> = bytes.windows(original.len()).enumerate().filter_map(|(i, b)| (b == original).then_some(i)).collect();
+        assert_eq!(offsets.len(), 2);
+        for offset in offsets {
+            bytes[offset..offset + replacement.len()].copy_from_slice(&replacement);
+        }
+        let mut app = DesignApp::new(Session::new(), Services::default());
+        app.run("file.openBytes", json!({"name": "example.pub", "base64": designcraft_engine::cmd::base64_encode(&bytes)})).unwrap();
+        assert!(app.session.active().unwrap().import_notice.is_some());
+        let fonts = app.run("font.list", json!({})).unwrap();
+        assert!(fonts.as_array().unwrap().iter().any(|f| f["family"] == family && f["missing"] == true), "keep the absent requested family: {fonts}");
+        assert!(app.ui.dialog.is_none(), "Publisher font substitution must not open Find/Replace Font");
+        app.run("app.findFontDialog", json!({})).unwrap();
+        assert_eq!(app.ui.dialog.as_ref().unwrap().id, "findFont", "the explicit command stays available");
+    }
 
     #[test]
     fn publisher_notice_is_visible_without_a_modal_and_stays_with_its_document() {

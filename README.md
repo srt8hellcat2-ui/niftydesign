@@ -67,6 +67,8 @@ These are results from our own checks. We have not compared them side by side wi
 | Export to PDF | Works | Tested on Windows. |
 | Printing | Worked on one printer | Tested on one inkjet printer. Other printers are untested. |
 
+Microsoft fonts may be substituted with available fonts when they are not installed. Original font names are kept, but spacing and line breaks can change.
+
 The full list is in [Known limitations](docs/KNOWN-LIMITATIONS.md).
 
 ## In progress
