@@ -1246,3 +1246,17 @@ OBSERVATION: every Microsoft resource read for this investigation is listed belo
 | [MS-CFB header](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/05060311-bfce-4b12-874d-71fd4ce63aea) | Revision 12.0; page updated 2024-10-30T21:10:00Z |
 
 UNKNOWN: the requested MS-PUB resource returned HTTP 404, and neither inspected Office File Formats list contained Publisher/MS-PUB. No Publisher applicability statement was obtained; this does not establish that no specification exists elsewhere. MS-CFB documents the common container, not the older Publisher payload. See [the research boundary and full census](publisher-97-2000.md).
+
+## Older Publisher sample observations — 2026-10-25
+
+OBSERVATION: notes-only inspection on main `8148a73`, using the existing container reader and unchanged Escher/Quill parsers, stream listings and plain byte comparisons. All inputs below are Apache binary data at commit `bf7c9b6a1490046517cbd8e1504e702a89be4bc9`, under `test-data/publisher`, checked against `.github/test-data/publisher-fixtures.csv`; no external source or reader was consulted and no data was downloaded. All 317 pinned corpus binary/truth/reference files matched recorded sizes and hashes; truth/reference images were used only by existing regression scoring. No old record layout was decoded or parser behavior changed. Extracted streams and diagnostic results remain outside the repository under `/tmp/niftydata/pub-old-observations`. See [the observations and limits](publisher-97-2000-observations.md).
+
+| File | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `Sample98.pub` | 61440 | `8912f295ff0cd1f55b873b3b98a182218f33c420877e025d2f0fd795f12dd0c0` |
+| `Sample2000.pub` | 61440 | `40701ca47b26d04771cdd58467764e9ab39d3da69b59fbc529afd16d263d2f86` |
+| `Sample.pub` | 72192 | `6fefdef46b87c767150878dc384549cb2d2ec2ac54de25f8ddb3a5628301107e` |
+| `Sample_2010.pub` | 72704 | `f0a90aa566d72eb822eb48b4f378c33007610e35f3f1b999cdb88f2c9683858b` |
+| `Sample2.pub` | 72704 | `c87ea7cc5606023c5fa99376631bbd45a8e9bdaba34c958057995b0e7ac8cc86` |
+| `Sample2_2010.pub` | 73216 | `931ff20980b8f72aab227fa3cbe61b017be8d17c337fecb9aca3c97075940777` |
+| `Simple.pub` | 65536 | `2606f530052a818c7949b88c9bf245dbc0a74ddc6b5a60004f37b387fe4b955d` |
