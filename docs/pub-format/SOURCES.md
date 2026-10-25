@@ -1169,3 +1169,22 @@ all seven workspace CI steps passed, with the imported-font UI test also run
 separately. [font-fallback.md](font-fallback.md) records the exact choices,
 validation and visible Newsletter clipping/reflow, including 1,809 versus 1,747
 rendered glyphs without a claim of improved fidelity.
+
+
+## Publisher reference PNGs for pixel scoring
+
+OBSERVATION: downloaded only the following nine PNG data files from `FuncularLabs/pubsmith`, commit `0ccdf27fc3f381f0897515e226ea485165c699b2`, directory `tests/fixtures/pub/golden/`, via individual `https://raw.githubusercontent.com/FuncularLabs/pubsmith/0ccdf27fc3f381f0897515e226ea485165c699b2/tests/fixtures/pub/golden/<name>` URLs. The pinned directory lists nine images, totaling 574,351 bytes. Each is 2550 by 3300 pixels and declares 11,811 pixels per meter on both axes (approximately 300 dpi). The user explicitly continued with this nine-image set. Files remain outside the checkout in `/tmp/niftydata/pubsmith-fixtures/golden/`; hashes below were computed after download. No source from that repository was read.
+
+| PNG data file | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `group__rotated.png` | 74669 | `ef717c25d864ae76261cc67bf7951d2608596caea6372d889fc301f28fcee2d4` |
+| `shadow__offset.png` | 45272 | `6b30073ec659c83cf2f15e2233566a324f9560fedc5003bbdb1b432eda3f27ac` |
+| `shadow__on.png` | 45222 | `d79c0a144ceb902a9ebe63bfdb056ae8664037a5a36b53c1b80c0ad3c978e408` |
+| `wordart__arch.png` | 67029 | `86e134cfb7599a047ea509305ddcaa3d6a228de61749ba6837b5b0242be8b482` |
+| `wordart__base.png` | 65178 | `d86a363b2c12d3827d32b4a3bb36a9cf79df82a3f654f914bbd6685a748d149a` |
+| `wordart__circle.png` | 94420 | `1edd12d9ef14c09f3bbd512cf95085e21b3f8b9017bb86decfea9111da546d1b` |
+| `wordart__fill-red.png` | 67238 | `27df00497ee9f329decd158a20eedf46d32e45131bd82586c2d8813f08b5c282` |
+| `wordart__line-white.png` | 40722 | `b6accda793819b4db69f4684683b703b6d630fdabf8858f86aa1f77bc4174543` |
+| `wordart__shadow.png` | 74601 | `04f699c60f3136b4b3c63814244ae03dac9040e1af2df22ef8cdc515c5e031bf` |
+
+These Publisher images and the existing truth JSON are scoring oracles only, never inputs for inferring storage. No reference image is committed. Reused the existing 142 controlled `.pub` files, 142 scoring JSON files and 24 Apache `.pub` files after checking their existing manifest hashes and sizes. The new scorer uses this workspace's importer, renderer and PNG decoding/encoding, with no new dependency. [pixel-diff.md](pixel-diff.md) records the visual baseline and limits; own-output snapshots are a separate regression measure, not Publisher comparisons.
