@@ -81,7 +81,7 @@ UNKNOWN: cell fill, each edge's colour/width/style, padding precedence and style
 
 ## Row positions
 
-OBSERVATION: no Apache scoring export or Publisher reference image is supplied by the recorded input recipe. All eight measured per-row differences against such an export are therefore UNKNOWN. The nine available PNGs contain no table. The three controlled scoring JSONs contain flattened whole-table images, not row coordinates.
+OBSERVATION: no Apache scoring export or Publisher reference image is supplied by the recorded input recipe. All eight measured per-row differences against such an export are therefore UNKNOWN. The nine available PNGs contain no table. The three controlled scoring JSONs contain flattened whole-table images, not row coordinates. INFERENCE: unchanged corpus totals therefore do not validate cell paint or individual row accuracy.
 
 | Apache file | Row 1 ours − export (pt) | Row 2 (pt) | Row 3 (pt) | Grows with row index? |
 | --- | --- | --- | --- | --- |
@@ -121,13 +121,13 @@ UNVERIFIED HYPOTHESIS: a constant placement offset rather than per-row growth co
 
 ## Samples needed
 
-INFERENCE: request 15 small publications, each with an owner-provided scoring export and a reference image; use distinct short labels in every cell and record the intended settings.
+INFERENCE: request 17 small publications, each with an owner-provided scoring export and a reference image; use distinct short labels in every cell and record the intended settings.
 
 - INFERENCE: 1 baseline 3 × 2 table with equal rows and columns, no fill or border, explicit equal padding.
 - INFERENCE: 2 baseline copies changing only one cell fill to two different solid colours.
 - INFERENCE: 4 baseline copies changing only the top, right, bottom or left edge of one cell.
 - INFERENCE: 2 baseline copies changing only that edge's width or dash style.
-- INFERENCE: 2 baseline copies changing only one cell's left or top padding.
+- INFERENCE: 4 baseline copies changing only one cell's left, top, right or bottom padding.
 - INFERENCE: 1 unequal-row-height table with otherwise baseline settings.
 - INFERENCE: 1 long-text table that forces a row to expand.
 - INFERENCE: 2 labelled merged-cell tables, one horizontal and one vertical.
@@ -138,4 +138,10 @@ INFERENCE: **wait for samples** before implementing cell paint or a row-drift co
 
 INFERENCE: allow roughly 2–4 working days for a later bounded implementation and regression checks after differentiated samples establish mappings; allow another 1–2 days for sample analysis. UNKNOWN: effort for style inheritance, shared edges, merged-cell text and layout expansion may exceed that estimate.
 
-OBSERVATION: this note changes no importer or renderer behavior. UNKNOWN: final workspace checks and regenerated pixel outputs are not yet recorded in this first draft; the baseline results above were run before writing it.
+OBSERVATION: this note changes no importer or renderer behavior. Final controlled results remain 142/142 imports, 152/152 objects, 111/111 scored shape/text positions within 1 pt, 52/52 texts and 111/111 styles. The separate picture result remains 12/41 matched passes and 29 unmatched references. All 142 native save/reopen/edit/PDF cases pass. The real-file batch regression passes with the same 9 notes, 10 warnings, 2 refused and 3 damaged files; the import census still totals 31 pages and 280 objects.
+
+OBSERVATION: formatting and lint checks pass. All seven workspace checks pass on the sequential rerun, including 3103 tests passed, zero failed and 25 ignored, plus asset, layer and WebAssembly checks. The first workspace run stopped at three batch process-launch checks with `Os { code: 2, kind: NotFound, message: "No such file or directory" }`. Each passes in the sequential rerun without a source change. UNKNOWN: the exact initial launch-failure cause; that run overlapped other builds, but overlap alone does not establish causation.
+
+OBSERVATION: the recorded recipe rebuilt `/tmp/niftydata/pixel-report` and current `/tmp/niftydata/pixel-snapshots/table-notes` and `table-notes-final`, including complete manifests. All nine reference scores match the last merged font-width report within 1e-9, with no size mismatch. Current own-output comparison reports 142 compared, zero changed and zero added/removed. UNKNOWN: the original machine's historical snapshot files/manifests are unavailable; these current regenerated runs do not recover those historical bytes. Neither current nor historical snapshot comparisons provide a Publisher scoring export for the eight Apache tables.
+
+OBSERVATION: only this note and the source-use appendix changed. No environment configuration, setup script or setting was changed; no release action was run.
