@@ -10,6 +10,7 @@ pub(super) struct Candidate<'a> {
     pub width: Option<u16>,
     pub weight: f32,
     pub italic: bool,
+    pub bundled: bool,
 }
 
 fn class_hint(family: &str) -> FontClass {
@@ -34,18 +35,40 @@ fn class_distance(want: FontClass, got: FontClass) -> u8 {
     }
 }
 
-fn width_distance(family: &str, candidate: Option<u16>) -> u8 {
-    let lower = family.to_lowercase();
-    let narrow = lower.contains("condensed") || lower.contains("narrow");
-    let wide = lower.contains("expanded") || lower.contains("extended");
-    if !narrow && !wide {
-        // The missing family's actual width is unknown; don't invent a target advance.
-        return 0;
+/// A name is a substitution hint, not a recovered width or advance for a missing face.
+fn width_hint(family: &str, style: &str) -> Option<u16> {
+    let name = format!("{family} {style}").to_lowercase().replace(['-', '_'], " ");
+    let compact = name.replace(' ', "");
+    if compact.contains("ultracondensed") {
+        Some(1)
+    } else if compact.contains("extracondensed") {
+        Some(2)
+    } else if compact.contains("semicondensed") {
+        Some(4)
+    } else if compact.contains("condensed") || compact.contains("narrow") || name.split_whitespace().any(|word| word == "cond") {
+        Some(3)
+    } else if compact.contains("ultraexpanded") {
+        Some(9)
+    } else if compact.contains("extraexpanded") {
+        Some(8)
+    } else if compact.contains("semiexpanded") {
+        Some(6)
+    } else if compact.contains("expanded") || compact.contains("extended") {
+        Some(7)
+    } else {
+        None
     }
-    match candidate {
-        Some(w) if (narrow && w < 5) || (wide && w > 5) => 0,
-        None => 1,
-        _ => 2,
+}
+
+fn width_distance(family: &str, style: &str, candidate: Option<u16>) -> u16 {
+    let Some(target) = width_hint(family, style) else { return 0 };
+    candidate.filter(|width| (1..=9).contains(width)).map_or(9, |width| target.abs_diff(width))
+}
+
+fn width_tie(family: &str, style: &str, candidate: Option<u16>) -> u8 {
+    match (width_hint(family, style), candidate) {
+        (Some(target), Some(width)) if (target < 5 && width > target) || (target > 5 && width < target) => 1,
+        _ => 0,
     }
 }
 
@@ -65,21 +88,24 @@ pub(super) fn choose<'a>(family: &str, style: &str, candidates: impl IntoIterato
     let score = |c: &Candidate<'_>| {
         (
             class_distance(want, c.class),
-            width_distance(family, c.width),
+            width_distance(family, style, c.width),
+            width_tie(family, style, c.width),
             usize::from(c.italic != italic),
             (c.weight - weight).abs(),
             usize::from(c.family != preferred),
+            c.bundled,
         )
     };
     candidates
         .into_iter()
         .min_by(|a, b| {
-            let (ac, aw, ai, ag, ap) = score(a);
-            let (bc, bw, bi, bg, bp) = score(b);
-            (ac, aw, ai)
-                .cmp(&(bc, bw, bi))
+            let (ac, aw, ad, ai, ag, ap, ab) = score(a);
+            let (bc, bw, bd, bi, bg, bp, bb) = score(b);
+            (ac, aw, ai, ad)
+                .cmp(&(bc, bw, bi, bd))
                 .then(ag.total_cmp(&bg))
                 .then(ap.cmp(&bp))
+                .then(ab.cmp(&bb))
                 .then_with(|| a.family.cmp(b.family))
                 .then_with(|| a.style.cmp(b.style))
         })
@@ -91,7 +117,7 @@ mod tests {
     use super::*;
 
     fn candidate(family: &str, class: FontClass, width: u16) -> Candidate<'_> {
-        Candidate { family, style: "Regular", class, width: Some(width), weight: 400.0, italic: false }
+        Candidate { family, style: "Regular", class, width: Some(width), weight: 400.0, italic: false, bundled: false }
     }
 
     #[test]
@@ -110,9 +136,67 @@ mod tests {
         assert_eq!(choose("Rockwell Condensed", "Regular", choices).unwrap().0, "Available Narrow Serif");
         let choices = [candidate("Available Narrow Serif", FontClass::Serif, 3), candidate("Source Serif 4", FontClass::Serif, 5)];
         assert_eq!(choose("Sylfaen", "Regular", choices).unwrap().0, "Source Serif 4", "no stated width: keep the bundled tie preference");
-        assert_eq!(width_distance("Missing Narrow", None), 1);
-        assert_eq!(width_distance("Missing Expanded", Some(7)), 0);
-        assert_eq!(width_distance("Missing Expanded", Some(3)), 2);
+        assert_eq!(width_distance("Missing Narrow", "Regular", None), 9);
+        assert_eq!(width_distance("Missing Expanded", "Regular", Some(7)), 0);
+        assert_eq!(width_distance("Missing Expanded", "Regular", Some(3)), 4);
+    }
+
+    #[test]
+    fn width_ranking_distinguishes_condensed_from_semi_and_extra_condensed() {
+        let choices = [
+            candidate("Semi", FontClass::SansSerif, 4),
+            candidate("Extra", FontClass::SansSerif, 2),
+            candidate("Condensed", FontClass::SansSerif, 3),
+        ];
+        assert_eq!(choose("Missing Narrow Sans", "Regular", choices).unwrap().0, "Condensed");
+        assert_eq!(width_distance("Missing Semi-Condensed", "Regular", Some(3)), 1);
+        assert_eq!(width_distance("Missing Extra Condensed", "Regular", Some(3)), 1);
+        assert_eq!(width_hint("Franklin Gothic Medium Cond", "Regular"), Some(3));
+        assert_eq!(width_hint("Missing Sans", "Ultra Condensed"), Some(1));
+        assert_eq!(width_hint("Missing Sans", "SemiExpanded"), Some(6));
+        assert_eq!(width_hint("Unspecified Width", "Regular"), None);
+    }
+
+    #[test]
+    fn type_precedes_width_and_unknown_candidate_width_is_not_a_match() {
+        let mut unknown = candidate("Unknown width", FontClass::SansSerif, 3);
+        unknown.width = None;
+        let choices = [unknown, candidate("Normal sans", FontClass::SansSerif, 5), candidate("Narrow serif", FontClass::Serif, 3)];
+        assert_eq!(choose("Missing Narrow Sans", "Regular", choices).unwrap().0, "Normal sans");
+        assert_eq!(width_distance("Missing Narrow", "Regular", Some(5)), 2);
+        assert_eq!(width_distance("Missing Narrow", "Regular", Some(0)), 9);
+    }
+
+    #[test]
+    fn equal_width_distances_prefer_the_requested_direction_then_an_installed_tie() {
+        let choices = [candidate("Semi", FontClass::Serif, 4), candidate("Extra", FontClass::Serif, 2)];
+        assert_eq!(choose("Missing Condensed Serif", "Regular", choices).unwrap().0, "Extra");
+        let mut bundled = candidate("A bundled sans", FontClass::SansSerif, 3);
+        bundled.bundled = true;
+        let choices = [bundled, candidate("Z installed sans", FontClass::SansSerif, 3)];
+        assert_eq!(choose("Missing Narrow Sans", "Regular", choices).unwrap().0, "Z installed sans");
+    }
+
+    #[test]
+    fn equal_distance_keeps_italic_before_the_direction_tie_break() {
+        let mut italic = candidate("Semi condensed italic", FontClass::Serif, 4);
+        italic.italic = true;
+        italic.style = "Italic";
+        let choices = [candidate("Extra condensed upright", FontClass::Serif, 2), italic];
+        assert_eq!(choose("Missing Condensed Serif", "Italic", choices).unwrap().1, "Italic");
+    }
+
+    #[test]
+    fn condensed_bundle_is_available_without_system_fonts() {
+        let db = super::super::FontDb::with_font_dirs(vec![]);
+        for original in ["Arial Narrow", "Franklin Gothic Medium Cond"] {
+            let face = db.face(original, "Regular");
+            assert_eq!(face.family, "Barlow Condensed");
+            assert_eq!(face.kind().class, FontClass::SansSerif);
+            assert!(!db.has_family(original));
+        }
+        let face = db.face("Rockwell Condensed", "Bold");
+        assert_eq!((&*face.family, &*face.style), ("Nifty Narrow Serif", "Bold"));
     }
 
     #[test]
@@ -145,7 +229,7 @@ mod tests {
         for (original, expected) in [
             ("Elephant", "Source Serif 4"),
             ("Sylfaen", "Source Serif 4"),
-            ("Rockwell Condensed", "Source Serif 4"),
+            ("Rockwell Condensed", "Nifty Narrow Serif"),
             ("Franklin Gothic Book", "Source Sans 3"),
             ("Missing Mono", "JetBrains Mono"),
         ] {

@@ -89,6 +89,8 @@
       <Component Id="Legal7" Directory="FontTerms"><File Id="LegalFile7" Source="$(var.BinDir)\assets\fonts\OFL-JetBrainsMono.txt" KeyPath="yes" /></Component>
       <Component Id="Legal8" Directory="FontTerms"><File Id="LegalFile8" Source="$(var.BinDir)\assets\fonts\OFL-SourceSerif4.txt" KeyPath="yes" /></Component>
       <Component Id="Legal9" Directory="FontTerms"><File Id="LegalFile9" Source="$(var.BinDir)\assets\fonts\OFL-Inter.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal10" Directory="FontTerms"><File Id="LegalFile10" Source="$(var.BinDir)\assets\fonts\OFL-BarlowCondensed.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal11" Directory="FontTerms"><File Id="LegalFile11" Source="$(var.BinDir)\assets\fonts\OFL-RobotoSerif.txt" KeyPath="yes" /></Component>
       <Component Id="DesigncraftCli">
         <File Id="DesigncraftCliExe" Source="$(var.BinDir)\designcraft-cli.exe" KeyPath="yes" />
       </Component>
