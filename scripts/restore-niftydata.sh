@@ -79,7 +79,7 @@ for line in "${lines[@]}"; do
   files=$((files + 1)); total_bytes=$((total_bytes + size))
 done
 [[ "$files/$binaries/$apache/$truth/$golden" == '317/142/24/142/9' ]] || { problem "$MANIFEST" "wrong inventory: $files/$binaries/$apache/$truth/$golden"; exit 2; }
-mkdir -p -- "$dest" || { problem "$dest" 'cannot create destination'; exit 1; }
+if ! error="$(mkdir -p -- "$dest" 2>&1)"; then problem "$dest" "$error"; exit 1; fi
 temporary=''
 cleanup() { if [[ -n "$temporary" ]]; then rm -f -- "$temporary" "$temporary.err"; fi; }
 trap cleanup EXIT
@@ -111,8 +111,8 @@ for line in "${lines[@]}"; do
   if ((blocked)); then failed=$((failed + 1)); continue; fi
   if verify "$path" "$size" "$sha"; then skipped=$((skipped + 1)); continue; fi
   previous="$reason"
-  if ! mkdir -p -- "$parent"; then problem "$relative" "cannot create parent: $parent"; failed=$((failed + 1)); continue; fi
-  if ! temporary="$(mktemp "$parent/.restore-niftydata.XXXXXXXX")"; then problem "$relative" 'cannot create temporary download'; failed=$((failed + 1)); continue; fi
+  if ! error="$(mkdir -p -- "$parent" 2>&1)"; then problem "$relative" "$error"; failed=$((failed + 1)); continue; fi
+  if error="$(mktemp "$parent/.restore-niftydata.XXXXXXXX" 2>&1)"; then temporary="$error"; else problem "$relative" "$error"; failed=$((failed + 1)); continue; fi
   # Do not follow redirects: no request can leave the manifest's allowed host.
   if status="$(curl --fail --silent --show-error --proto '=https' \
       --connect-timeout 15 --max-time 120 --retry 3 --retry-all-errors \
@@ -120,11 +120,11 @@ for line in "${lines[@]}"; do
       --write-out '%{http_code}' --output "$temporary" "$url" 2>"$temporary.err")"; then
     if [[ "$status" != 200 ]]; then reason="HTTP $status; expected 200 (redirects are not followed)";
     elif verify "$temporary" "$size" "$sha"; then
-      if mv -fT -- "$temporary" "$path"; then
+      if error="$(mv -fT -- "$temporary" "$path" 2>&1)"; then
         rm -f -- "$temporary.err"; temporary=''
         printf 'RESTORED %s: %s\n' "$relative" "$previous"
         restored=$((restored + 1)); continue
-      else reason='cannot replace destination with verified download'; fi
+      else reason="$error"; fi
     fi
   else reason="$(<"$temporary.err")"; fi
   problem "$relative" "$reason"
@@ -132,8 +132,11 @@ for line in "${lines[@]}"; do
 done
 printf 'Inputs: %s files, %s bytes; skipped=%s restored=%s failed=%s; elapsed=%ss\n' "$files" "$total_bytes" "$skipped" "$restored" "$failed" "$SECONDS"
 ((failed == 0)) || exit 1
-if ((make_link)) && [[ ! -L "$link_path" ]]; then
-  ln -sT -- "$dest" "$link_path" || { problem "$link_path" "cannot create symlink to $dest"; exit 1; }
+if ((make_link)); then
+  if [[ ! -L "$link_path" ]]; then
+    if ! error="$(ln -sT -- "$dest" "$link_path" 2>&1)"; then problem "$link_path" "$error"; exit 1; fi
+  fi
+  [[ "$(realpath -m -- "$link_path")" == "$dest" ]] || { problem "$link_path" 'symlink no longer resolves to the destination'; exit 1; }
 fi
 if ((rebuild)); then
   [[ "$(realpath -m -- /tmp/niftydata)" == "$dest" ]] || { problem /tmp/niftydata 'generated runner requires this path to resolve to the destination'; exit 1; }
@@ -141,6 +144,8 @@ if ((rebuild)); then
   command -v cargo >/dev/null || { problem generated 'build commands unavailable; activate the existing development shell'; exit 1; }
   cd "$ROOT"
   export PUB_CORPUS="$dest/pubsmith-fixtures" PUB_REAL_CORPUS="$dest/apache-pub"
+  # Generated checks use prepared dependencies; they must not add network hosts.
+  export CARGO_NET_OFFLINE=true
   if ! PUB_PIXEL_MODE=publisher cargo test --locked -p designcraft-cli --test pub_pixel_diff pub_pixel_diff -- --ignored --exact --nocapture; then problem pixel-report 'documented rebuild command failed'; exit 1; fi
   if ! PUB_PIXEL_MODE=snapshot PUB_PIXEL_RUN="$snapshot_run" cargo test --locked -p designcraft-cli --test pub_pixel_diff pub_pixel_diff -- --ignored --exact --nocapture; then problem "pixel-snapshots/$snapshot_run" 'documented rebuild command failed; partial run may remain'; exit 1; fi
   printf 'Generated pixel-report and pixel-snapshots/%s\n' "$snapshot_run"
