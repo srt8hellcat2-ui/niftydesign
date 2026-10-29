@@ -1260,3 +1260,23 @@ OBSERVATION: notes-only inspection on main `8148a73`, using the existing contain
 | `Sample2.pub` | 72704 | `c87ea7cc5606023c5fa99376631bbd45a8e9bdaba34c958057995b0e7ac8cc86` |
 | `Sample2_2010.pub` | 73216 | `931ff20980b8f72aab227fa3cbe61b017be8d17c337fecb9aca3c97075940777` |
 | `Simple.pub` | 65536 | `2606f530052a818c7949b88c9bf245dbc0a74ddc6b5a60004f37b387fe4b955d` |
+
+## Condensed font substitution — 2026-10-29
+
+OBSERVATION: the unchanged baseline used all 142 controlled and 24 Apache binaries at the previously recorded pinned commits; all 317 binary/truth/golden files matched recorded sizes and hashes. Existing parser output and imported formatting supplied font names; truth/golden inputs were used only for scoring. No original Microsoft font bytes/metrics or additional Adobe collection fonts were read or added.
+
+OBSERVATION: font selection inputs below were downloaded on 2026-10-29 from Google Fonts commit `9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0`, only binary fonts, full licences and the families' own metadata. Barlow Condensed Regular/Bold and both bundled licence texts are unchanged; the two Nifty Narrow Serif faces are renamed static Roboto Serif derivatives at wdth=62.5, opsz=144, GRAD=0 and wght=400/700, with every glyph retained. Generated SHA-256 values and attribution are in ASSETS.md; exact preparation is recorded in `packaging/prepare_condensed_serif.py` and verified byte-identical on repetition. Stint and Bebas candidates were not bundled. See [font-substitution-widths.md](font-substitution-widths.md) for the audit, choices and limits.
+
+| Download URL | Bytes | SHA-256 |
+| --- | ---: | --- |
+| https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/robotoserif/RobotoSerif%5BGRAD,opsz,wdth,wght%5D.ttf | 3944924 | `351ced75f3851806aa6d846b669361521eb1925cfc530396df9c1a1b77061ddb` |
+| https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/robotoserif/OFL.txt | 4489 | `34dbfbb43e0b4fdeef445d77b9ac0b988e5ad7a9bbf16808c97b66c66d51f553` |
+| https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/barlowcondensed/BarlowCondensed-Regular.ttf | 102480 | `583cec5da3b84bc4dc7c9c72e2a565c94d34e431518b19d7e250b7830ad5f996` |
+| https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/barlowcondensed/BarlowCondensed-Bold.ttf | 109912 | `e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65` |
+| https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/barlowcondensed/OFL.txt | 4377 | `186d750eb496a4c17a76385f82be6aea2ac1cf2de074a811d63786cf374ea73f` |
+| https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/stintultracondensed/StintUltraCondensed-Regular.ttf | 40272 | `1c32b77a50e960f9e88e29e1c65a0a15ffe277681ace0dbf207fafa7be23591e` |
+| https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/stintultracondensed/OFL.txt | 4444 | `fc1e501d419d84a8f1a800adae092045002d7141241f498237611dbb8ea763d7` |
+| https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/robotoserif/METADATA.pb | 1744 | `5f5893410acc682cefc0eef3c6be921fde33c6e78a052fc763ca949ddb102eee` |
+| https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/barlowcondensed/METADATA.pb | 5571 | `fdb9c7b3c0c2c1069bc0193f0b72fb95efef36dc155c281e307da71b7dcfc558` |
+| https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/bebasneue/METADATA.pb | 636 | `180da4f2ee7757e589eb5cb82f32c58b64c49f015e504ccab6b21401e7f5d43a` |
+| https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/stintultracondensed/METADATA.pb | 715 | `15e32f1cedfb18a9366b4f8cc293201b7ec9e7507b1c3550d7ce7fab1d479470` |

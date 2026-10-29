@@ -36,7 +36,10 @@ class AlphaPackage(unittest.TestCase):
                                  'docs/brand/LICENSE-brand.txt'} <= files)
                 self.assertEqual({n for n in files if n.startswith('docs/brand/')},
                                  {'docs/brand/LICENSE-brand.txt'})
-                self.assertEqual(len([n for n in files if n.startswith('assets/fonts/OFL')]), 4)
+                self.assertEqual({n for n in files if n.startswith('assets/fonts/OFL')},
+                                 {'assets/fonts/OFL-Inter.txt', 'assets/fonts/OFL-JetBrainsMono.txt',
+                                  'assets/fonts/OFL-SourceSans3.txt', 'assets/fonts/OFL-SourceSerif4.txt',
+                                  'assets/fonts/OFL-BarlowCondensed.txt', 'assets/fonts/OFL-RobotoSerif.txt'})
                 legal = {p.relative_to(alpha.ROOT).as_posix()
                          for p in (alpha.ROOT / 'licenses/pdf-backend').rglob('*') if p.is_file()}
                 self.assertTrue(legal)

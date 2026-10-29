@@ -41,6 +41,10 @@ static BUNDLED: &[&[u8]] = &[
     include_bytes!("../../../assets/fonts/Inter-Medium.ttf"),
     include_bytes!("../../../assets/fonts/Inter-SemiBold.ttf"),
     include_bytes!("../../../assets/fonts/JetBrainsMono-Regular.ttf"),
+    include_bytes!("../../../assets/fonts/NiftyNarrowSerif-Regular.ttf"),
+    include_bytes!("../../../assets/fonts/NiftyNarrowSerif-Bold.ttf"),
+    include_bytes!("../../../assets/fonts/BarlowCondensed-Regular.ttf"),
+    include_bytes!("../../../assets/fonts/BarlowCondensed-Bold.ttf"),
 ];
 
 #[derive(Clone)]
@@ -1772,6 +1776,7 @@ impl ScopedFonts<'_> {
             width: f.skrifa().as_ref().and_then(font_width),
             weight: f.weight,
             italic: f.italic,
+            bundled: f.source == FontSource::Bundled,
         });
         #[cfg(not(target_arch = "wasm32"))]
         let catalog = self.db.read_catalog();
@@ -1783,6 +1788,7 @@ impl ScopedFonts<'_> {
             width: c.width,
             weight: c.weight,
             italic: style_italic(&c.style),
+            bundled: false,
         }));
         substitute::choose(family, style, candidates).unwrap_or_else(|| (FALLBACK_FAMILY.to_string(), style.to_string()))
     }
