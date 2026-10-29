@@ -60,7 +60,6 @@ OBSERVATION: the following counts cover the 13 controlled blocks and 48 candidat
 
 | MCLD field | Values observed | Files / candidate table blocks present | Label and limit |
 | --- | --- | --- | --- |
-
 | 0x00 | 2473, 2478, 2483, 7299, 7314, 7329, 7889, 7923, 7957, 11301, 11324, 11347 | 11 / 61 | OBSERVATION: varies within and between files; UNKNOWN interpretation. |
 | 0x01 | 2476, 2516, 7308, 7429, 7974, 8110, 11315, 11502 | 11 / 61 | OBSERVATION: varies within and between files; UNKNOWN interpretation. |
 | 0x02 | 2477, 2482, 2487, 7313, 7328, 7343, 7922, 7956, 7990, 11323, 11346, 11369 | 11 / 61 | OBSERVATION: varies within and between files; UNKNOWN interpretation. |
