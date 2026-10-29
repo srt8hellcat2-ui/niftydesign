@@ -1280,3 +1280,24 @@ OBSERVATION: font selection inputs below were downloaded on 2026-10-29 from Goog
 | https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/barlowcondensed/METADATA.pb | 5571 | `fdb9c7b3c0c2c1069bc0193f0b72fb95efef36dc155c281e307da71b7dcfc558` |
 | https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/bebasneue/METADATA.pb | 636 | `180da4f2ee7757e589eb5cb82f32c58b64c49f015e504ccab6b21401e7f5d43a` |
 | https://raw.githubusercontent.com/google/fonts/9862abc066c9b83bf84c3e8ed1fc2d8d48f9bbf0/ofl/stintultracondensed/METADATA.pb | 715 | `15e32f1cedfb18a9366b4f8cc293201b7ec9e7507b1c3550d7ce7fab1d479470` |
+
+
+## Table formatting observations — 2026-10-29
+
+OBSERVATION: restored the 142 controlled binary fixtures and 142 truth JSON files from individual raw data URLs at `FuncularLabs/pubsmith` commit `0ccdf27fc3f381f0897515e226ea485165c699b2`, `tests/fixtures/pub/`, plus its nine `golden/` PNGs; restored 24 Apache binaries at `apache/poi` commit `bf7c9b6a1490046517cbd8e1504e702a89be4bc9`, `test-data/publisher/`. Every binary size/hash matches `.github/test-data/publisher-fixtures.csv`; every JSON/PNG size/hash matches the existing tables above (317 files). Files remain under `/tmp/niftydata/pubsmith-fixtures` and `/tmp/niftydata/apache-pub`. No upstream code, README, other reader or web format search was accessed.
+
+OBSERVATION: the table census reads all successfully readable binary Contents directories and Escher drawings. Detailed cell-field observations in [table-formatting.md](table-formatting.md) use the eleven binaries below, the existing bounded property-list/Escher readers and the documented Quill section directory. Scoring JSON was used only by the unchanged corpus checks; golden PNGs only for hash verification and pixel scoring. Neither supplied a storage interpretation. The MS-ODRAW margin definitions are retained from the permitted pages already listed in the text-fit section; no new external specification was used.
+
+| Table binary | SHA-256 |
+| --- | --- |
+| `table__2x2.pub` | `72d2127f4ffdbe998f4f94414a28584e49af817991b70a564fda885dcb1a6a7d` |
+| `table__3x2.pub` | `12c45cd9057553f748d0cf23ab5348d901be294b1d6e790eb80c3331d57d2616` |
+| `table__merged.pub` | `3df51f5e3e29f247b8636627725d43f5973dc7ea887338f32aec8f4b49a23b30` |
+| `Sample.pub` | `6fefdef46b87c767150878dc384549cb2d2ec2ac54de25f8ddb3a5628301107e` |
+| `Sample2.pub` | `c87ea7cc5606023c5fa99376631bbd45a8e9bdaba34c958057995b0e7ac8cc86` |
+| `Sample2_2010.pub` | `931ff20980b8f72aab227fa3cbe61b017be8d17c337fecb9aca3c97075940777` |
+| `Sample3.pub` | `424c69173ff08948c2529c8084b4ac2403f1ff1057146f4edd02fc29b44481fc` |
+| `Sample3_2010.pub` | `baa9555a72d9e4264e3fd722896e2e43b960d20b4afdb96f75cb721a6133ff91` |
+| `Sample4.pub` | `42195f7ad23d911219fea3ec88e66e867e9b9a6821a16dd1b535e2aa9d57a11b` |
+| `Sample4_2010.pub` | `544e2043f91aed664c0a09f9ae45da42291b6730f107f99f3cdf9462ed38fb02` |
+| `Sample_2010.pub` | `f0a90aa566d72eb822eb48b4f378c33007610e35f3f1b999cdb88f2c9683858b` |
