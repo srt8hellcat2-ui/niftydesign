@@ -1301,3 +1301,24 @@ OBSERVATION: the table census reads all successfully readable binary Contents di
 | `Sample4.pub` | `42195f7ad23d911219fea3ec88e66e867e9b9a6821a16dd1b535e2aa9d57a11b` |
 | `Sample4_2010.pub` | `544e2043f91aed664c0a09f9ae45da42291b6730f107f99f3cdf9462ed38fb02` |
 | `Sample_2010.pub` | `f0a90aa566d72eb822eb48b4f378c33007610e35f3f1b999cdb88f2c9683858b` |
+
+
+## Numbered-list and tab-stop census — 2026-10-29
+
+OBSERVATION: reused the 142 controlled binaries at `FuncularLabs/pubsmith` commit `0ccdf27fc3f381f0897515e226ea485165c699b2` and the 24 Apache binaries at `apache/poi` commit `bf7c9b6a1490046517cbd8e1504e702a89be4bc9`. Every binary size/SHA-256 matches `.github/test-data/publisher-fixtures.csv`; all 142 scoring JSON and nine golden-image sizes/hashes match the earlier tables in this file (317 inputs). No download was needed. Files remain under `/tmp/niftydata/pubsmith-fixtures` and `/tmp/niftydata/apache-pub`. The unchanged corpus gate uses truth JSON only for scoring; neither truth nor golden data supplied paragraph-storage meanings.
+
+OBSERVATION: [lists-and-tabs.md](lists-and-tabs.md) uses the existing container, Quill and bounded property-list readers, their current import behavior, and the retained format notes. The census covers all successfully read binaries; the existing reader's failures remain UNKNOWN rather than being bypassed. The paragraph and second-STSH entry audits read only these allowed binary data files, not upstream source or another reader. No external specification, web format search, alternative sample or new decoding rule was used. The directly compared or individually discussed binaries below repeat their existing manifest hashes; the complete census file names/hashes remain in that manifest.
+
+| Binary | SHA-256 |
+| --- | --- |
+| `text__align-justify.pub` | `c5442fe547575f882d51809a315a6916a7233895cafe849e20e09e8e9409b739` |
+| `text__base.pub` | `0c9293e727559fe58ba150e8445b1365b4960883fbe6759c10b2477f128ff9a7` |
+| `text__bullets.pub` | `51df14aa94d640932656bc49a3f645b97333ba811467761e31226ec1547011f5` |
+| `text__indent-first-18.pub` | `2a4a4f3b861c9514d12105312a86e94c6b310545151fe9c238b32e4870035634` |
+| `text__indent-left-18.pub` | `fe22b3b44baa690da104712645f606a755b9c626bdb8b5b7b6fc5d6ef4abb5c9` |
+| `51318.pub` | `3ab75a6a9196e0a51fc9b0aa759459501c71d313030c06652aabffbae0a2ab09` |
+| `60685.pub` | `0d3cecf0ff000a20931d0de3ebc48040bea10e03833ade3f9902f996c20e7184` |
+| `Sample2000.pub` | `40701ca47b26d04771cdd58467764e9ab39d3da69b59fbc529afd16d263d2f86` |
+| `Sample98.pub` | `8912f295ff0cd1f55b873b3b98a182218f33c420877e025d2f0fd795f12dd0c0` |
+| `SampleBrochure.pub` | `ffed034ac87e679f0bd08ff9cf74ad11c0e0e510a42b1bc1a7502415f6c29c87` |
+| `SampleNewsletter.pub` | `6a825ba26ba35d6e885acdc62e859591ed37cb0ff7480b554b9cb362b644dfcf` |

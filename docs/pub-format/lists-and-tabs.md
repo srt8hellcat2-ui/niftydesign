@@ -12,11 +12,11 @@ OBSERVATION: the recorded fixture names contain no `list__*` or `text__tab-*` fi
 
 OBSERVATION: source paragraphs are counted separately within each Quill story, including empty CR-terminated paragraphs. Each field count below counts distinct source paragraphs intersected by a field-bearing FDPP run, not just run records. Positions are zero-based UTF-16 offsets in the complete TEXT section; story/paragraph identifiers are separate. Defaults are reported separately from runs. Paragraphs need not equal native paragraph counts after text normalization or frame construction.
 
-| File | Source stories / paragraphs | Confirmed bullet paragraphs | Confirmed numbered paragraphs | Literal tabs / paragraphs with tabs | Confirmed custom stops | Current import |
-| --- | --- | ---: | ---: | --- | --- | --- |
-| `text__bullets.pub` | 1 / 1 | 1 | 0 | 0 / 0 | UNKNOWN | One native bullet paragraph; no warning; paragraph-default note. |
-| `SampleNewsletter.pub` | 44 / 113 | 3 | 0 | 14 / 5 | UNKNOWN | Three native bullet paragraphs; 14 tabs retained; no explicit native stops; warns about one unconfirmed list descriptor and omitted fields/special characters. |
-| `SampleBrochure.pub` | 20 / 69 | 0 | 0 | 8 / 5 | UNKNOWN | Eight tabs retained; no list paragraph or explicit native stop; warns about omitted fields/special characters. |
+| File | Source stories / paragraphs | Confirmed bullet paragraphs | Confirmed numbered paragraphs | Literal tabs / paragraphs with tabs | Confirmed custom stops | Source levels / native list level | Current import |
+| --- | --- | ---: | ---: | --- | --- | --- | --- |
+| `text__bullets.pub` | 1 / 1 | 1 | 0 | 0 / 0 | UNKNOWN | UNKNOWN / default 1 | One native bullet paragraph; no warning; paragraph-default note. |
+| `SampleNewsletter.pub` | 44 / 113 | 3 | 0 | 14 / 5 | UNKNOWN | UNKNOWN / default 1 | Three native bullet paragraphs; 14 tabs retained; no explicit native stops; warns about one unconfirmed list descriptor and omitted fields/special characters. |
+| `SampleBrochure.pub` | 20 / 69 | 0 | 0 | 8 / 5 | UNKNOWN | UNKNOWN / no native list | Eight tabs retained; no list paragraph or explicit native stop; warns about omitted fields/special characters. |
 
 OBSERVATION: these are the only three successfully read files with paragraph-run key 0x57 or literal U+0009. The other 141 controlled binaries and 17 successfully imported Apache binaries have neither. In the three files above the importer sets no list-level override; the native default is level 1. UNKNOWN: original Publisher list levels, the number of separate source lists, and non-default tab-stop counts cannot be established from that native default.
 
@@ -37,11 +37,28 @@ OBSERVATION: the table covers runs across all successfully decoded inputs. Numer
 | 0x0C / 0x22 | 4294738696 (-228600); 4294795846 (-171450); 228600; 0 | each in 1 file: respectively 1, 3, 1 and 1 paragraphs | OBSERVATION: existing signed first-line-indent mapping. The positive value is the indent-only control; zero is the newsletter unknown-descriptor paragraph. |
 | 0x0D / 0x22 | 228600; 171450; 4294830136 (-137160) | respectively 2 / 2, 1 / 3, 1 / 1 | OBSERVATION: existing signed left-indent mapping; the first two give 18 pt and 13.5 pt alongside the negative bullet first indents. These are not tab-stop coordinates. |
 | 0x06 / 0x22 | 0; 171450; 360000 | each in 1 file: respectively 1, 3 and 4 paragraphs | UNKNOWN: newsletter-only field; 171450 accompanies the three bullet paragraphs, 360000 adjacent empty paragraphs, zero the unsupported-descriptor paragraph. Equality with an indent is not a definition. |
-| 0x19 / 0x1A | 1–12, 15, 16, 18–23 | 3 files; exact per-file counts below | UNKNOWN: present with and without tabs; not established as a tab count, position, alignment or list level. |
+| 0x19 / 0x1A | 1–12, 15, 16, 18–23 | 4 / 170; exact per-file counts below | UNKNOWN: present with and without tabs; not established as a tab count, position, alignment or list level. |
 | 0x1D / 0x0A | no payload | 1 / 1: newsletter story 63 paragraph 2, containing five tabs | UNKNOWN: only one observed outcome; no tab semantics established. |
 | 0x32 / 0x82 | nested fields described below | 1 / 5: newsletter story 64 paragraphs 5–9 | UNVERIFIED HYPOTHESIS: a tab-stop container; no independent setting-change pair establishes this. None of these five paragraphs contains a literal tab. |
 
 OBSERVATION: keys 0x30 and 0x3C are also present in these real-file paragraph records but are not newly identified as lists or tabs. The retained [unknown-fields.md](unknown-fields.md) census establishes 0x30/0x12 = 5 in 48 run paragraphs across three files, and 0x3C/0x12 = 50 in five brochure run paragraphs; the controlled justified paragraph has 0x3C = 18482. Their presence does not define custom stops. Defaults and justification remain separate from list/tab identification.
+
+### Field 0x19 outside and inside tab-bearing paragraphs
+
+OBSERVATION: this is the complete 0x19/0x1A run census. The first two files contain no literal tabs and no active 0x57 descriptor. The counts therefore rule out using presence of 0x19 as a tab or numbered-list inventory by itself.
+
+| File | Paragraphs carrying 0x19 | Value: paragraph count | Of those, paragraphs with tabs |
+| --- | ---: | --- | ---: |
+| `51318.pub` | 2 | 1:1; 2:1 | 0 |
+| `60685.pub` | 20 | 4:4; 5:13; 21:2; 23:1 | 0 |
+| `SampleBrochure.pub` | 52 | 1:12; 2:2; 3:1; 4:1; 5:1; 6:5; 7:12; 8:2; 9:1; 10:2; 11:12; 12:1 | 5 |
+| `SampleNewsletter.pub` | 96 | 1:2; 2:54; 3:13; 4:1; 5:4; 10:1; 11:2; 15:2; 16:5; 18:2; 19:2; 20:1; 21:1; 22:5; 23:1 | 4 |
+
+### Stored style records are not paragraph uses
+
+OBSERVATION: bounded reads of every length-prefixed entry in the second STSH section find additional 0x57 descriptors beyond the two default records the importer reads. All 142 controlled files and `60685.pub` have two such entries, at zero-based entry indexes 7 and 17: `(23,183,65535)` and `(23,168,65535)`, respectively; all three children are kind 0x22. Each tuple occurs in 143 files / 143 style records. `SampleNewsletter.pub` has `(23,183,0)` in entries 11 and 17, one file / two records. Neither set supplies another numbering mode, and no second-STSH entry returns top-level 0x32. No default paragraph record has 0x57.
+
+UNKNOWN: the association of these additional style entries with source paragraphs, or whether an entry is actually used, is not decoded by the importer. Their paragraph-use counts are UNKNOWN. The 65535 child value is not assigned a level, restart or inheritance meaning. In particular, the no-TEXT controlled files carry these style entries too; counting them as list paragraphs would invent uses. The audit above keeps FDPP paragraph counts separate from stored style-record counts.
 
 ## What the importer already does for bullets
 
@@ -62,7 +79,7 @@ OBSERVATION: the recognized descriptor occurs at TEXT ranges [0,25) in the contr
 | List levels and cross-level numbering | UNKNOWN: native level 1 is a default, not a decoded source level. |
 | Same fields varying for numbered lists | UNKNOWN: no confirmed numbering outcome allows comparing its 0x57, 0x02, 0x03, indents or other fields. |
 
-OBSERVATION: child 0x02 of every observed 0x57 descriptor is zero, including the unknown descriptor. UNVERIFIED HYPOTHESIS: assigning it a start, restart or level meaning would invent an encoding. No permitted published paragraph-numbering mapping was used; drawing-property numbers must not be substituted for Quill property keys merely because their numbers resemble one another.
+OBSERVATION: child 0x02 of every observed FDPP 0x57 descriptor is zero, including the unknown descriptor. UNVERIFIED HYPOTHESIS: assigning it a start, restart or level meaning would invent an encoding. No permitted published paragraph-numbering mapping was used; drawing-property numbers must not be substituted for Quill property keys merely because their numbers resemble one another.
 
 ## Literal tabs and candidate stop records
 
@@ -85,7 +102,7 @@ OBSERVATION: the five identical newsletter 0x32/0x82 payloads contain 0x27/0x1A 
 
 UNVERIFIED HYPOTHESIS: interpreting 171450 as EMU would give 13.5 pt, equal to the neighbouring bullet indent. That equality is not a unit or tab-position definition. One file with no isolated setting change cannot establish the parent key's meaning; the outer 1 must not be called a stop count or alignment without evidence.
 
-OBSERVATION: the importer preserves literal U+0009 as a native tab character, rather than replacing it with spaces or deleting it. Neither 0x32 nor 0x19 is decoded into a native tab-stop list. All native paragraphs in the two tab-bearing files have no explicit stop override. The native layout therefore uses its existing default tab policy, not reconstructed Publisher stop settings. UNKNOWN: corresponding Publisher alignments and leaders, and resulting positional accuracy.
+OBSERVATION: the importer preserves literal U+0009 as a native tab character, rather than replacing it with spaces or deleting it. Neither 0x32 nor 0x19 is decoded into a native tab-stop list. All native paragraphs in the two tab-bearing files have no explicit stop override. The native layout therefore uses its existing default tab policy, not reconstructed Publisher stop settings. OBSERVATION: without an explicit stop, that policy advances to the left indent when it lies ahead, otherwise to the next 36 pt default interval, left aligned and with no explicit leader. This describes current native behavior, not Publisher's stored settings. UNKNOWN: corresponding Publisher alignments and leaders, and resulting positional accuracy.
 
 ## Samples needed
 
@@ -111,4 +128,10 @@ INFERENCE: **wait for samples** for both numbering and custom stops. A later imp
 
 INFERENCE: the main risk is turning the newsletter's unsupported descriptor 255 into numbering, or treating 0x32's repeated 171450 as a confirmed custom stop. A preserved tab or a native default list level cannot validate either encoding. No importer or renderer change is justified by these observations alone.
 
-OBSERVATION: this first complete draft records the passed untouched-main baseline. UNKNOWN: final formatting, lint, workspace and repeated corpus results are still being collected. Only documentation is changed; no environment configuration, setup script or setting is changed and no release action is run.
+OBSERVATION: final results match the untouched-main baseline: 142/142 imports, 152/152 objects, 111/111 scored shape/text positions within 1 pt, 52/52 texts and 111/111 styles. Picture results remain 12/41 matched passes, zero measured misses and 29 unmatched references. All 142 save/reopen/edit/PDF cases pass again. The repeated real-file gate passes; the 24-file conversion report has 9 converted with notes, 10 with warnings, 2 refused and 3 damaged, 31 pages and 280 objects. Its expected exit status is 1 because it reports the five refusals/damaged files after processing the whole batch. The separate import report counts 261 leaf objects; the conversion report's 280 objects includes group containers, so these are different inventory measures, not a changed baseline.
+
+OBSERVATION: formatting and lint checks pass. All seven workspace checks pass on the first run: formatting, dependency consistency, lint, tests, assets, layers and WebAssembly. Tests total 3103 passed, zero failed and 25 ignored. No test-binary launch failure occurred, so no sequential retry was needed. All five tables in this note pass a structural check for header/separator shape, consistent column counts and no internal blank lines.
+
+INFERENCE: passing the existing scores does not establish numbered-list or custom-tab fidelity, because the available controlled files contain no independently differentiated example of either feature. Unsupported style associations and the five unreadable/refused files remain UNKNOWN; no alternate reader was used.
+
+OBSERVATION: only this new note and the source-use appendix changed. No environment configuration, setup script or setting was changed; no release action was run.
