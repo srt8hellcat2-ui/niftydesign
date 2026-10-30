@@ -5,7 +5,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     ffi::OsString,
     fs::{self, File, OpenOptions},
-    io::Write,
+    io::{BufWriter, Write},
     path::{Path, PathBuf},
     process::ExitCode,
 };
@@ -275,46 +275,102 @@ fn md_text(text: &str) -> String {
         })
         .collect()
 }
-fn reports(entries: &[Entry]) -> (Value, String, bool) {
-    let mut counts = [0usize; 4];
-    let mut pages = 0usize;
-    for entry in entries {
-        if let Some(count) = counts.get_mut(entry.result) {
-            *count += 1;
+fn entry_markdown(entry: &Entry) -> String {
+    let mut md = format!("\n## {}\n\n{}\n", md_text(&entry.file), entry.label());
+    if let Some(pdf) = &entry.pdf {
+        md.push_str(&format!("\nPDF: {}. Pages: {}.\n", md_text(pdf), entry.pages.unwrap_or(0)));
+    }
+    if let Some(message) = &entry.message {
+        for paragraph in message.lines() {
+            md.push_str(&format!("\n{}\n", md_text(paragraph)));
+        }
+    }
+    for (label, messages) in [("Things to check", &entry.warnings), ("Notes", &entry.notes)] {
+        if !messages.is_empty() {
+            md.push_str(&format!("\n{label}:\n\n"));
+            for message in messages {
+                md.push_str(&format!("- {}\n", md_text(message)));
+            }
+        }
+    }
+    md
+}
+#[derive(Default)]
+struct Totals {
+    counts: [usize; 4],
+    pages: usize,
+    files: usize,
+}
+impl Totals {
+    fn add(&mut self, entry: &Entry) {
+        self.files = self.files.saturating_add(1);
+        if let Some(count) = self.counts.get_mut(entry.result) {
+            *count = count.saturating_add(1);
         }
         if entry.result < 2 {
-            pages = pages.saturating_add(entry.pages.unwrap_or(0));
+            self.pages = self.pages.saturating_add(entry.pages.unwrap_or(0));
         }
     }
-    let summary = json!({"files":entries.len(),"converted_no_warnings":counts.first(),"converted_check":counts.get(1),"not_supported":counts.get(2),"could_not_read":counts.get(3),"total_pages":pages});
-    let message = if entries.is_empty() { "No .pub files were found." } else { "All discovered files were processed." };
-    let mut md = format!("# Folder conversion report\n\nFiles: {}. Total converted pages: {pages}.\n\n", entries.len());
-    for (label, count) in RESULTS.iter().zip(counts) {
-        md.push_str(&format!("- {label}: {count}\n"));
+    fn summary(&self) -> Value {
+        json!({"files":self.files,"converted_no_warnings":self.counts.first(),"converted_check":self.counts.get(1),"not_supported":self.counts.get(2),"could_not_read":self.counts.get(3),"total_pages":self.pages})
     }
-    md.push_str(&format!("\n{message}\n"));
-    for entry in entries {
-        md.push_str(&format!("\n## {}\n\n{}\n", md_text(&entry.file), entry.label()));
-        if let Some(pdf) = &entry.pdf {
-            md.push_str(&format!("\nPDF: {}. Pages: {}.\n", md_text(pdf), entry.pages.unwrap_or(0)));
-        }
-        if let Some(message) = &entry.message {
-            for paragraph in message.lines() {
-                md.push_str(&format!("\n{}\n", md_text(paragraph)));
-            }
-        }
-        for (label, messages) in [("Things to check", &entry.warnings), ("Notes", &entry.notes)] {
-            if !messages.is_empty() {
-                md.push_str(&format!("\n{label}:\n\n"));
-                for message in messages {
-                    md.push_str(&format!("- {}\n", md_text(message)));
-                }
-            }
-        }
+    fn message(&self) -> &'static str {
+        if self.files == 0 { "No .pub files were found." } else { "All discovered files were processed." }
     }
-    md.push_str(&format!("\n{NOTICE}\n"));
-    let ok = counts.get(2..).is_some_and(|counts| counts.iter().all(|n| *n == 0));
-    (json!({"summary":summary,"message":message,"files":entries.iter().map(Entry::value).collect::<Vec<_>>(),"notice":NOTICE}), md, ok)
+    fn header(&self) -> String {
+        let mut md = format!("# Folder conversion report\n\nFiles: {}. Total converted pages: {}.\n\n", self.files, self.pages);
+        for (label, count) in RESULTS.iter().zip(self.counts) {
+            md.push_str(&format!("- {label}: {count}\n"));
+        }
+        md.push_str(&format!("\n{}\n", self.message()));
+        md
+    }
+    fn ok(&self) -> bool {
+        self.counts.get(2..).is_some_and(|counts| counts.iter().all(|n| *n == 0))
+    }
+}
+// Stream entries to disk: memory does not grow with the batch's warning details.
+struct Reports {
+    markdown: BufWriter<File>,
+    json: BufWriter<File>,
+    totals: Totals,
+}
+impl Reports {
+    fn new(scratch: &Path) -> Result<Self, String> {
+        Ok(Self {
+            markdown: BufWriter::new(File::create(scratch.join("body.md")).map_err(|e| e.to_string())?),
+            json: BufWriter::new(File::create(scratch.join("body.json")).map_err(|e| e.to_string())?),
+            totals: Totals::default(),
+        })
+    }
+    fn push(&mut self, entry: &Entry) -> Result<(), String> {
+        self.markdown.write_all(entry_markdown(entry).as_bytes()).map_err(|e| format!("Could not write the report: {e}"))?;
+        if self.totals.files > 0 {
+            self.json.write_all(b",\n").map_err(|e| e.to_string())?;
+        }
+        serde_json::to_writer(&mut self.json, &entry.value()).map_err(|e| format!("Could not write the report: {e}"))?;
+        self.totals.add(entry);
+        Ok(())
+    }
+    fn finish(mut self, scratch: &Path) -> Result<(Value, bool), String> {
+        let mut finish = || -> Result<(), Box<dyn std::error::Error>> {
+            self.markdown.flush()?;
+            self.json.flush()?;
+            let mut md = File::create(scratch.join("report.md"))?;
+            md.write_all(self.totals.header().as_bytes())?;
+            std::io::copy(&mut File::open(scratch.join("body.md"))?, &mut md)?;
+            writeln!(md, "\n{NOTICE}")?;
+            md.flush()?;
+            let mut json = File::create(scratch.join("report.json"))?;
+            write!(json, "{{\"summary\":{},\"message\":{},\"files\":[", self.totals.summary(), serde_json::to_string(self.totals.message())?)?;
+            std::io::copy(&mut File::open(scratch.join("body.json"))?, &mut json)?;
+            writeln!(json, "],\"notice\":{}}}", serde_json::to_string(NOTICE)?)?;
+            json.flush()?;
+            Ok(())
+        };
+        finish().map_err(|e| format!("Could not finish the reports: {e}"))?;
+        Ok((self.totals.summary(), self.totals.ok()))
+    }
 }
 fn run(opts: Options) -> Result<bool, String> {
     fs::create_dir_all(&opts.output).map_err(|e| format!("The output folder could not be created: {}", plain(&e.to_string())))?;
@@ -330,7 +386,11 @@ fn run(opts: Options) -> Result<bool, String> {
     let scratch_path = output.join(format!(".folder-work-{}", std::process::id()));
     fs::create_dir(&scratch_path).map_err(|e| format!("Could not create the conversion workspace: {}", plain(&e.to_string())))?;
     let scratch = Scratch(scratch_path);
-    let (files, mut entries) = discover(&input, &output, opts.recursive);
+    let (files, errors) = discover(&input, &output, opts.recursive);
+    let mut reports = Reports::new(&scratch.0)?;
+    for entry in errors {
+        reports.push(&entry)?;
+    }
     let (mut used, mut counts) = (BTreeSet::new(), BTreeMap::new());
     for (index, path) in files.iter().enumerate() {
         let pdf = pdf_name(path, &mut used, &mut counts);
@@ -362,24 +422,22 @@ fn run(opts: Options) -> Result<bool, String> {
             entry.notes = outcome.notes.iter().map(|n| plain(n)).collect();
             Ok(entry)
         };
-        entries.push(converted().unwrap_or_else(|e| Entry::failure(name(path, &input), e)));
+        let entry = converted().unwrap_or_else(|e| Entry::failure(name(path, &input), e));
+        reports.push(&entry)?;
         let _ = fs::remove_dir_all(job);
     }
-    entries.sort_by(|a, b| a.file.cmp(&b.file));
-    let (value, markdown, ok) = reports(&entries);
-    let json = serde_json::to_vec_pretty(&value).map_err(|e| e.to_string())?;
+    let (summary, ok) = reports.finish(&scratch.0)?;
     if opts.overwrite {
-        for (name, bytes) in [("report.md", markdown.as_bytes()), ("report.json", json.as_slice())] {
-            let staged = scratch.0.join(name);
-            fs::write(&staged, bytes).map_err(|e| format!("Could not write {name}: {}", plain(&e.to_string())))?;
-            publish(&staged, &output.join(name), true)?;
+        for filename in ["report.md", "report.json"] {
+            publish(&scratch.0.join(filename), &output.join(filename), true)?;
         }
     } else {
-        for (file, bytes) in report_files.iter_mut().zip([markdown.as_bytes(), json.as_slice()]) {
-            file.write_all(bytes).and_then(|()| file.flush()).map_err(|e| format!("Could not write the report: {}", plain(&e.to_string())))?;
+        for (file, filename) in report_files.iter_mut().zip(["report.md", "report.json"]) {
+            let mut staged = File::open(scratch.0.join(filename)).map_err(|e| e.to_string())?;
+            std::io::copy(&mut staged, file).and_then(|_| file.flush()).map_err(|e| format!("Could not write the report: {e}"))?;
         }
     }
-    outln!("{}", value.get("summary").unwrap_or(&Value::Null));
+    outln!("{summary}");
     outln!("Reports: {} and {}", output.join("report.md").display(), output.join("report.json").display());
     Ok(ok)
 }
@@ -415,11 +473,14 @@ mod tests {
         );
         assert!(!plain("Unknown property 0x1234").contains("0x1234"));
         let filename = "<a>\n# [b]*.pub";
-        let (value, md, ok) = reports(&[Entry::failure(filename.into(), "Cannot open file".into())]);
-        assert!(!ok);
-        assert_eq!(value["files"][0]["file"], filename);
+        let entry = Entry::failure(filename.into(), "Cannot open file".into());
+        let mut totals = Totals::default();
+        totals.add(&entry);
+        let md = format!("{}{}\n{NOTICE}\n", totals.header(), entry_markdown(&entry));
+        assert!(!totals.ok());
+        assert_eq!(entry.value()["file"], filename);
         assert!(md.contains("&lt;a&gt; \\# \\[b\\]\\*.pub"));
-        assert_eq!(value["summary"]["could_not_read"], 1);
+        assert_eq!(totals.summary()["could_not_read"], 1);
         assert!(md.ends_with(&format!("{NOTICE}\n")));
     }
 }
