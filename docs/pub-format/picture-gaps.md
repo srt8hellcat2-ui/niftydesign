@@ -10,13 +10,13 @@ OBSERVATION: the current drawing reader exposes 37 stored picture records across
 
 INFERENCE: the 29 unmatched references are a comparison-category mismatch, not evidence of 29 lost pictures. Every one has no imported picture candidate and no positive parsed picture-placement reference. They cover other object types in the importer. No picture-format correction is shown to turn those references into native-picture matches.
 
-UNKNOWN: visual fidelity of the actual PNG, JPEG, GIF and WMF pictures against Publisher. None has a golden image here. The 12 position passes check placed-frame bounds, not pixels or complete picture content. Successful decoding and a lack of warnings do not prove a faithful copy.
+UNKNOWN: visual fidelity of the placed PNG, JPEG, GIF and WMF pictures against Publisher. None of the 31 placed picture items has a golden image here; the WordArt file-level goldens do not establish an oracle for the unused JPEG records. The 12 position passes check placed-frame bounds, not pixels or complete picture content. Successful decoding and a lack of warnings do not prove a faithful copy.
 
 ## Counting and evidence
 
 OBSERVATION: picture index means the one-based key returned by the existing drawing parser's picture map. A stored record, an imported asset, a shape reference and a placed item are counted separately. Reuse does not duplicate a stored record. Source sequences identify parsed drawing shapes; output item ids identify current document items. Sets on the same row are not a newly decoded sequence-to-item mapping.
 
-OBSERVATION: a read-only diagnostic under the ignored build directory called the existing compound-file reader, drawing parser, public importer, raster decoder and vector-to-SVG conversion. Parser source was read unchanged. The storage pass did not open scoring JSON or golden images. A separate scoring pass counted image-labelled references and located their page/element identifiers using the unchanged scorer's rules. Those exports supplied no storage interpretation.
+OBSERVATION: a read-only diagnostic under the ignored build directory called the existing compound-file reader, drawing parser, public importer, raster decoder and vector-to-SVG conversion. Parser source was read unchanged. The storage pass did not open scoring JSON or golden images. A separate scoring-only pass counted image labels and page/element identifiers, then checked the fresh binary/import data for picture candidates. The unchanged corpus test supplied the actual position-score result. Those exports supplied no storage interpretation.
 
 OBSERVATION: the 34-byte metafile wrapper and its compression selector were handled exactly as the existing conversion code does, only to inspect the payload signature and existing conversion result. No new header rule is proposed. No new external specification, other reader or web format search was used. Golden images were hash-checked only; none was used to infer encoding or judge native-picture fidelity.
 
@@ -32,7 +32,9 @@ OBSERVATION: the following counts are for successfully imported files only. The 
 | WMF | 13 | 13 | 14 |
 | Total | 37 | 29 | 31 |
 
-OBSERVATION: the 13 WMF records all become SVG assets. All 16 imported raster assets fully decode with the existing raster decoder; all 13 generated SVG assets parse with the existing SVG reader. No parsed placement reference points to a missing stored picture record. No picture-related import or metafile-conversion warning occurs in this inventory. The source files can still have unrelated text/table warnings.
+OBSERVATION: the 13 WMF records all become SVG assets. All 24 stored raster payloads fully decode with the existing raster decoder, including the eight unused JPEGs. All 16 imported raster assets also fully decode; all 13 generated SVG assets parse with the existing SVG reader. No parsed placement reference points to a missing stored picture record. No picture-related import or metafile-conversion warning occurs in this inventory. The source files can still have unrelated text/table warnings.
+
+OBSERVATION: all twelve picture-position passes are PNG items in eleven controlled fixtures. None of the real-file picture placements has a scoring JSON or golden oracle. JPEG, GIF and WMF placement accuracy therefore remains UNKNOWN here.
 
 ## Every exposed picture record
 
@@ -87,13 +89,13 @@ OBSERVATION: signature keys summarize exact observed bytes below. The drawing re
 | G | `47 49 46 38 39 61` | GIF signature; full observed heads and dimensions remain in the local inventory. |
 | W | Each record includes the existing metafile wrapper; its first bytes vary. Every extracted payload starts `01 00 09 00 00 03`. | WMF header accepted by the existing WMF reader; wrapper bytes are not a raster signature. |
 
-OBSERVATION: eight 128 × 128 JPEG records occur one each in the eight WordArt fixtures. No parsed drawing shape uses their index through the current picture-placement property. The importer creates editable text, not a picture, for those objects.
+OBSERVATION: eight 128 × 128 JPEG records occur one each in the eight WordArt fixtures. No parsed drawing shape uses their index through the current picture-placement property. All eight payloads decode independently, so their non-placement is not a demonstrated JPEG-decoder failure. The importer creates editable text, not a picture, for those objects.
 
 UNKNOWN: the purpose of those eight JPEG records. Their size and co-occurrence with WordArt do not establish that they are previews, textures, fallback artwork or hidden pictures. No scoring reference was used to assign them a role.
 
 ## Why each of the 29 references is unmatched
 
-OBSERVATION: every row below is scoring page 1, element 1. Each has zero imported picture candidates and zero positive parsed picture-placement references. The reference labels the object as an image; the importer represents it as the object type shown. “Unassigned” picture content on a normal painted shape is not by itself a placeholder: these shapes have their own geometry and paint.
+OBSERVATION: every row below is scoring page 1, element 1. Each has zero imported picture candidates and zero positive parsed picture-placement references. The reference labels the object as an image; the importer represents it as the object type shown. “Unassigned” content on a normal painted shape is not by itself a placeholder: these shapes have their own geometry and paint.
 
 | Basis | File | Page / element | Current importer output | Primary unmatched cause |
 | --- | --- | --- | --- | --- |
@@ -373,4 +375,4 @@ UNKNOWN: pictures in the two refused old-format files or the three damaged files
 
 ## Validation
 
-OBSERVATION: the baseline full corpus gate, save/reopen/edit/PDF check, real batch, formatting, explicit warnings-denied clippy and all seven workspace CI steps pass. The first complete draft records observations only; final repeat results will be added after review. Local raw inventory, scoring-only classification and validation logs are under target/ac-review and are not committed. No markdown table in this note contains a blank line.
+OBSERVATION: baseline and final full corpus gates are identical: 142/142 imports, 152/152 objects, 111/111 scored positions within 1 pt, 52/52 texts and 111/111 styles; pictures 12/41 matched passes, zero measured misses and 29 unmatched. All 142 save/reopen/edit/PDF cases pass again. Real-file counts remain 9 with notes, 10 with warnings, 2 refused and 3 damaged; the binary inventory independently confirms the 9/10 split among the 19 successful imports. Formatting, explicit warnings-denied clippy and both seven-step workspace CI runs pass: 3,112 tests passed, zero failed and 27 ignored. Neither CI run failed to launch a test binary or failed on a temporary file, so no sequential retry was needed. Local raw inventory, scoring-only classification and validation logs are under target/ac-review and are not committed. No markdown table in this note contains a blank line.
