@@ -4,7 +4,7 @@ DRAFT ONLY
 
 ## Scope and conclusion
 
-OBSERVATION: this is a local audit and a plan, not an upstream proposal. No upstream push, issue, pull request or release was made. The inventory freezes this fork at `909853f7672f688c1513d652ec4fe8d3de729925` and upstream main at `ea08e4c2ba290f092063c99d70c4bdd5afc45887`; the audit note itself is excluded from the inventory. Only this note and a short data-use source entry are changed by the audit.
+OBSERVATION: this is a local audit and a plan, not an upstream proposal. No upstream push, issue, pull request or release was made. The inventory freezes this fork at `ca8986ee9bac68c79aa5f91702647057e4f1b6fd` and upstream main at `ea08e4c2ba290f092063c99d70c4bdd5afc45887`; the audit note itself is excluded from the inventory. Only this note and a short data-use source entry are changed by the audit.
 
 INFERENCE: do not send the fork's complete diff upstream. The importer has a separable core, but integration must be ported to the current module layout; branding, packaging, workflow changes, bundled fonts and most demonstration material must stay out. The current combined patch is not ready to merge. Small review units are possible only after deliberate extraction; they are not existing commits that can all be cherry-picked unchanged.
 
@@ -35,7 +35,7 @@ OBSERVATION: upstream now separates engine file commands into file/bytes.rs, fil
 
 ## Grouped inventory
 
-OBSERVATION: comparison is adopted upstream 0.12.0 tree → frozen fork main. Every changed path appears once in the appendix. Renames are disabled for reproducibility, so a move can appear as a deletion and addition. Line counts are textual additions/deletions, not current file length. Binary files have no textual line count and are counted separately. There are 310 changed paths, +23,401 / -1,549 text lines and 79 binary paths.
+OBSERVATION: comparison is adopted upstream 0.12.0 tree → frozen fork main. Every changed path appears once in the appendix. Renames are disabled for reproducibility, so a move can appear as a deletion and addition. Line counts are textual additions/deletions, not current file length. Binary files have no textual line count and are counted separately. There are 311 changed paths, +23,419 / -1,549 text lines and 79 binary paths.
 
 OBSERVATION: whole-file classification is a census convenience, not permission to send every hunk in a group. Mixed files in (b), (d), (e) and (g) still contain identity or unrelated edits. Group (f) identifies identity-only paths; the mixed identity hunks listed below must also be excluded. The shared font substitution implementation is in (g), not (a), because it changes general font resolution.
 
@@ -44,8 +44,8 @@ OBSERVATION: whole-file classification is a census convenience, not permission t
 | a | Importer and importer-only measurement | 23 | 6907 | 0 | 2 |
 | b | Open/import integration and CLI | 21 | 2115 | 94 | 0 |
 | c | Added fonts and demo assets | 10 | 196 | 0 | 7 |
-| d | Documentation and notes | 128 | 9605 | 501 | 52 |
-| e | Packaging, release and test-data infrastructure | 48 | 3413 | 433 | 0 |
+| d | Documentation and notes | 128 | 9615 | 501 | 52 |
+| e | Packaging, release and test-data infrastructure | 49 | 3421 | 433 | 0 |
 | f | Identity-only changes: exclude upstream | 59 | 186 | 473 | 18 |
 | g | Other shared changes and examples | 21 | 979 | 48 | 0 |
 
@@ -141,7 +141,11 @@ UNKNOWN: an exhaustive negative claim that nothing copied from Microsoft, Adobe 
 
 ## Validation, boundaries and remaining unknowns
 
-OBSERVATION: the restored pinned corpus is used only for the unchanged baseline/regression gates, never to infer storage in this audit. The seven private reference files are neither fetched nor used. Baseline and final fork corpus results match: 142/142 imports, 152/152 objects, 111/111 scored positions, 52/52 texts and 111/111 styles; pictures remain 12/41 matched passes and 29 unmatched. Both runs pass all 142 save/reopen/edit/PDF cases and retain real-batch counts 9/10/2/3. Formatting, explicit strict clippy and both seven-step CI runs pass: 3,112 tests passed, zero failed and 27 ignored. Neither CI run failed to launch a test binary or failed on a temporary file, so no sequential retry was needed. These are fork checks, not checks of a resolved upstream port.
+
+OBSERVATION: origin/main advanced during the audit to include only the private-reference rule, clean-room clarification and seven-row metadata list (three paths, eighteen added lines). The inventory was refreshed to that main revision; importer/glue counts and the 44-path application trial are unchanged. No private publication data was obtained. The notes branch was rebased onto the refreshed main. Previously pushed draft/final notes commits were then retained as a merge parent so the final push can be a normal fast-forward without rewriting published history; this is local notes-branch history, not an upstream merge.
+
+
+OBSERVATION: the restored pinned corpus is used only for the unchanged baseline/regression gates, never to infer storage in this audit. The seven private reference files are neither fetched nor used. Baseline and final fork corpus results match: 142/142 imports, 152/152 objects, 111/111 scored positions, 52/52 texts and 111/111 styles; pictures remain 12/41 matched passes and 29 unmatched. Baseline, final and post-rebase runs pass all 142 save/reopen/edit/PDF cases and retain real-batch counts 9/10/2/3. Formatting, explicit strict clippy and all three seven-step CI runs pass: 3,112 tests passed, zero failed and 27 ignored. Neither CI run failed to launch a test binary or failed on a temporary file, so no sequential retry was needed. These are fork checks, not checks of a resolved upstream port.
 
 UNKNOWN: a conflict-resolved current-upstream build, current-upstream corpus numbers, Windows/native picker behavior, font equivalence after moving optional faces, legal clearance for the complete historical/demo tree, and maintainer acceptance. The offline dependency failure is a local cache limitation, not evidence that upstream itself fails to build.
 
@@ -233,10 +237,10 @@ OBSERVATION: A/M/D mean added, modified and deleted relative to the adopted base
 | `ROADMAP.md` | M | 11 | 31 | 129311 |
 | `SECURITY.md` | A | 31 | 0 | 2025 |
 | `docs/ALPHA-NOTES.md` | A | 61 | 0 | 6518 |
-| `docs/CLEANROOM.md` | A | 10 | 0 | 1156 |
+| `docs/CLEANROOM.md` | A | 12 | 0 | 1308 |
 | `docs/CONTROLLED-SAMPLES.md` | A | 121 | 0 | 7619 |
 | `docs/KNOWN-LIMITATIONS.md` | A | 95 | 0 | 10244 |
-| `docs/PUB-AGENTS.md` | A | 58 | 0 | 7885 |
+| `docs/PUB-AGENTS.md` | A | 66 | 0 | 9611 |
 | `docs/RELEASE-NOTES.md` | A | 56 | 0 | 5836 |
 | `docs/SAMPLE-REQUEST.md` | A | 21 | 0 | 2086 |
 | `docs/TESTER-INSTALL.md` | A | 30 | 0 | 2370 |
@@ -365,6 +369,7 @@ OBSERVATION: A/M/D mean added, modified and deleted relative to the adopted base
 | `.github/ISSUE_TEMPLATE/file_failed_to_open.yml` | A | 43 | 0 | 1628 |
 | `.github/dependabot.yml` | D | 0 | 30 | 0 |
 | `.github/scripts/test-pub-cli.py` | A | 132 | 0 | 6888 |
+| `.github/test-data/private-reference-files.csv` | A | 8 | 0 | 1945 |
 | `.github/test-data/publisher-fixtures.csv` | A | 167 | 0 | 17018 |
 | `.github/workflows/alpha-windows.yml` | A | 76 | 0 | 3409 |
 | `.github/workflows/ci.yml` | D | 0 | 67 | 0 |
