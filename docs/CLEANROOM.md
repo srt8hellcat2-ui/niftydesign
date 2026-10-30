@@ -8,3 +8,5 @@ The builder may use only: docs/pub-format/ in this repository, Microsoft's publi
 truth/*.json files may be used only to score imports. Never use them to infer how the format is encoded. Record any use in SOURCES.md.
 
 Done when: crates/pub builds; cargo fmt --check, cargo clippy -p designcraft-pub -- -D warnings and cargo test -p designcraft-pub pass; no unsafe and no unwrap/expect/panic outside tests. Record every source used in docs/pub-format/SOURCES.md under "Builder".
+
+Files found inside commercial software images are data files only. They are never published, and nothing about how another program reads them is used.
