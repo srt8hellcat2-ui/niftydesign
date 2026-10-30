@@ -1336,3 +1336,36 @@ OBSERVATION: reused the existing importer and isolated CLI conversion workers wi
 OBSERVATION: untouched main c42be68 and the final folder-conversion branch both score 142/142 imports, 152/152 objects, 111/111 scored shape/text positions within 1 pt, 52/52 exact texts and 111/111 styles. Picture scoring stays at 12/41 matched passes and 29 unmatched. All 142 save/reopen/edit/PDF cases and the old real-batch integration test pass; the latter retains 9 with notes, 10 with warnings, 2 refused and 3 damaged. The new command converts all 142 controlled inputs to 142 PDFs with 146 pages, reporting 80 without notes/warnings and 62 with things to check. Its real-folder test converts 19 files with 31 pages, refuses two and reports three damaged files. These report labels include notes and do not change importer diagnostics.
 
 OBSERVATION: formatting, strict workspace clippy and both seven-step CI runs pass (3,112 tests passed, zero failed, 27 ignored). Two external-data folder tests also pass separately. No CI test-binary launch or temporary-file failure occurred. An initial new test incorrectly lowercased a reported filename before opening it on Linux; the test now opens the original name while retaining the case-insensitive collision assertion. The streaming-report build initially needed a mutable closure binding; this was corrected before the final checks. No existing test was deleted or weakened. Markdown table checks pass. Logs and the mixed five-file example reports are under target/ab-review, not committed. Windows paths and very large folders remain untested.
+
+## AC: picture inventory and unmatched-reference classification — 2026-10-30
+
+OBSERVATION: reused all 317 verified pinned data inputs. The binary-only pass read all 142 controlled and 24 Apache publications with the existing compound-file/drawing parsers and public importer; 161 import successfully, two old-format files are refused and three damaged compound files cannot be inventoried. The complete 166-file census, with each filename and SHA-256 value, is in [picture-gaps.md](picture-gaps.md#complete-file-census-and-source-hashes); every value was recomputed and matched against scripts/niftydata.manifest. The focused picture-bearing inputs are listed below.
+
+| Picture-bearing publication | SHA-256 |
+| --- | --- |
+| `pubsmith-fixtures/picture__base.pub` | `39a32b2e6ce8073fbfe9a2d66cb9ab8b4e0d0952bb294a06ac609a3749f071b3` |
+| `pubsmith-fixtures/picture__border.pub` | `97907db68b160cd9d9c87eb31f39ad1474cb9d524df6988d51cac82c3a6adb9f` |
+| `pubsmith-fixtures/picture__crop-all.pub` | `a8201d751ce462e5946a0813465f5fe61b38eb25227c4afdf600fc1c6f010012` |
+| `pubsmith-fixtures/picture__crop-left.pub` | `49ae8c6529cc2a725677f3ec191b2be0e2bcad86d68eaa7887fccac94487aa31` |
+| `pubsmith-fixtures/picture__crop-top.pub` | `2db5fd28b05640c1e4ccc8d5826dcd560b166feba4d5d8ab96bfa7dcb25d2ebf` |
+| `pubsmith-fixtures/picture__flip-h.pub` | `3637e89b38d233a73f0c4b5e1b28e93ff4aa5dcce96ad2ecaf7f0714340405ca` |
+| `pubsmith-fixtures/picture__moved.pub` | `ec1964648b15eb40b6e0cae9ca2118173343eaac091d3232f24cd655768127f8` |
+| `pubsmith-fixtures/picture__oval-mask.pub` | `0ef974b5861894d463493aed878f2e36f8147369a1ae10593386f8e77a04a0a8` |
+| `pubsmith-fixtures/picture__rotated-30.pub` | `15bdddc73b1b3866207739538fe4c6596e7cbd850aedf7ed3bbad0719738e55f` |
+| `pubsmith-fixtures/picture__stretched.pub` | `bb619e30fb9b49619b45ceed21daa9cb9c505fd4fbb791ce44b02428308f077d` |
+| `pubsmith-fixtures/picture__two.pub` | `97dcd67cc415bd962589122fe39f95d32304d2733005c54c5fdc711273007d3d` |
+| `pubsmith-fixtures/wordart__arch.pub` | `dc22fb9983e9119c9969e37dd5ba3d19fb63fa489c8ffeec4e38ea921a41904b` |
+| `pubsmith-fixtures/wordart__base.pub` | `270d8fe5d1a2286622b35e40b39e00eac17b878734aedb755059b3fc20050838` |
+| `pubsmith-fixtures/wordart__circle.pub` | `bc145b67097b5d9d42f0f5c838d68f2d88130267b51031bdeacd4cb9d0590eeb` |
+| `pubsmith-fixtures/wordart__fill-red.pub` | `e6745af79ae3d98bf3b79e3104e291f158934da6a8969dd722e24d0eecd9e6f4` |
+| `pubsmith-fixtures/wordart__font.pub` | `1c19cda5f6a40f1cb6f64f3b67a334ff54656bce573be480083c7bdc1bb0fd8a` |
+| `pubsmith-fixtures/wordart__line-white.pub` | `5968f890c0b4029dde31c644cb3ff29eb071225e685ea4fc4a527058f675755e` |
+| `pubsmith-fixtures/wordart__shadow.pub` | `d24ea44009d4e8c00860a61aec2391cbb3e30fd791deb5f5f480382218cb102d` |
+| `pubsmith-fixtures/wordart__text.pub` | `f3d6d544b2e47af20f49c20dbe9151e9c41eb53fbf655a685f8c4cb4cb46d62e` |
+| `apache-pub/51318.pub` | `3ab75a6a9196e0a51fc9b0aa759459501c71d313030c06652aabffbae0a2ab09` |
+| `apache-pub/SampleBrochure.pub` | `ffed034ac87e679f0bd08ff9cf74ad11c0e0e510a42b1bc1a7502415f6c29c87` |
+| `apache-pub/SampleNewsletter.pub` | `6a825ba26ba35d6e885acdc62e859591ed37cb0ff7480b554b9cb362b644dfcf` |
+
+OBSERVATION: all 142 truth JSON files were used only by the unchanged corpus scorer, and a separate scoring-only pass used their image labels/page-element locations to classify unmatched references. Their exact filenames and SHA-256 values remain in the existing pinned-layout-scoring table above and scripts/niftydata.manifest. All nine golden PNGs were hash-checked only, with their existing values recorded in the reference-PNG table above and the same manifest. No golden image was used to infer storage or to claim a native picture match.
+
+OBSERVATION: existing drawing-record, raster-size/decoding and limited metafile-to-SVG behavior supplied the observations; parser source was read unchanged through a diagnostic under target/ac-review. No new format source, other reader, upstream implementation or web format search was consulted. No project code or test changed. The 37 exposed records comprise 12 PNG, 10 JPEG, 2 GIF and 13 WMF; the 29 unmatched image-labelled references have no native-picture candidate or positive parsed placement reference. The eight unused WordArt JPEG records retain UNKNOWN roles.
