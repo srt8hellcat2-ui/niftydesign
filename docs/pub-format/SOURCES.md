@@ -1322,3 +1322,9 @@ OBSERVATION: [lists-and-tabs.md](lists-and-tabs.md) uses the existing container,
 | `Sample98.pub` | `8912f295ff0cd1f55b873b3b98a182218f33c420877e025d2f0fd795f12dd0c0` |
 | `SampleBrochure.pub` | `ffed034ac87e679f0bd08ff9cf74ad11c0e0e510a42b1bc1a7502415f6c29c87` |
 | `SampleNewsletter.pub` | `6a825ba26ba35d6e885acdc62e859591ed37cb0ff7480b554b9cb362b644dfcf` |
+
+### AA WordArt audit and stopped circle trial — 2026-10-30
+
+OBSERVATION: reused the pinned 142 controlled and 24 real publication data files restored and SHA-256 checked by scripts/restore-niftydata.sh (317 total inputs including scoring exports). The existing compound-file and Escher parsers supplied the binary-only WordArt inventory in wordart.md. Three damaged real compound files could not be audited; their exact errors are recorded there. Reused the permitted MS-ODRAW names and ECMA default geometry already documented in wordart.md and preset-geometry.md; no new external source was consulted.
+
+OBSERVATION: truth JSON was read only by the corpus scorer. Nine golden PNGs were used only for scoring, and the circle side-by-side was inspected only to compare appearance. Enabling circle with the existing measured-advance fitter reproduced the earlier regression, 0.960595137 to 0.953676350 SSIM and 0.009868449 to 0.013636364 differing fraction. The trial was reverted under the stop rule. No production code, reader or test change is retained; no other reader or web format search was used.
