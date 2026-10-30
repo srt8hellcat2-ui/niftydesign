@@ -16,14 +16,14 @@ const MAX_INPUT: u64 = 512 * 1024 * 1024;
 const MAX_RESULT: u64 = 2 * 1024 * 1024;
 
 #[derive(Default)]
-struct Outcome {
-    pages: Option<usize>,
+pub(crate) struct Outcome {
+    pub(crate) pages: Option<usize>,
     objects: Option<usize>,
     pdf_path: Option<PathBuf>,
-    failure_reason: Option<String>,
-    failed: bool,
-    warnings: Vec<String>,
-    notes: Vec<String>,
+    pub(crate) failure_reason: Option<String>,
+    pub(crate) failed: bool,
+    pub(crate) warnings: Vec<String>,
+    pub(crate) notes: Vec<String>,
     notice: Option<String>,
 }
 impl Outcome {
@@ -136,7 +136,7 @@ fn bounded_read(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
     }
     Ok(bytes)
 }
-fn convert(input: &Path, job: &Path) -> Outcome {
+fn convert(input: &Path, job: &Path, pdf_only: bool) -> Outcome {
     let bytes = match bounded_read(input, MAX_INPUT) {
         Ok(b) => b,
         Err(e) => return Outcome::failure(format!("read: {e}")),
@@ -162,6 +162,9 @@ fn convert(input: &Path, job: &Path) -> Outcome {
     let mut out = Outcome { pages: Some(document.page_count()), objects: Some(objects), ..Outcome::default() };
     out.add_warnings(&opened);
     for (command, filename) in [("file.saveAs", "document.designcraft"), ("file.exportPdf", "document.pdf")] {
+        if pdf_only && command == "file.saveAs" {
+            continue;
+        }
         let target = job.join(filename);
         match session.execute(command, &json!({"path": target.to_string_lossy()})) {
             Ok(result) => out.add_warnings(&result),
@@ -175,14 +178,22 @@ fn convert(input: &Path, job: &Path) -> Outcome {
 /// Internal process entry point, deliberately absent from general CLI help.
 pub(crate) fn worker(args: &[String]) -> Result<(), String> {
     let [input, job] = args else { return Err("invalid batch worker arguments".into()) };
-    let (input, job) = (Path::new(input), Path::new(job));
+    worker_paths(Path::new(input), Path::new(job), false)
+}
+
+pub(crate) fn pdf_worker(args: &[std::ffi::OsString]) -> Result<(), String> {
+    let [input, job] = args else { return Err("invalid folder conversion worker arguments".into()) };
+    worker_paths(Path::new(input), Path::new(job), true)
+}
+
+fn worker_paths(input: &Path, job: &Path, pdf_only: bool) -> Result<(), String> {
     for name in ["document.designcraft", "document.pdf", "result.json"] {
         if job.join(name).symlink_metadata().is_ok() {
             return Err("batch worker output already exists".into());
         }
     }
     let result = if fs::symlink_metadata(input).is_ok_and(|m| m.is_file() && !m.file_type().is_symlink()) {
-        convert(input, job)
+        convert(input, job, pdf_only)
     } else {
         Outcome::failure("input is not a regular file (symbolic links are not followed)")
     };
@@ -258,12 +269,20 @@ fn row(report: &mut File, name: &Path, outcome: &Outcome) -> Result<(), String> 
     report.flush().map_err(|e| format!("flush report: {e}"))
 }
 fn run_worker(input: &Path, job: &Path, timeout: Duration) -> Outcome {
-    if input.to_str().is_none() || job.to_str().is_none() {
+    run_worker_mode(input, job, timeout, false)
+}
+
+pub(crate) fn run_pdf_worker(input: &Path, job: &Path) -> Outcome {
+    run_worker_mode(input, job, Duration::from_secs(120), true)
+}
+
+fn run_worker_mode(input: &Path, job: &Path, timeout: Duration, pdf_only: bool) -> Outcome {
+    if (!pdf_only && input.to_str().is_none()) || job.to_str().is_none() {
         return Outcome::failure("path cannot be represented by this CLI's UTF-8 arguments");
     }
     let execute = || -> Result<Outcome, String> {
         let mut child = Command::new(std::env::current_exe().map_err(|e| e.to_string())?)
-            .arg("__batch-convert-one")
+            .arg(if pdf_only { "__folder-convert-one" } else { "__batch-convert-one" })
             .arg(input)
             .arg(job)
             .stdin(Stdio::null())

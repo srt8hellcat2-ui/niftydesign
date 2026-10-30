@@ -109,6 +109,7 @@ The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PN
 - ✅ Table text
 - ✅ Save as `.designcraft` and reopen
 - ✅ Export to PDF, and printing (tested on one printer)
+- ✅ [Command-line folder conversion to PDF](docs/folder-convert.md), with one report of results and things to check
 
 **Partly**
 
