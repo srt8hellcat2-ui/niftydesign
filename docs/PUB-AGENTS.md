@@ -10,6 +10,14 @@ The importer readers must be written without any other .pub reader. No libmspub,
 - The public Microsoft specifications MS-CFB and MS-ODRAW.
 - The public ECMA-376 standard (5th edition, Part 1): presetShapeDefinitions.xml and presetTextWarpDefinitions.xml only, to draw preset shapes and WordArt (tasks C8 and C9). The owner said on 2026-10-24: "If you believe the ECMA-376 still sticks with our clean-room then research it". It describes shape outlines only and says nothing about how .pub files store anything. Nothing else is allowed unless the owner approves it in the words above.
 - Data files only: the pubsmith fixtures (FuncularLabs/pubsmith, tests/fixtures/pub, commit 0ccdf27), the Apache sample .pub files (apache/poi, test-data/publisher, commit bf7c9b6a1490046517cbd8e1504e702a89be4bc9; .pub files only), and files the owner adds. Their names and SHA-256 values are listed in .github/test-data/publisher-fixtures.csv. Keep data files outside the repo; never commit them. Record what you used in docs/pub-format/SOURCES.md.
+- Private reference files: the owner may add data files whose redistribution rights are unclear, for example Publisher sample or template files found inside old software-disc images. These are data files like the others, with these extra rules:
+  1. They are listed only by file name, size, SHA-256, source address and date added in .github/test-data/private-reference-files.csv. The files themselves are never committed, never attached to a pull request, never posted publicly and never copied into a public place.
+  2. They are used only the way the other data files are used: the existing parsers read them, and describers write OBSERVATION / INFERENCE / UNKNOWN notes about what the bytes show. No sample text, picture or other content from them is copied into the repo. Notes may quote field names, sizes and short byte patterns only.
+  3. The version of each file is UNKNOWN unless the owner confirms it. A label taken from an installer or folder name is a claim about where the file was found, not about the file.
+  4. Information shown by the host site about a file (page counts, type labels, previews) was produced by someone else's reader. It may be used to choose which file to fetch, never as an input to any note.
+  5. A tool or service outside the owner's own computer may receive these files only if the owner says so in chat for that task, naming the tool. Otherwise describers work only from the stream-level facts the owner or assistant extracts locally and saves as notes.
+  6. If the owner or the host's owner asks that a file be withdrawn, delete the file and remove its row from the list.
+  Adopted 2026-10-30; the owner said in chat that the senior engineer does not need his approval for this wording.
 - truth/*.json files and golden images are for scoring imports only, never for working out how anything is encoded.
 - Anything else: stop that item and ask under "Needs you" in docs/REPORTS.md.
 
