@@ -1,3 +1,5 @@
+DRAFT ONLY
+
 # Upstream readiness and pull request plan — 2026-10-30
 
 ## Scope and conclusion
@@ -10,7 +12,7 @@ OBSERVATION: the untouched fork baseline is 142/142 imports, 152/152 objects, 11
 
 ## Relation to upstream
 
-OBSERVATION: `git merge-base origin/main upstream/main` returns no common ancestor (exit 1). This fork's root is `d82d52562f6e5b4bb039998ea4d45060038b85b7`, whose manifest says 0.9.0-nifty-alpha.1. The source record identifies the original upstream version as 0.9.0, commit `7cb8b12507def48fb9346e5004340b5e8e4cfcb7`.
+OBSERVATION: the repository is not shallow. `git merge-base origin/main upstream/main` returns no common ancestor (exit 1). This fork's root is `d82d52562f6e5b4bb039998ea4d45060038b85b7`, whose manifest says 0.9.0-nifty-alpha.1. The source record identifies the original upstream version as 0.9.0, commit `7cb8b12507def48fb9346e5004340b5e8e4cfcb7`.
 
 OBSERVATION: the source record and local upgrade commit `263e780d` say the 0.9.0-to-0.12.0 upstream delta was applied as a three-way patch, preserving importer integration and fork-specific changes. The adopted upstream 0.12.0 tree is `5e8ef678321cfdd2d18927e2af94d58e5f9d8836` (release commit dated 2026-10-22). This adopted tree is the comparison base used below; it is not a merge base. This avoids counting the already adopted 0.9-to-0.12 changes as new work.
 
@@ -112,6 +114,11 @@ INFERENCE: the table below is a staged plan, not a set of already prepared patch
 | 9. Optional font substitution | Selected generic logic from fonts/src/fontdb.rs, kind.rs, substitute.rs and their tests; optional font-repository contribution handled separately | Medium: 300–600 lines, excluding font binaries | Independent review; optional after 7 | Font type/width/weight fallback tests without required external fonts; repeat corpus and pixels | Remove the four unconditional include_bytes entries. Neutralize fork-specific derived-family naming only with proper font licence/renaming review. No TTF files in the application PR. |
 | 10. Optional folder conversion | Selected CLI batch.rs/folder.rs/main.rs and tests, adapted to upstream tests/it; folder-convert.md | Large as one patch: about 1,300–1,600 lines; split worker/execution and reporting into two reviews | 7 plus command-architecture decision | Mixed good/refused/damaged folder, overwrite/link/name protections, empty/oversized inputs, both reports and exit codes | Not ready as-is under the literal command rule. Design engine command coverage or obtain a maintainer exception; then split into roughly 500–800-line execution and report/test reviews. No workflow changes. |
 
+
+INFERENCE: add a separate optional regression-data review after the applicable code units. It would select crates/pub/tests/corpus.rs, crates/engine/tests/pub_corpus.rs, apps/designcraft-cli/tests/pub_pixel_diff.rs and public fixture metadata from group (e), plus a host-neutral corpus recipe. The current restore script hard-codes this fork's workspace/data layout and is not ready upstream. Metadata/recipe and pixel reporting should be separate roughly 500–800-line reviews rather than one large infrastructure PR. Test through explicitly configured external corpora, verify hashes, retain scoring-only separation and leave all workflows untouched. Main risks are redistribution assumptions, environment-specific fonts, and treating sparse pixel scores as fidelity guarantees.
+
+OBSERVATION: reusable source evidence includes the 109-line bounded read helper, 370-line drawing reader, 527-line text reader, 182-line publication-record reader and their tests. Reuse of their implementation does not require changing their format interpretation. The combined crate still requires workspace registration, coupling extraction if staged, and verification against the new upstream APIs. No complete candidate has been shown to build there as-is.
+
 INFERENCE: no UI, font substitution or batch-conversion change is needed just to review the bounded importer. Conversely, the full standalone crates/pub candidate is already 22 paths and +6,366 text lines, including two binary fixtures; adding the pixel harness brings (a) to 23 paths and +6,907 lines. If maintainers reject a staged parser API, that single larger crate review is the honest alternative. Calling it a small PR would be misleading.
 
 UNKNOWN: maintainer preference for staged decoder APIs, acceptable review sizes, CLI command exceptions, font-repository changes or new dependency acceptance. None was requested or approved upstream during this audit.
@@ -134,11 +141,11 @@ UNKNOWN: an exhaustive negative claim that nothing copied from Microsoft, Adobe 
 
 ## Validation, boundaries and remaining unknowns
 
-OBSERVATION: the restored pinned corpus is used only for the unchanged baseline/regression gates, never to infer storage in this audit. The seven private reference files are neither fetched nor used. The main fork passes formatting, strict clippy and all seven CI steps; the corpus and real-file baseline above are unchanged. Final repeat results and cleanup are recorded after review.
+OBSERVATION: the restored pinned corpus is used only for the unchanged baseline/regression gates, never to infer storage in this audit. The seven private reference files are neither fetched nor used. Baseline and final fork corpus results match: 142/142 imports, 152/152 objects, 111/111 scored positions, 52/52 texts and 111/111 styles; pictures remain 12/41 matched passes and 29 unmatched. Both runs pass all 142 save/reopen/edit/PDF cases and retain real-batch counts 9/10/2/3. Formatting, explicit strict clippy and both seven-step CI runs pass: 3,112 tests passed, zero failed and 27 ignored. Neither CI run failed to launch a test binary or failed on a temporary file, so no sequential retry was needed. These are fork checks, not checks of a resolved upstream port.
 
 UNKNOWN: a conflict-resolved current-upstream build, current-upstream corpus numbers, Windows/native picker behavior, font equivalence after moving optional faces, legal clearance for the complete historical/demo tree, and maintainer acceptance. The offline dependency failure is a local cache limitation, not evidence that upstream itself fails to build.
 
-OBSERVATION: all scratch evidence is under target/ag-review. No project code was changed, no conflicts were repaired, and no upstream workflow or public endpoint was invoked beyond fetching the repository. The temporary upstream remote will be removed at the end. The path appendix below is the complete frozen inventory; no markdown table contains a blank line.
+OBSERVATION: all scratch evidence is under target/ag-review. No project code was changed, no conflicts were repaired, and no upstream workflow or public endpoint was invoked beyond fetching the repository. The temporary upstream remote and scratch worktree have been removed after preserving the patch, unresolved diff and logs. Only the origin remote remains; no upstream push was made. The path appendix below is the complete frozen inventory; no markdown table contains a blank line.
 
 ## Complete path inventory
 
