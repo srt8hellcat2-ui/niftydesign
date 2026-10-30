@@ -91,3 +91,49 @@ OBSERVATION: hand-computed path endpoints, tangents, glyph transforms and ellips
 OBSERVATION: final CI passed all seven steps, including fmt, clippy and WebAssembly: 3,088 tests passed, zero failed, 24 ignored. The full controlled gate remains 142/142 imports, 152/152 objects, 111/111 scored shape/text positions, 52/52 exact texts and 111/111 styles. All 142 native save/reopen/edit/PDF cases pass. The real batch remains 9 notes, 10 warnings, 2 refused and 3 damaged, 31 pages and 280 objects; every real file's status/page/object counts are unchanged. The numeric guard declines non-finite measurements; its regression case passes, and it changes none of the controlled renders.
 
 UNKNOWN: Publisher's exact stretching, kerning, tracking, vertical/reversed and multiline rules, non-default adjustments and combinations with decorations or shadows. Font substitution remains active, and a later font replacement may change line fit; continuous refitting after edits or font installation is not implemented. Circle and other warps remain unsupported. Windows, real-PC fonts, interactive desktop editing and Publisher drawing beyond the nine references were not tested.
+
+## AA fresh audit and stopped circle trial — 2026-10-30
+
+OBSERVATION: the untouched baseline is origin/main `967d377`. The restore script verified all 317 pinned inputs (142 controlled publications, 24 real publications, 142 truth files and nine golden images), with zero failures. The baseline gate is 142/142 imports, 152/152 objects, 111/111 scored shape/text positions within 1 pt, 52/52 exact texts and 111/111 styles. Picture scoring remains 12/41 matched passes and 29 unmatched references. All 142 save/reopen/edit/PDF cases pass; the real-batch integration check confirms 9 with notes, 10 with warnings, 2 refused and 3 damaged. The `aa-baseline` snapshot contains 142 first pages. All nine baseline reference scores equal the last merged measurements above.
+
+OBSERVATION: a temporary binary-only audit harness called the existing compound-file and Escher parsers, recursively inspected drawing shapes for geometry text property 0x00C0, and read the stored shape number and adjustments. It read no truth JSON or golden images. The eight controlled WordArt fixtures and the one readable real file containing WordArt are listed below. No listed WordArt shape has a property in 0x0147..0x0150. Shape numbers use the MS-ODRAW names documented in odraw-geometry.md.
+
+| File | Stored preset | Original text | Baseline rendering | Reference SSIM / differing fraction |
+| --- | --- | --- | --- | --- |
+| wordart__arch.pub | 144 TextArchUpCurve | Sample Text! | Editable measured upward arch | 0.983892067 / 0.006321925 |
+| wordart__circle.pub | 146 TextCircleCurve | Sample Text! | Straight editable text, warning | 0.960595137 / 0.009868449 |
+| wordart__base.pub | 136 TextPlainText | Sample Text! | Straight editable text | 0.980074652 / 0.006571123 |
+| wordart__fill-red.pub | 136 TextPlainText | Sample Text! | Straight editable red text | 0.979558751 / 0.012936898 |
+| wordart__font.pub | 136 TextPlainText | Sample Text! | Straight editable Times New Roman text | No reference |
+| wordart__line-white.pub | 136 TextPlainText | Sample Text! | Straight editable text, white outline | 1.000000000 / 0.000000000 |
+| wordart__shadow.pub | 136 TextPlainText | Sample Text! | Straight editable text with shadow | 0.979426457 / 0.009779679 |
+| wordart__text.pub | 136 TextPlainText | Second Line | Straight editable text | No reference |
+| SampleNewsletter.pub | 136 TextPlainText | Liberty | Straight editable text | No reference |
+
+OBSERVATION: only default upward arch 144 is enabled by the existing arch importer. Circle 146 has checked geometry but remains disabled. No other curved preset was found in the readable audited inputs. The older seven-fixture audit omitted wordart__text.pub; the fresh audit includes it. The two refused old-family files contained no geometry text found by this drawing-stream audit; their WordArt content through other storage remains UNKNOWN.
+
+OBSERVATION: three damaged real files could not be audited at compound-file opening. Exact errors: `clusterfuzz-testcase-minimized-POIHPBFFuzzer-4701121678278656.pub`: `Malformed FAT (sector 129 pointed to twice)`; `clusterfuzz-testcase-minimized-POIHPBFFuzzer-4918886059278336.pub`: `Malformed FAT (FAT has 244 entries, but file has only 64 sectors)`; `clusterfuzz-testcase-minimized-POIHPBFFuzzer-6325615354773504.pub`: `Invalid CFB byte order mark (expected 0xFFFE, found 0xFFFA)`. Their WordArt inventory is UNKNOWN.
+
+OBSERVATION: the circle trial enabled preset 146 through the existing default-path and measured-font-advance fitting code without changing positions, fills, outlines or another preset. The nine comparisons below were measured at matching 850×1100 sizes. Golden images were used only for scoring and visual comparison. The circle regression triggered the stop rule; the trial was reverted. No circle implementation is retained and no second preset was attempted.
+
+| Fixture | Baseline SSIM | Trial SSIM | Baseline differing fraction | Trial differing fraction |
+| --- | ---: | ---: | ---: | ---: |
+| group__rotated.pub | 0.999980060 | 0.999980060 | 0.001000000 | 0.001000000 |
+| shadow__offset.pub | 0.999993784 | 0.999993784 | 0.000983957 | 0.000983957 |
+| shadow__on.pub | 0.999994589 | 0.999994589 | 0.000963636 | 0.000963636 |
+| wordart__arch.pub | 0.983892067 | 0.983892067 | 0.006321925 | 0.006321925 |
+| wordart__base.pub | 0.980074652 | 0.980074652 | 0.006571123 | 0.006571123 |
+| wordart__circle.pub | 0.960595137 | 0.953676350 | 0.009868449 | 0.013636364 |
+| wordart__fill-red.pub | 0.979558751 | 0.979558751 | 0.012936898 | 0.012936898 |
+| wordart__line-white.pub | 1.000000000 | 1.000000000 | 0.000000000 | 0.000000000 |
+| wordart__shadow.pub | 0.979426457 | 0.979426457 | 0.009779679 | 0.009779679 |
+
+OBSERVATION by eye: the trial's text follows the ellipse and its lower letters turn upside down, as in the reference, but letters overlap at the left join. Glyph outlines and spacing visibly differ. The reference has more separation there. This is not a measured match. The existing measured-descent circle trial's earlier score is reproduced exactly.
+
+UNKNOWN: the standard gives the path but does not establish the letter fitting needed to resolve this regression. No standard-based explanation justifies accepting a worse score. Exact stretching, spacing, joins, non-default adjustments and font effects remain unresolved. Circle stays straight with a warning. The README row and known-limit wording remain accurate. Windows, real-PC fonts and Publisher's own fonts were not tested. No new production code or tests are retained; existing hand-computed geometry, measurement and fixture tests are unchanged.
+
+OBSERVATION: after reverting the trial, publisher-mode scoring returns all nine baseline values in the table above. Snapshot `aa-after` versus `aa-baseline` compares 142 fixtures with zero changed and zero added/removed; the final changed-fixture list is empty. The repeated full corpus score equals the baseline. Formatting and strict workspace clippy pass. A first pixel-run invocation omitted PUB_PIXEL_MODE and failed before rendering; the corrected publisher-mode baseline invocation passed. The temporary audit harness initially failed compilation on a reference type and was corrected; it is not retained.
+
+OBSERVATION: the final existing WordArt fixture test, 142 save/reopen/edit/PDF cases and real-batch integration check pass. The first workspace CI run passed formatting, PDF dependency checks, clippy and tests, then failed assets because a temporary scoring PNG had been left outside the ignored build directory. The generated review artifacts were moved under `target/aa-review`; no asset was added to the product and no check was weakened. The rerun result is recorded below.
+
+OBSERVATION: the CI rerun passes all seven steps (formatting, PDF dependencies, strict clippy, tests, assets, layers and WebAssembly), with 3,103 tests passed, zero failed and 25 ignored. Neither CI run failed to launch a test binary. No markdown table in the edited files contains a blank line. Final changes are documentation only; local audit logs and the rejected circle image are retained under `target/aa-review` and are not committed.
