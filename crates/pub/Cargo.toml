@@ -9,6 +9,10 @@ description = "DesignCraft Microsoft Publisher (.pub) import"
 [lints]
 workspace = true
 
+[features]
+# Transitional switch while the shared 0.15 types are adopted in stages.
+upstream-015 = []
+
 [dependencies]
 designcraft-geom = { workspace = true }
 designcraft-color = { workspace = true }

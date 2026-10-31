@@ -1385,3 +1385,7 @@ OBSERVATION: reused all 142 controlled and 24 real publication binaries, 142 sco
 ## Upstream trial — 2026-10-31
 
 OBSERVATION: reused the 317 size/hash-verified pinned inputs in publisher-fixtures.csv for unchanged corpus, real-batch, roundtrip, folder and pixel regression checks. Binary data supplied no new storage interpretation; truth JSON and reference PNGs were used only by existing scoring checks. No private reference file or other Publisher reader was used.
+
+## Staged upstream API continuation — 2026-10-31
+
+OBSERVATION: reused the same 317 verified pinned inputs for baseline and API-compatibility regression checks. The corpus scorer alone consumed truth JSON and reference PNGs remained scoring-only; no new Publisher encoding or private-file content was examined.

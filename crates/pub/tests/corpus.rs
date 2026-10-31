@@ -436,6 +436,8 @@ mod picture_tests {
     fn picture(id: u64, rect: Rect) -> Item {
         let mut it = Item::new(ItemId(id), LayerId(1), Shape::Rectangle, shapes::rectangle(rect));
         it.content = Content::Graphic(Graphic {
+            #[cfg(feature = "upstream-015")]
+            layer_options: None,
             asset: AssetId(1),
             size: (10.0, 20.0),
             xf: Affine::IDENTITY,

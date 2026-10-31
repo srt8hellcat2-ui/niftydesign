@@ -723,6 +723,8 @@ impl<'a> Builder<'a> {
                         stops: [0.0, 1.0]
                             .into_iter()
                             .map(|offset| designcraft_color::GradientStop {
+                                #[cfg(feature = "upstream-015")]
+                                swatch: None,
                                 offset,
                                 color: designcraft_color::Color::rgb8(rgb[0], rgb[1], rgb[2]),
                                 opacity,
@@ -777,6 +779,8 @@ impl<'a> Builder<'a> {
             stops: stops
                 .iter()
                 .map(|&(offset, [r, g, b], opacity)| designcraft_color::GradientStop {
+                    #[cfg(feature = "upstream-015")]
+                    swatch: None,
                     offset,
                     color: designcraft_color::Color::rgb8(r, g, b),
                     opacity,
@@ -879,6 +883,8 @@ impl<'a> Builder<'a> {
         let sy = frame.height() / (size.1 * shown_h);
         let xf = Affine::translate((frame.x0 - cl * size.0 * sx, frame.y0 - ct * size.1 * sy)) * Affine::scale_non_uniform(sx, sy);
         Content::Graphic(Graphic {
+            #[cfg(feature = "upstream-015")]
+            layer_options: None,
             asset,
             size,
             xf,

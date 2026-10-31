@@ -1,5 +1,16 @@
 # Upstream merge trial — 2026-10-31
 
+## AN continuation: staged adoption
+
+OBSERVATION: the following status supersedes the historical trial results below. Stage 1 adds two plain-color gradient-stop defaults (swatch None) and one placed-picture default (layer_options None) in unprotected crates/pub/src/lib.rs. No Publisher field decoding changed. The corpus test's synthetic Graphic constructor receives the same optional field, with no assertion changed.
+
+OBSERVATION: the retained branch still has 0.12 shared model types. A temporary upstream-015 crate feature gates the new initializers until those types are adopted, keeping the current build usable. The explicit tagged-upstream check enables the feature. It is not a supported switch for the old dependency set; remove the gate and make the defaults unconditional after the shared models are upgraded.
+
+OBSERVATION: the tagged 0.15.2 API build now passes. Its first corpus-test compilation additionally exposed the synthetic Graphic constructor's missing layer_options; after adding None, its corpus test also passes. No protected reader was edited and no test was weakened. Final stage gates are recorded after completion.
+
+UNKNOWN: Stages 2–5 are not complete. The historical 570-path inventory remains the adoption backlog, not an assertion that those changes are on the branch.
+
+
 OBSERVATION: this is an incomplete trial checkpoint, not an adopted upstream release. The branch proposes version 0.15.2-nifty-alpha.1 and adds Publisher to the browser document picker. Its production code otherwise remains the existing 0.12-derived fork. A real three-way tree application was attempted in an ignored detached worktree; it is not promoted while unresolved. Nothing is merged into main or pushed to upstream.
 
 INFERENCE: verdict **not yet**. The successful checks on this checkpoint cannot establish that the merged 0.15.2 code preserves Publisher behavior. Resolve and test the complete trial before adoption.
