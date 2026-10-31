@@ -362,33 +362,7 @@ fn run(args: &[String]) -> Result<(), String> {
             }
             "--export" => {
                 let out = val()?;
-                match Export::of(&out)? {
-                    Export::Image => export(&mut s, &out, page, scale)?,
-                    Export::Pdf => {
-                        let mut p = pdf_opts.clone();
-                        p["path"] = json!(out);
-                        let r = s.execute("file.exportPdf", &p).map_err(|e| e.to_string())?;
-                        eprintln!("wrote {out} ({} pages, {} bytes)", r["pages"], r["bytes"]);
-                        for w in r["warnings"].as_array().into_iter().flatten() {
-                            eprintln!("warning: {}", w.as_str().unwrap_or_default());
-                        }
-                    }
-                    Export::Document => {
-                        s.execute("file.saveAs", &json!({"path": out})).map_err(|e| e.to_string())?;
-                        eprintln!("saved {out}");
-                    }
-                    Export::Pptx => {
-                        let r = s.execute("file.exportPptx", &json!({"path": out})).map_err(|e| e.to_string())?;
-                        eprintln!("wrote {out} ({} slides, {} bytes)", r["slides"], r["bytes"]);
-                        for w in r["warnings"].as_array().into_iter().flatten() {
-                            eprintln!("warning: {}", w.as_str().unwrap_or_default());
-                        }
-                    }
-                    Export::Command(cmd) => {
-                        let r = s.execute(cmd, &json!({"path": out})).map_err(|e| e.to_string())?;
-                        eprintln!("wrote {out} ({} bytes)", r["bytes"]);
-                    }
-                }
+                handle_export(&mut s, &out, page, scale, &pdf_opts)?;
             }
             "--all-pages" => {
                 let dir = val()?;
@@ -399,6 +373,37 @@ fn run(args: &[String]) -> Result<(), String> {
                 }
             }
             other => return Err(format!("unknown option {other}")),
+        }
+    }
+    Ok(())
+}
+
+fn handle_export(s: &mut Session, out: &str, page: usize, scale: f64, pdf_opts: &Value) -> Result<(), String> {
+    match Export::of(out)? {
+        Export::Image => export(s, out, page, scale)?,
+        Export::Pdf => {
+            let mut p = pdf_opts.clone();
+            p["path"] = json!(out);
+            let r = s.execute("file.exportPdf", &p).map_err(|e| e.to_string())?;
+            eprintln!("wrote {out} ({} pages, {} bytes)", r["pages"], r["bytes"]);
+            for w in r["warnings"].as_array().into_iter().flatten() {
+                eprintln!("warning: {}", w.as_str().unwrap_or_default());
+            }
+        }
+        Export::Document => {
+            s.execute("file.saveAs", &json!({"path": out})).map_err(|e| e.to_string())?;
+            eprintln!("saved {out}");
+        }
+        Export::Pptx => {
+            let r = s.execute("file.exportPptx", &json!({"path": out})).map_err(|e| e.to_string())?;
+            eprintln!("wrote {out} ({} slides, {} bytes)", r["slides"], r["bytes"]);
+            for w in r["warnings"].as_array().into_iter().flatten() {
+                eprintln!("warning: {}", w.as_str().unwrap_or_default());
+            }
+        }
+        Export::Command(cmd) => {
+            let r = s.execute(cmd, &json!({"path": out})).map_err(|e| e.to_string())?;
+            eprintln!("wrote {out} ({} bytes)", r["bytes"]);
         }
     }
     Ok(())
