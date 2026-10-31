@@ -85,7 +85,9 @@ OBSERVATION: a second isolated worktree copied crates/pub unchanged into v0.15.2
 
 INFERENCE: the complete merge additionally needs an explicit API-compatibility port of those three constructors in unprotected lib.rs, with new fields chosen from upstream semantics and tested for unchanged gradients and pictures. A textual application of crates/pub is insufficient. This probe used upstream fonts and libraries, not the fully identity-preserving merge, so even a later successful probe would not establish pixel parity.
 
-UNKNOWN: the full merge still has 24 unresolved path operations and the importer API incompatibilities above. No successful merged build, merged corpus, merged pixel parity or merged desktop/browser runtime result is claimed. OBSERVATION: a real checkpoint CLI script completed four session steps successfully: file.open of the synthetic hello-nifty.pub, document.inspect, file.openBytes of the same bytes, and document.inspect. Both imported copies have one page and no saved source path. This tests command dispatch in the checkpoint, not the unresolved upstream port. Checkpoint-only gate results follow below.
+UNKNOWN: the full merge still has 24 unresolved path operations and the importer API incompatibilities above. No successful merged build, merged corpus, merged pixel parity or merged desktop/browser runtime result is claimed.
+
+OBSERVATION: a real checkpoint CLI script completed four session steps successfully: file.open of the synthetic hello-nifty.pub, document.inspect, file.openBytes of the same bytes, and document.inspect. Both imported copies have one page and no saved source path. This tests command dispatch in the checkpoint, not the unresolved upstream port. Checkpoint-only gate results follow below.
 
 UNKNOWN: Windows desktop, native dialogs, printing on a real printer, real-PC fonts and Publisher’s own fonts were not tested. Browser picker operation is untested by a person; adding its extension only changes the allowed picker list.
 
@@ -683,3 +685,7 @@ OBSERVATION: each entry below is a base-to-v0.15.2 path still awaiting complete 
 - `xtask/src/layers.rs`
 - `xtask/src/main.rs`
 - `xtask/src/pdf_deps.rs`
+
+## Final branch handling
+
+OBSERVATION: origin/main advanced during validation to b90d876c0 with the preset census documentation. Rebased the checkpoint onto that main; the only rebase conflict was the appended SOURCES.md entries, and both entries were retained. Preserved the already published checkpoint as an additional parent so the final push can be a normal fast-forward without rewriting published history. This joins only our own branch history, not upstream history. The temporary upstream remote and detached trial worktrees were removed. No upstream action or release was made.
