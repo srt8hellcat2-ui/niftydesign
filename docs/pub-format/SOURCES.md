@@ -1377,3 +1377,7 @@ OBSERVATION: the final binary-only repeat additionally checks all 24 stored rast
 OBSERVATION: reused the existing 317 pinned inputs after size/SHA-256 verification for baseline and regression checks only: 142 controlled publications, 24 Apache publications, 142 truth JSON scoring files and nine hash-checked reference images. Exact filenames/hashes remain in scripts/niftydata.manifest and the earlier source tables. No new publication was fetched or decoded for format research, no private file was used, and no encoding was inferred from an upstream comparison or scoring reference. The public upstream source was fetched only for the explicitly requested tree, policy, licence and application-readiness audit, recorded in docs/upstreaming-plan.md. No upstream proposal or push was made.
 
 OBSERVATION: the final unchanged controlled and real-file gates pass again with the same counts, including all 142 save/reopen/edit/PDF cases. No publication data was used to interpret upstream source or derive format rules. Only the upstream-readiness note and this source entry changed.
+
+## Upstream trial — 2026-10-31
+
+OBSERVATION: reused the 317 size/hash-verified pinned inputs in publisher-fixtures.csv for unchanged corpus, real-batch, roundtrip, folder and pixel regression checks. Binary data supplied no new storage interpretation; truth JSON and reference PNGs were used only by existing scoring checks. No private reference file or other Publisher reader was used.
