@@ -1381,3 +1381,7 @@ OBSERVATION: the final unchanged controlled and real-file gates pass again with 
 ## AE preset fallback census — 2026-10-31
 
 OBSERVATION: reused all 142 controlled and 24 real publication binaries, 142 scoring JSON files and nine scoring PNGs from the existing publisher-fixtures.csv manifest. The restore check verified all 317 recorded sizes and SHA-256 values. Existing compound-file, Escher and import code supplied the binary census in preset-geometry.md; no private files or other readers were used. Truth JSON and PNGs were used only by the unchanged scoring tools. Existing MS-ODRAW and ECMA geometry notes supplied terminology; no new external specification or geometry definition was fetched.
+
+## Upstream trial — 2026-10-31
+
+OBSERVATION: reused the 317 size/hash-verified pinned inputs in publisher-fixtures.csv for unchanged corpus, real-batch, roundtrip, folder and pixel regression checks. Binary data supplied no new storage interpretation; truth JSON and reference PNGs were used only by existing scoring checks. No private reference file or other Publisher reader was used.
