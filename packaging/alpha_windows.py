@@ -74,7 +74,7 @@ def smoke(cli, output):
     output.mkdir(parents=True, exist_ok=False)
     with tempfile.TemporaryDirectory(prefix='nifty-alpha-input-') as folder:
         sample = Path(folder) / 'hello-nifty.pub'
-        source = ROOT / 'crates/pub/tests/data/hello-nifty.pub'
+        source = ROOT / 'crates/pub/tests/data/hello.pub'
         shutil.copyfile(source, sample)
         before = digest(sample)
         run([cli, 'batch-convert', sample.parent, '--out', output / 'converted'])
