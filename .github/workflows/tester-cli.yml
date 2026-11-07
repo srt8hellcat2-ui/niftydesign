@@ -1,0 +1,68 @@
+# Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0
+name: Publisher tester CLI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: CLI / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows
+            runner: windows-2022
+            target: x86_64-pc-windows-msvc
+            binary: designcraft-cli.exe
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Rust
+        shell: bash
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal --no-self-update
+          task_host=$(rustc +1.95.0 -vV | sed -n 's/^host: //p' | tr -d '\r')
+          if [[ '${{ matrix.target }}' != native && "$task_host" != '${{ matrix.target }}' ]]; then
+            echo "Unexpected build host: $task_host"
+            exit 1
+          fi
+      - name: Build standalone release CLI
+        shell: bash
+        run: cargo +1.95.0 build --locked --release -p designcraft-cli
+      - name: Verify pinned Publisher data and batch outputs
+        shell: bash
+        run: |
+          python .github/scripts/test-pub-cli.py \
+            --binary 'target/release/${{ matrix.binary }}' \
+            --controlled "$RUNNER_TEMP/publisher-inputs/controlled" \
+            --real "$RUNNER_TEMP/publisher-inputs/real" \
+            --out "$RUNNER_TEMP/publisher-results" --download
+      - name: Upload tested binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: designcraft-cli-${{ matrix.os }}
+          path: target/release/${{ matrix.binary }}
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: designcraft-cli-${{ matrix.os }}-reports
+          path: |
+            ${{ runner.temp }}/publisher-results/summary.json
+            ${{ runner.temp }}/publisher-results/*/report.csv
+            ${{ runner.temp }}/publisher-results/*/stdout.log
+            ${{ runner.temp }}/publisher-results/*/stderr.log
+          if-no-files-found: warn
+          retention-days: 14

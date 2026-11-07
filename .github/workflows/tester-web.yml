@@ -1,0 +1,51 @@
+# Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0
+name: Publisher web tester
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      CARGO_BUILD_JOBS: 2
+      NO_COLOR: 'true'
+      CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER: wasm-bindgen-test-runner
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Rust and wasm target
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal --no-self-update
+          rustup default 1.95.0
+          rustup target add wasm32-unknown-unknown
+          rustup component add clippy
+      - name: Install pinned web tools
+        run: |
+          cargo install --locked trunk --version 0.21.14
+          version=$(python3 -c 'import tomllib; d=tomllib.load(open("Cargo.lock", "rb")); print(next(p["version"] for p in d["package"] if p["name"] == "wasm-bindgen"))')
+          cargo install --locked wasm-bindgen-cli --version "$version"
+      - name: Check Publisher importer and engine for wasm
+        run: cargo check --locked -p designcraft-pub -p designcraft-engine --target wasm32-unknown-unknown
+      - name: Check wasm engine/test lints
+        run: cargo clippy --locked -p designcraft-engine --target wasm32-unknown-unknown --test web_pub -- -D warnings
+      - name: Headless wasm Publisher open-bytes check (Node)
+        run: cargo test --locked --release -p designcraft-engine --target wasm32-unknown-unknown --test web_pub -- --nocapture
+      - name: Build browser app
+        working-directory: apps/designcraft-web
+        run: trunk build --release
+      - name: Upload static test build
+        uses: actions/upload-artifact@v4
+        with:
+          name: designcraft-web-test
+          path: dist/web
+          if-no-files-found: error
+          retention-days: 14
