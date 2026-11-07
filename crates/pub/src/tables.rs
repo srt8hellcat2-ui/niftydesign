@@ -28,6 +28,8 @@ pub(crate) struct TableInfo {
     pub cell_record: u32,
     /// Largest absolute ending-versus-size-sum difference in this table, for diagnostics only.
     pub row_ending_difference: u32,
+    /// What the parser approximated because stored dimensions disagreed; reported by `table_frame`.
+    pub approximations: Vec<String>,
 }
 impl TableInfo {
     pub(crate) fn parse(p: &[Prop<'_>]) -> Result<Option<Self>> {
@@ -44,8 +46,8 @@ impl TableInfo {
         }
         let mut sizes = Vec::new();
         let mut sum = 0u32;
-        let mut previous_ending = 0u32;
-        let mut row_ending_difference = 0u32;
+        let mut column_endings_agree = true;
+        let mut row_ends: Vec<u32> = Vec::new();
         for (i, entry) in entries.iter().enumerate() {
             if i == cols {
                 sum = 0;
@@ -57,35 +59,50 @@ impl TableInfo {
             }
             sum = sum.checked_add(size).ok_or_else(|| bad("dimension overflow"))?;
             let ending = number(&fields, 1).ok_or_else(|| bad("missing cumulative dimension"))?;
-            let layout_size = if i < cols {
-                if ending != sum {
-                    return Err(bad("inconsistent cumulative dimension"));
-                }
-                size
+            if i < cols {
+                // The stored sizes lay out the columns; an ending that disagrees is approximated, not fatal.
+                column_endings_agree &= ending == sum;
             } else {
-                if ending > i32::MAX as u32 || ending <= previous_ending {
-                    return Err(bad("row endings must be positive and strictly increasing"));
-                }
-                let height = ending.checked_sub(previous_ending).ok_or_else(|| bad("row dimension overflow"))?;
-                if height > 197_510_400 {
-                    return Err(bad("row dimension out of range"));
-                }
-                previous_ending = ending;
-                row_ending_difference = row_ending_difference.max(ending.abs_diff(sum));
-                height
-            };
+                row_ends.push(ending);
+            }
             if i + 1 == cols && number(p, 0x68) != Some(sum) || i + 1 == cols + rows && number(p, 0x69) != Some(sum) {
                 return Err(bad("size total mismatch"));
             }
-            sizes.push(layout_size);
+            sizes.push(size);
         }
-        Ok(Some(Self {
-            columns: sizes.get(..cols).ok_or_else(|| bad("missing columns"))?.to_vec(),
-            rows: sizes.get(cols..).ok_or_else(|| bad("missing rows"))?.to_vec(),
-            cells: Vec::new(),
-            cell_record,
-            row_ending_difference,
-        }))
+        let column_sizes = sizes.get(..cols).ok_or_else(|| bad("missing columns"))?.to_vec();
+        let row_sizes = sizes.get(cols..).ok_or_else(|| bad("missing rows"))?.to_vec();
+        let mut approximations = Vec::new();
+        if !column_endings_agree {
+            approximations.push("column widths come from the stored column sizes; the stored column endings do not add up to them".to_string());
+        }
+        // Row positions follow the stored endings when they are positive, strictly increasing and in range.
+        let mut previous = 0u32;
+        let mut heights = Vec::with_capacity(rows);
+        let mut endings_usable = true;
+        for &ending in &row_ends {
+            match ending.checked_sub(previous) {
+                Some(h) if ending <= i32::MAX as u32 && ending > previous && h <= 197_510_400 => heights.push(h),
+                _ => {
+                    endings_usable = false;
+                    break;
+                }
+            }
+            previous = ending;
+        }
+        let (rows_out, row_ending_difference) = if endings_usable {
+            let mut running = 0u32;
+            let mut difference = 0u32;
+            for (ending, size) in row_ends.iter().zip(&row_sizes) {
+                running = running.saturating_add(*size);
+                difference = difference.max(ending.abs_diff(running));
+            }
+            (heights, difference)
+        } else {
+            approximations.push("row heights come from the stored row sizes; the stored row endings are not increasing".to_string());
+            (row_sizes, 0)
+        };
+        Ok(Some(Self { columns: column_sizes, rows: rows_out, cells: Vec::new(), cell_record, row_ending_difference, approximations }))
     }
     pub(crate) fn validate(&self) -> Result<()> {
         let mut occupied = vec![false; self.rows.len() * self.columns.len()];
@@ -298,6 +315,19 @@ impl Builder<'_> {
                 info.row_ending_difference
             ));
         }
+        for note in &info.approximations {
+            let place = match r {
+                SpreadRef::Doc(i) => format!("on spread {}", i.saturating_add(1)),
+                SpreadRef::Parent(_) => "on a master page".to_string(),
+            };
+            self.warnings.push(format!(
+                "Publisher table {place} ({} rows x {} columns, at {:.0}, {:.0} pt) has inconsistent stored dimensions and was approximated: {note}.",
+                info.rows.len(),
+                info.columns.len(),
+                rect.x0,
+                rect.y0
+            ));
+        }
         let id = self.text_frame(r, rect, tid)?;
         let sid = self.doc.item(id).and_then(|i| i.text_frame()).map(|t| t.story).ok_or_else(|| bad("missing host frame"))?;
         let source = self.doc.story(sid).cloned().ok_or_else(|| bad("missing host story"))?;
@@ -361,6 +391,7 @@ mod tests {
             columns: vec![1_828_800; 2],
             cell_record: 260,
             row_ending_difference: 0,
+            approximations: Vec::new(),
             cells: vec![
                 CellInfo { row: 0, last_row: 0, col: 0, last_col: 0 },
                 CellInfo { row: 0, last_row: 0, col: 1, last_col: 1 },
@@ -435,8 +466,12 @@ mod tests {
     #[test]
     fn row_endings_preserve_rejection_of_invalid_grids_totals_and_overflow() {
         for ends in [[219_188, 219_188, 657_564], [219_188, 219_187, 657_564], [0, 438_376, 657_564], [u32::MAX, 438_376, 657_564]] {
+            // Unusable endings no longer refuse the file; the stored sizes are used and the table is flagged.
             let bytes = dimension_properties(&ends, &[216_000; 3], 3_564_000, 648_000);
-            assert!(TableInfo::parse(&properties(&bytes).unwrap()).is_err());
+            let info = TableInfo::parse(&properties(&bytes).unwrap()).unwrap().unwrap();
+            assert_eq!(info.rows, [216_000; 3]);
+            assert_eq!(info.row_ending_difference, 0);
+            assert_eq!(info.approximations.len(), 1);
         }
         for bytes in [
             dimension_properties(&[219_188, 438_376, 657_564], &[216_000; 3], 3_564_000, 648_001),
@@ -450,10 +485,42 @@ mod tests {
         let marker = [vec![1, 0x20], 1_782_000u32.to_le_bytes().to_vec()].concat();
         let at = bytes.windows(marker.len()).position(|w| w == marker).unwrap() + 2;
         bytes[at..at + 4].copy_from_slice(&1_782_001u32.to_le_bytes());
-        assert!(TableInfo::parse(&properties(&bytes).unwrap()).is_err());
+        let info = TableInfo::parse(&properties(&bytes).unwrap()).unwrap().unwrap();
+        assert_eq!(info.columns, [1_782_000; 2]);
+        assert_eq!(info.approximations.len(), 1);
         let bytes = dimension_properties(&(1..=32).collect::<Vec<_>>(), &[197_510_400; 32], 3_564_000, 0);
         let error = TableInfo::parse(&properties(&bytes).unwrap()).err().unwrap();
         assert!(error.to_string().contains("dimension overflow"));
+    }
+    #[test]
+    fn inconsistent_cumulative_dimensions_import_with_a_named_warning() {
+        let mut bytes = dimension_properties(&[219_188, 219_188, 657_564], &[216_000; 3], 3_564_000, 648_000);
+        let marker = [vec![1, 0x20], 3_564_000u32.to_le_bytes().to_vec()].concat();
+        let at = bytes.windows(marker.len()).position(|w| w == marker).unwrap() + 2;
+        bytes[at..at + 4].copy_from_slice(&7u32.to_le_bytes());
+        let mut info = TableInfo::parse(&properties(&bytes).unwrap()).unwrap().unwrap();
+        assert_eq!((info.columns.clone(), info.rows.clone()), (vec![1_782_000; 2], vec![216_000; 3]));
+        assert_eq!(info.approximations.len(), 2);
+        info.cells = (0..3).flat_map(|row| (0..2).map(move |col| CellInfo { row, last_row: row, col, last_col: col })).collect();
+        info.validate().unwrap();
+        let imp = import(info, "\r\r\r\r\r\r", None);
+        let table = imp.document.stories.values().next().unwrap().tables.values().next().unwrap();
+        assert_eq!((table.nrows(), table.ncols()), (3, 2));
+        let warned: Vec<_> = imp.warnings.iter().filter(|w| w.contains("inconsistent stored dimensions")).collect();
+        assert_eq!(warned.len(), 2);
+        assert!(warned.iter().all(|w| w.starts_with("Publisher table on spread 1 (3 rows x 2 columns")));
+        assert!(warned.iter().any(|w| w.contains("column widths")) && warned.iter().any(|w| w.contains("row heights")));
+    }
+    #[test]
+    fn hostile_dimension_entries_still_refuse() {
+        // Counts, ranges and declared totals stay hard errors.
+        for bytes in [
+            dimension_properties(&[219_188, 438_376, 657_564], &[0; 3], 3_564_000, 0),
+            dimension_properties(&[219_188, 438_376, 657_564], &[216_000; 3], 3_564_000, 648_001),
+            dimension_properties(&[219_188, 438_376], &[216_000; 3], 3_564_000, 648_000),
+        ] {
+            assert!(TableInfo::parse(&properties(&bytes).unwrap()).is_err());
+        }
     }
     #[test]
     fn imports_native_grid_text_formatting_and_warns_for_unconfirmed_cell_paint() {
@@ -547,6 +614,7 @@ mod multi_story_text_tests {
                     cells: (0..2).map(|col| CellInfo { row: 0, last_row: 0, col, last_col: col }).collect(),
                     cell_record: 0,
                     row_ending_difference: 0,
+                    approximations: Vec::new(),
                 }),
                 ..Default::default()
             },
