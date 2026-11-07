@@ -289,28 +289,36 @@ decoded or B understood.
 1. UNKNOWN: general descriptor semantics and reference relocation; B defeats
    the simple A walk. OBSERVATION: AP2 narrows A index-20 to a boundary of
    30 bytes, a ten-byte tail header, two-byte IDs and four fixed-reference
-   selectors, all checked on eight records. UNKNOWN: which duplicate boundary
-   byte/count-like word is authoritative and the meaning of descriptor `0x0019`.
+   selectors, all checked on eight records. OBSERVATION: AP3 extends those
+   checks to six agreeing records in a second structurally matching sample.
+   UNKNOWN: which duplicate boundary byte/count-like word is authoritative
+   and the meaning of descriptor `0x0019`.
 2. UNKNOWN: general record extent/padding rules, directory flag meanings, and
    header words `0x0C`, `0x1E`, `0x20`, `0x24`. OBSERVATION: the AP2 formula
    exactly consumes all eight index-20 directory spans without leftover padding;
-   no independent total-record byte-length field is established.
+   AP3 also consumes all six tested spans in mspub.pub. UNKNOWN: no independent
+   total-record byte-length field is established.
 3. UNKNOWN: root/page ordering and master/scratch classification. OBSERVATION:
    AP2 accounts for all 24 direct directory children of the eight index-20
-   records: 17 tail IDs and seven fixed-field IDs. UNKNOWN: the semantic roles
-   of those references and child-list rules for any other class or sample.
+   records: 17 tail IDs and seven fixed-field IDs. OBSERVATION: AP3 accounts
+   for another 12 matching directory edges, eleven tail IDs and one fixed ID.
+   UNKNOWN: reference roles and child-list rules for other classes or beyond
+   these two samples.
 4. UNKNOWN: general shape-to-story mapping, field widths, geometry, formatting,
    table-cell ownership and displayed visibility. Existing Quill import failure
    on kind `0x19` was not repaired or bypassed into a complete import.
-5. UNKNOWN: independent saving versions and wider coverage, including the absent
-   owner pair and any confirmed Publisher 97-specific sample.
+5. UNKNOWN: independent saving versions and wider coverage, including any
+   confirmed Publisher 97-specific sample. OBSERVATION: AP3 verifies the
+   supplied mspub.pub size/hash and structural checks; its earlier unavailability
+   is resolved. UNKNOWN: zmspub.pub and the claimed equality of the owner pair
+   remain unverified; independent manufacture is owner-reported provenance.
 
-INFERENCE: after the bounded AP2 check below, the next smallest discriminating
+INFERENCE: after the bounded AP2 and AP3 checks below, the next smallest discriminating
 step is to obtain one independently produced variant-A index-20 list with
 unequal count-like words, or an independent description of its used versus
 allocated element counts. That can distinguish count from capacity/length
-without guessing. UNKNOWN: such an example is not present in Sample98; the
-equal bytes also cannot distinguish the two boundary bytes. Other record
+without guessing. OBSERVATION: no such counterexample occurs in either
+Sample98 or mspub.pub. UNKNOWN: the equal bytes also cannot distinguish the two boundary bytes. Other record
 classes and B's table remain separate work.
 
 ## What a reader must do before implementation
@@ -484,3 +492,143 @@ No importer or protected-reader change, other class decoding, B-table work,
 Quill repair, full CI, environment script/setting change, environment save
 or publication was performed. Only this appended section and the narrowed
 ranked-unknowns section change; the local evidence remains ignored.
+
+## Second variant-A sample
+
+OBSERVATION: AP3 starts from `5dac32658bfd7693a3c530a24734afdacea5f412`.
+The attached owner-supplied mspub.pub is exactly **19968 bytes**, SHA-256
+`0EFF0498172805BF1E52C74A6334ECC4CDC84FB2E531C0EA25734CFAC7923C7D`,
+matching the requested identity before inspection. The owner describes it
+as an independently made older publication taken from a commercial software
+image. UNKNOWN: its manufacture and exact last-saving product release were
+not independently authenticated from the bytes. The earlier AP unavailable-file
+statement is historical; this attachment now supplies mspub.pub, not zmspub.pub.
+
+OBSERVATION: the sample was treated as data only. The original remains outside
+the checkout, unmodified and uncommitted; only root Contents was extracted to
+the ignored research directory. No sample text, pictures or raw byte sequences
+are reproduced here. Evidence below consists of structural measurements and
+numeric field values. No external format description, reference image or
+scoring JSON was used. Other payload-class bodies, B's table and Quill were
+not decoded, and no importer code was changed.
+
+### Container and variant checks
+
+OBSERVATION: the compound-file container opens as version 3 and lists exactly
+these six streams. Contents was read to its directory-reported length of
+4152 bytes. Other stream sizes below are directory metadata, not claims of
+successful application-level parsing.
+
+| Basis | Stream | Bytes |
+| --- | --- | ---: |
+| OBSERVATION | `/\x01CompObj` | 94 |
+| OBSERVATION | `/\x03Internal` | 12 |
+| OBSERVATION | `/\x05SummaryInformation` | 8232 |
+| OBSERVATION | `/Contents` | 4152 |
+| OBSERVATION | `/Quill/QuillSub/\x01CompObj` | 86 |
+| OBSERVATION | `/Quill/QuillSub/CONTENTS` | 1024 |
+
+OBSERVATION: unlike Sample98's ten streams, this file has no Envelope,
+DocumentSummaryInformation or either Escher stream. These are absent entries,
+not zero-length streams. SummaryInformation and Quill CONTENTS are smaller.
+UNKNOWN: absent drawing streams do not establish absence of visible objects.
+
+OBSERVATION: all positions in the following tables are hexadecimal byte
+offsets relative to root Contents; sizes/counts are decimal unless marked
+with `0x`. Numeric reads are little-endian. The structural checks are the
+same bounded checks used for Sample98, with sample-specific directory counts
+and offsets rather than Sample98's constants.
+
+| Basis | Field / position | mspub.pub result | Comparison/check |
+| --- | --- | --- | --- |
+| OBSERVATION | Contents family selector | Matches Sample98 | Equality check on the existing four-byte discriminator; not an exact saving-version test. |
+| OBSERVATION | u32 `0x08` | 4152 | Equals actual Contents bytes, versus Sample98's 5930. |
+| OBSERVATION | u32 `0x12` | `0x37E` | Same control start as Sample98; control length 46 reaches `0x3AC` exactly. |
+| OBSERVATION | u32 `0x16` | `0x3AC` | Same directory start as Sample98; both control-relative pointers at `+0x0A` and `+0x0E` equal it. |
+| OBSERVATION | u32 `0x1A` | `0x22` | Same layout-table start; table header values are 89 and 6. |
+| OBSERVATION | Descriptor walk `0x26..0x37E` | 88 entries, exact end | Three u16 words plus zero-terminated selectors per entry; no leftover bytes. Entire `[0x22,0x37E)` table equals Sample98's. |
+| OBSERVATION | Descriptor 20 at `0xD6` | Same three words and four selectors | Boundary bytes 30/30, middle word 25, stride 2; selectors 4, 6, 26, 28. |
+| OBSERVATION | Directory count at `0x3AC` | 39 | Versus 54 in Sample98; exactly 39 ten-byte entries after the four-byte header. |
+| OBSERVATION | Directory end / first payload | `0x536 / 0x540` | Ten zero gap bytes, versus Sample98's twenty. |
+| OBSERVATION | Directory IDs / offsets / leading indices | 39 unique IDs; increasing bounded offsets; indices in 1..88 | First payload starts at `0x540`, last starts at `0x1010`; final span ends at actual stream length `0x1038`. Only leading indices of other classes are inspected. |
+| OBSERVATION | u16 `0x0E`, first directory ID and directory-header maximum at `0x3AE` | All equal `0x127` | All differ from Sample98's root-like ID `0x100`; its maximum is instead `0x141`. Here the maximum and first ID happen to coincide. |
+| OBSERVATION | Unresolved parent candidate | Only ID `0x127` with parent `0xFE` | Other 38 parents resolve; Sample98 instead has only ID `0x100` with unresolved parent `0xFF`. A fixed root ID or fixed unresolved-parent sentinel is not supported across these files. |
+
+INFERENCE: mspub.pub is a second **structurally matching variant-A sample**
+under the tested discriminator, header, table, control, directory and index-20
+criteria. This does not prove every record class or the publication's complete
+format semantics. Differences in stream inventory, root-like IDs, directory
+count, gaps and payload positions do not defeat those structural checks.
+
+### Index-20 fields and every tested record
+
+OBSERVATION: all 39 directory-addressed leading indices were checked; exactly
+six select descriptor 20. All six have boundary bytes at `R+0x02` and
+`R+0x03` equal to 30. Both count-like u16 words, at `R+0x1E` and `R+0x20`,
+are equal in each record. The byte at `R+0x22` is 2 and the next byte is zero;
+reading those two bytes as a u16 also gives 2. The four-byte field at `R+0x24`
+is zero in each record. UNKNOWN: byte versus u16 semantics for the width
+cannot be distinguished when its high byte is always zero.
+
+| Basis | ID | R / observed span | Boundary-byte positions | First count at / n | Second count at / value | Width byte at / value | IDs start / actual ID bytes | Formula span / result |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| OBSERVATION | `0x10E` | `0x7B6 / 62` | `0x7B8,0x7B9` | `0x7D4 / 11` | `0x7D6 / 11` | `0x7D8 / 2` | `0x7DE / 22` | 62 / agrees |
+| OBSERVATION | `0x11F` | `0xF0E / 40` | `0xF10,0xF11` | `0xF2C / 0` | `0xF2E / 0` | `0xF30 / 2` | `0xF36 / 0` | 40 / agrees |
+| OBSERVATION | `0x11E` | `0xF36 / 40` | `0xF38,0xF39` | `0xF54 / 0` | `0xF56 / 0` | `0xF58 / 2` | `0xF5E / 0` | 40 / agrees |
+| OBSERVATION | `0x11D` | `0xF98 / 40` | `0xF9A,0xF9B` | `0xFB6 / 0` | `0xFB8 / 0` | `0xFBA / 2` | `0xFC0 / 0` | 40 / agrees |
+| OBSERVATION | `0x11C` | `0xFC0 / 40` | `0xFC2,0xFC3` | `0xFDE / 0` | `0xFE0 / 0` | `0xFE2 / 2` | `0xFE8 / 0` | 40 / agrees |
+| OBSERVATION | `0x11A` | `0x1010 / 40` | `0x1012,0x1013` | `0x102E / 0` | `0x1030 / 0` | `0x1032 / 2` | `0x1038 / 0` | 40 / agrees |
+
+OBSERVATION: span is measured to the next directory offset, or Contents end
+for the last entry. For `0x10E`, `30+10+2*11 = 62`; its 22 ID bytes occupy
+`[0x7DE,0x7F4)`, exactly reaching the next directory offset. Two-byte reads
+give eleven distinct IDs descending from `0x10D` through `0x103`; every one
+resolves to a directory entry whose parent candidate is `0x10E`. The quotient
+22 bytes / 11 IDs independently repeats the observed element width of 2.
+Each of the other five records has zero ID bytes and satisfies
+`30+10+2*0 = 40`, including the final record ending exactly at stream end.
+
+OBSERVATION: descriptor 20's fixed selectors also give bounded u16 reads.
+Only one selected value is nonzero: record `0x11E` at `0xF36` has ID `0x10F`
+at relative `+0x04`, absolute `0xF3A`. Its matching directory entry has parent
+`0x11E`. Thus eleven tail references plus one fixed reference cover all twelve
+direct directory children of the six index-20 records. No child's body is
+decoded by this check. UNKNOWN: ordering and semantic roles remain unverified.
+
+### Disagreements and the count question
+
+OBSERVATION: **6/6 records agree**, comprising one nonempty tail and five
+empty tails. The exact list of disagreements with the requested boundary,
+count-equality, width, ID-resolution and `30+10+2*count` checks is **empty**.
+No unequal count-like pair exists among the six reachable index-20 records,
+and no record span differs from that formula. Sample98's prior 8/8 and this
+sample's fresh 6/6 give fourteen agreeing observations across two supplied
+files; that is still limited sample coverage, not a universal rule.
+
+UNKNOWN: count versus capacity versus element-length is **not resolved**.
+The words are either both 11 or both zero; any of those roles could agree
+when used and allocated lengths coincide. Neither word gives the nonempty
+list's byte length 22 or record length 62. The duplicate boundary bytes also
+remain equal. No separate total-record byte-length field, authoritative copy,
+or behavior for unequal counts is established. The width high byte remaining
+zero does not distinguish a one-byte width from a wider field either.
+
+INFERENCE: the next smallest discriminating step remains a controlled,
+independently produced variant-A index-20 example with unequal count-like
+words, ideally after a documented deletion leaving spare allocation. That
+is a proposed experiment, not an assertion that deletion creates such bytes.
+It would test used count versus capacity without changing another class or
+guessing from the two currently equal copies.
+
+UNKNOWN: saving release, original visible content, page/master/scratch roles,
+general descriptor semantics, reference relocation and malformed-input
+handling remain outside this checkpoint. The owner pair's identical Contents
+claim cannot be checked without zmspub.pub. No text or picture was inspected
+to fill those gaps.
+
+OBSERVATION: the fresh bounded check passes the required original size/hash,
+4152-byte Contents length, all four requested header values, exact table
+walk, control boundaries/pointers, directory bounds/IDs/leading indices,
+all six tail equations and all twelve reference resolutions. The original
+sample remains unchanged. No full CI, environment save/publication,
+environment script/setting change, importer change or pull request was made.
