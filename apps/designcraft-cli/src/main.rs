@@ -18,6 +18,8 @@
 //!                                      # file's own GTS_PDFXVersion)
 //! designcraft-cli thumbnail FILE.designcraft OUT.png [SIZE]   # the file's first-page preview, fitted to SIZE
 //!                                      # (the freedesktop thumbnailer for Linux file managers)
+//! designcraft-cli convert-folder INPUT_DIR OUTPUT_DIR [--recursive] [--overwrite]
+//! designcraft-cli batch-convert INPUT_DIR --out OUTPUT_DIR [--timeout-seconds N]
 //! designcraft-cli links                   # Discord, website, app page and GitHub links
 //! designcraft-cli --version               # print the version
 //! ```
@@ -36,13 +38,15 @@ macro_rules! outln {
 }
 
 mod automation_args;
+mod batch;
+mod folder;
 mod perf;
 
 use designcraft_engine::Session;
 use serde_json::{Value, json};
 
 /// The usage block. Shared by `--help` (stdout, success) and an unknown command (stderr, failure).
-const USAGE: &str = "usage: designcraft-cli run [--in FILE | --sample] [--cmd ID[=JSON]]... [--page N] [--scale S] [--pdf-options JSON] [--export OUT] [--all-pages DIR]\n         (--page, --scale and --pdf-options apply to the exports that follow them)\n       designcraft-cli commands [FILTER]\n       designcraft-cli describe COMMAND\n       designcraft-cli script [FILE|-] [--in FILE | --sample] [--connect PORT] [--save OUT] [--export OUT] [--keep-going]\n       designcraft-cli app [--port PORT] COMMAND [JSON] | --method METHOD [JSON]\n       designcraft-cli mcp [--connect PORT] [--sample] [--automation-read-root DIR]... [--automation-write-root DIR]...\n         the roots confine every file the agent's commands read (open, placed images, data sources, libraries) and\n         write (save, export, package) to those folders, links followed. Each may be given more than once; a kind\n         left out grants none of its access.\n         They run the in-process server, so they conflict with --connect (a running app is not confined by them).\n       designcraft-cli perf [--pages N] [--runs N] [--strict]\n       designcraft-cli bench FILE [--runs N]\n       designcraft-cli validate-pdf FILE.pdf [--standard x4|x1a]  # built-in PDF/X checks (including visible unembedded fonts; the standard defaults to the file's own)\n       designcraft-cli thumbnail FILE.designcraft OUT.png [SIZE]  # the saved first-page preview, at most SIZE px\n       designcraft-cli links\n       designcraft-cli --version";
+const USAGE: &str = "usage: designcraft-cli run [--in FILE | --sample] [--cmd ID[=JSON]]... [--page N] [--scale S] [--pdf-options JSON] [--export OUT] [--all-pages DIR]\n         (--page, --scale and --pdf-options apply to the exports that follow them)\n       designcraft-cli convert-folder INPUT_DIR OUTPUT_DIR [--recursive] [--overwrite]\n       designcraft-cli batch-convert INPUT_DIR --out OUTPUT_DIR [--timeout-seconds N]\n       designcraft-cli commands [FILTER]\n       designcraft-cli describe COMMAND\n       designcraft-cli script [FILE|-] [--in FILE | --sample] [--connect PORT] [--save OUT] [--export OUT] [--keep-going]\n       designcraft-cli app [--port PORT] COMMAND [JSON] | --method METHOD [JSON]\n       designcraft-cli mcp [--connect PORT] [--sample] [--automation-read-root DIR]... [--automation-write-root DIR]...\n         the roots confine every file the agent's commands read (open, placed images, data sources, libraries) and\n         write (save, export, package) to those folders, links followed. Each may be given more than once; a kind\n         left out grants none of its access.\n         They run the in-process server, so they conflict with --connect (a running app is not confined by them).\n       designcraft-cli perf [--pages N] [--runs N] [--strict]\n       designcraft-cli bench FILE [--runs N]\n       designcraft-cli validate-pdf FILE.pdf [--standard x4|x1a]  # built-in PDF/X checks (including visible unembedded fonts; the standard defaults to the file's own)\n       designcraft-cli thumbnail FILE.designcraft OUT.png [SIZE]  # the saved first-page preview, at most SIZE px\n       designcraft-cli links\n       designcraft-cli --version";
 
 /// `script --help`: the script syntax, otherwise only in `describe script.run` and docs/agents.md.
 const SCRIPT_HELP: &str = r#"usage: designcraft-cli script [FILE|-] [--in FILE | --sample] [--connect PORT] [--save OUT] [--export OUT] [--keep-going]
@@ -156,6 +160,13 @@ fn usage_for(sub: &str) -> String {
 }
 
 fn main() -> ExitCode {
+    let raw: Vec<std::ffi::OsString> = std::env::args_os().skip(1).collect();
+    if raw.first().is_some_and(|a| a == "convert-folder") {
+        return folder::entry(raw.get(1..).unwrap_or_default());
+    }
+    if raw.first().is_some_and(|a| a == "__folder-convert-one") {
+        return report(batch::pdf_worker(raw.get(1..).unwrap_or_default()));
+    }
     // `std::env::args` panics on an argument that is not UTF-8 ("called `Result::unwrap()` on an
     // `Err` value"), which a Latin-1 file name on Linux or macOS is. Such a name cannot be passed
     // through to the engine, whose paths are `str`, so it is a usage error here rather than a
@@ -192,6 +203,8 @@ fn main() -> ExitCode {
             ExitCode::SUCCESS
         }
         Some("run") => report(run(&args[1..])),
+        Some("batch-convert") => report(batch::run(&args[1..])),
+        Some("__batch-convert-one") => report(batch::worker(&args[1..])),
         Some("commands") => {
             let s = Session::new();
             let filter = args.get(1).map(|f| f.to_lowercase());
