@@ -293,7 +293,13 @@ decoded or B understood.
    checks to six agreeing records in a second structurally matching sample.
    OBSERVATION: AP4 checks a shared prefix high-byte/descriptor-high-byte
    boundary in all 93 records and exact array-tail extents in 44 records.
+   OBSERVATION: AP10 audits the 41 selector families previously identified
+   for descriptors 10/20/21/41/49: fifteen have repeated directory-parent
+   corroboration, nine have one corroborated hit, sixteen are zero-only,
+   and descriptor 21's +208 is outside both record spans. Descriptor 41's
+   +16 has one child-ID hit and one zero, so remains probable.
    UNKNOWN: authoritative duplicate fields in index-20, general relocation
+   (including the invalid literal +208 selection), optional zero-only roles
    and the meaning of descriptor `0x0019`; descriptor stride is not universal.
 2. UNKNOWN: universal framing and internal padding interpretation beyond
    the tested extent rules; semantic meanings of all four directory
@@ -314,8 +320,12 @@ decoded or B understood.
    AP2 accounts for all 24 direct directory children of the eight index-20
    records: 17 tail IDs and seven fixed-field IDs. OBSERVATION: AP3 accounts
    for another 12 matching directory edges, eleven tail IDs and one fixed ID.
+   OBSERVATION: the conservative AP10 selector graph, augmented only with
+   prior proven index-20 tails, has 38/27 edges and 16/12 indegree-zero
+   vertices in Sample98/mspub; both are partial forests, with no cycles or
+   dangling included IDs and every edge agreeing with the parent candidate.
    UNKNOWN: reference roles and child-list rules for other classes or beyond
-   these two samples.
+   these two samples; the partial graph does not identify publication roots.
 4. UNKNOWN: general shape-to-story mapping, field widths, geometry, formatting,
    table-cell ownership and displayed visibility. Existing Quill import failure
    on kind `0x19` was not repaired or bypassed into a complete import.
@@ -325,12 +335,12 @@ decoded or B understood.
    is resolved. UNKNOWN: zmspub.pub and the claimed equality of the owner pair
    remain unverified; independent manufacture is owner-reported provenance.
 
-INFERENCE: after AP9, the next smallest step needing no new sample is to
-test only descriptor 41's sole selector, record-relative +16, against each
-file's directory IDs. Start with bounded u16 reads at that selection and
-check resolution without assigning content or reference meaning. UNKNOWN:
-whether it actually selects a reference or a wider field, duplicate count
-roles, nonempty index-49 behavior and B's table remain separate questions.
+INFERENCE: after AP10, the next smallest step is to investigate only why
+descriptor 21's literal +208 selection lies outside both bounded records.
+Test possible schema-to-instance position relationships against actual
+boundaries before treating it as a field; do not read into the next record.
+UNKNOWN: any relocation rule, probable/zero-only selector roles, duplicate
+counts, nonempty index-49 behavior and B's table remain separate questions.
 
 ## What a reader must do before implementation
 
@@ -1744,3 +1754,180 @@ section change. No full CI, importer/protected-reader edit, B work, Quill
 repair, environment script/setting change, environment save/publication or
 pull request was performed. Sample and stream bytes remain uncommitted;
 no extra remote was added.
+
+## Reference selectors and the record graph
+
+OBSERVATION: AP10 starts from `c0b317908a37f7c0602ae0824abc66e57ee9be0d`,
+titled Complete the sampled legacy record extent census. Fetch succeeds and
+the named branch is at that commit. The restore verifies 317 pinned inputs,
+restores none and reports zero failures; binary folder counts are 142 and
+24. Both originals match their recorded identities: Sample98.pub is 61440
+bytes; mspub.pub is 19968 bytes with SHA-256
+`0EFF0498172805BF1E52C74A6334ECC4CDC84FB2E531C0EA25734CFAC7923C7D`.
+Fresh Contents extractions and derived checks remain ignored. No private
+bytes or content are reproduced. SOURCES.md already lists both inputs and
+is unchanged; the attachment remains available, so no fallback is used.
+
+OBSERVATION: scope is every selector of the five descriptors with nonempty
+selector lists already identified in this note: 10,20,21,41,49. This is
+41 descriptor/offset pairs, including all 32 selectors of descriptor 21.
+The existing descriptor walk and every directory entry are checked afresh.
+Other descriptors' selector roles and variable-tail values other than the
+previously proven index-20 ID lists are not expanded into this graph.
+All selected reads use bounded little-endian u16 probes at R+selector;
+the upper/lower representation of a genuine reference remains UNKNOWN.
+
+### Descriptor 41: one ascending child-ID candidate, not a sequence
+
+OBSERVATION: descriptor 41 at `0x1D8` selects +16 through its word at
+`0x1DE`. Exactly one directory record uses it in each sample. Positions
+and IDs in the table are hexadecimal; sizes and selector offsets are decimal.
+
+| Basis | Sample | Source ID / directory entry / R | Selected position / value | Independent directory check |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | Sample98 | `0x11F / 0x3BA / 0x6AA` | `0x6BA / 0x120` | ID `0x120` exists at directory entry `0x3C4`; its parent candidate is `0x11F`. |
+| OBSERVATION | mspub | `0x111 / 0x3BA / 0x608` | `0x618 / 0` | Zero is not an ID in this file; no target is assigned. |
+
+OBSERVATION: the one nonzero value resolves to a direct child according to
+the independent directory +2 field. Its ID is source ID plus one, and its
+directory entry follows the source's entry. It is neither the source's
+parent nor a sibling under the directory relation. There is only one
+nonzero observation, so no ascending-list or general ordering rule is tested.
+The zero sample cannot prove a null encoding or absence of all references.
+
+INFERENCE: descriptor 41's selector is a probable reference. ID membership
+plus one independently matching child-parent pair supports that reading;
+it does not establish universal semantics, width, relocation or the role
+of the zero value. It is excluded from the proven-only graph below.
+
+### False-positive controls and classification standard
+
+OBSERVATION: the 16-bit uniform-field baseline for a single random probe is
+54/65536 = 0.08240% in Sample98 and 39/65536 = 0.05951% in mspub. For
+m probes, expected ID hits are m times that density; no independence is
+needed for that expectation. This model assumes uniformly distributed field
+values, not actual publication fields. Conditional on already falling in
+the ID interval, density is much higher: 54/66 = 81.82% over `0x100..0x141`
+and 39/40 = 97.5% over `0x100..0x127`. A small number in that interval
+can match accidentally. No p-value or semantic proof is derived from density.
+
+OBSERVATION: a matched same-width background control enumerates every
+even-offset u16 in each scoped record's fixed part, from +4 through H-2,
+excluding that descriptor's selectors and the leading prefix. Uniformly
+choosing one member of that pool would have the empirical hit rate shown
+below. The complete pool is used instead of random sampling, avoiding seed
+dependence. These controls may include unknown references; they are a
+background comparison, not a certified set of non-reference fields. No
+control values or payload meanings are reproduced.
+
+| Basis | Descriptor / selector instances per file | Sample98 control ID hits / fields | mspub control ID hits / fields | Uniform expected hits per fully bounded selector, Sample98 / mspub |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | 10 / 2,1 | 0 / 106 | 0 / 53 | 0.001648 / 0.000595 |
+| OBSERVATION | 20 / 8,6 | 2 / 72 | 2 / 54 | 0.006592 / 0.003571 |
+| OBSERVATION | 21 / 1,1 | 0 / 56 | 0 / 56 | 0.000824 / 0.000595 |
+| OBSERVATION | 41 / 1,1 | 0 / 25 | 0 / 25 | 0.000824 / 0.000595 |
+| OBSERVATION | 49 / 2,3 | 0 / 2 | 0 / 3 | 0.001648 / 0.001785 |
+
+OBSERVATION: all four control ID hits fail the direct-child parent match:
+zero of 452 control probes has that corroboration. Across actual selectors,
+there are 72 bounded probes with 27 ID hits in Sample98 and 62 with 19 hits
+in mspub. All other bounded values are zero; every nonzero selected value
+resolves to an ID whose directory parent candidate equals its source ID.
+Neither file has a nonzero non-ID selected value in this scoped census.
+The aggregate uniform baseline predicts approximately 0.0593/0.0369 hits,
+but structure and dependence prevent treating that as a significance test.
+
+INFERENCE: classification is deliberately sample-bounded. P means proven
+reference correspondence in these samples: at least two nonzero selected
+values, every nonzero value an existing ID, and every such target independently
+naming the source as parent candidate. R means probable: the same checks
+but only one nonzero observation. Repetition can be within one file; it is
+not necessarily independent manufacture. These criteria do not prove writer
+intent or validity on unseen files. The threshold is a conservative evidence
+policy, not a statistical theorem or a decoded format field.
+
+UNKNOWN: zero-only selectors cannot honestly be proved not to be optional
+references. N below means **not an observed reference in these instances**,
+not a universal negative. The out-of-bounds selector is not a readable
+literal field; its intended mapping remains unknown. A stronger three-way
+claim that every zero-only field is definitely non-reference is unsupported.
+
+### Complete selector table
+
+OBSERVATION: each grouped row applies separately to every listed selector;
+the lists partition all 41 descriptor/offset pairs without omissions.
+Offsets are decimal. Hit/probe counts include zeros in the denominator;
+all hits have independent direct-child corroboration. The matching control
+pool and uniform expectation for each row are in the descriptor table above.
+
+| Basis | Descriptor | Selectors, each tested separately | Sample98 ID hits / bounded probes, each | mspub ID hits / bounded probes, each | Classification / limit |
+| --- | --- | --- | --- | --- | --- |
+| OBSERVATION | 10 | 106,108,110 | 1 / 2 | 0 / 1 | R; one nonzero per selector, remaining values zero. |
+| OBSERVATION | 20 | 4 | 1 / 8 | 1 / 6 | P; repeated corroboration across files. |
+| OBSERVATION | 20 | 28 | 6 / 8 | 0 / 6 | P; six corroborated nonzero instances, all in Sample98. |
+| OBSERVATION | 20 | 6,26 | 0 / 8 | 0 / 6 | N; zero-only, optional role UNKNOWN. |
+| OBSERVATION | 21 | 4,6,8,64,72,74,76,88,94,104,106,110 | 1 / 1 | 1 / 1 | P; repeated corroboration across files. |
+| OBSERVATION | 21 | 52,70,86 | 0 / 1 | 1 / 1 | R; one nonzero per selector. |
+| OBSERVATION | 21 | 96,138 | 1 / 1 | 0 / 1 | R; one nonzero per selector. |
+| OBSERVATION | 21 | 66,68,78,80,82,84,90,92,98,108,132,134,136,176 | 0 / 1 | 0 / 1 | N; zero-only, optional role UNKNOWN. |
+| OBSERVATION | 21 | 208 | 0 / 0; one rejected probe | 0 / 0; one rejected probe | N; outside both record spans, mapping UNKNOWN. |
+| OBSERVATION | 41 | 16 | 1 / 1 | 0 / 1 | R; detailed evidence above. |
+| OBSERVATION | 49 | 6 | 2 / 2 | 3 / 3 | P; five corroborated nonzero instances. |
+
+OBSERVATION: the totals are **15 P, nine R, sixteen zero-only N and one
+out-of-bounds N**. Descriptor 21's +208 fails before any ID read: its
+record spans are 202/200, while a u16 at +208 would require at least 210
+bytes. The attempted absolute positions would be `0x6B0` and `0x610`,
+beyond E=`0x6AA` and `0x608`; they are not read as selected fields. Counting
+the next record's bytes would invent evidence and could create spurious
+references. No adjustment or relocation rule is inferred in this step.
+
+### Proven-only graph, with scope kept explicit
+
+OBSERVATION: vertices are all 54/39 directory IDs, including isolated ones.
+An edge points from the record containing a proven selected field to the
+target ID; duplicates would be collapsed, zeros are excluded, and R/N
+selectors contribute no edges. The selector-only layer has 21/16 distinct
+edges. The expanded layer adds only AP2/AP3's previously proven index-20
+tail IDs: 17/11 edges, with no duplicate selector edges. Both layers are
+checked independently for indegrees, cycles and endpoint membership.
+
+| Basis | Sample / proven-only layer | Vertices / edges | Indegree-zero vertices / isolated vertices | Cycles / dangling included IDs | Shape |
+| --- | --- | --- | --- | --- | --- |
+| OBSERVATION | Sample98 / selectors only | 54 / 21 | 33 / 26 | 0 / 0 | Forest, 33 components. |
+| OBSERVATION | mspub / selectors only | 39 / 16 | 23 / 20 | 0 / 0 | Forest, 23 components. |
+| OBSERVATION | Sample98 / selectors plus prior proven tails | 54 / 38 | 16 / 9 | 0 / 0 | Forest, 16 components. |
+| OBSERVATION | mspub / selectors plus prior proven tails | 39 / 27 | 12 / 9 | 0 / 0 | Forest, 12 components. |
+
+OBSERVATION: every included vertex has indegree at most one, every component
+is acyclic, and there are no self-edges or dangling targets. These forests
+are DAGs, but neither is one connected tree. All 38/27 expanded edges go
+from the directory parent candidate to its child, the inverse orientation
+of reading a child record's +2 parent field. That agreement was part of the
+reference-correspondence criterion, not an independent discovery of parent
+semantics. Graph indegree-zero vertices are roots only of this partial graph,
+not established publication roots. Missing probable/untested edges can change
+connectivity, root count or cycles in the full unknown reference graph.
+
+UNKNOWN: no complete record graph, general reference width, null encoding,
+ownership semantics or universal selector mapping is proven. A single-hit
+candidate is not included merely because a uniform-random match is rare.
+Zero-only fields could be optional references; descriptor 21's +208 could
+require a mapping not yet established. Other descriptor selectors and other
+tail relationships remain outside this checkpoint. No geometry, text, colour
+or formatting meaning is decoded, and the 93/93 extent census remains unchanged.
+
+INFERENCE: the next smallest step is to investigate the bounded mapping of
+descriptor 21's +208 selector. Test schema/instance position relationships
+against the existing two record boundaries without reading into neighboring
+records or assuming any candidate relocation is valid.
+
+OBSERVATION: this is the first AP10 checkpoint. Both original identities,
+all earlier bounded checks, 93 extent predictions, all 41 scoped selector
+families, 134 bounded probes, two rejected probes, all 452 control fields,
+the prior 28 tail references and both graph layers pass their stated checks.
+Only this appended section and the narrowed ranked-unknowns section change.
+No full CI, importer/protected-reader edit, B work, Quill repair, environment
+script/setting change, environment save/publication or pull request was
+performed. Sample and extracted bytes remain uncommitted; no extra remote
+was added.
