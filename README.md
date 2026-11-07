@@ -1,395 +1,188 @@
-<p align="center">
-  <a href="https://getartcraft.com/">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/brand/artcraft-logo-white.svg">
-      <img alt="ArtCraft" src="docs/brand/artcraft-logo.svg" width="200">
-    </picture>
-  </a>
-</p>
+<!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
+<h1 align="center"><img src="assets/nifty/nifty-wordmark.png" alt="NiftyDesign" width="420"></h1>
 
+<p align="center"><b>Design Page Layouts · Open Publisher Files · Export PDF · Save as .designcraft</b></p>
+
+<p align="center">A free, open-source page-layout app for Windows. Design flyers, newsletters and brochures with text frames, shapes, curves and pictures, or open and edit Microsoft Publisher (.pub) files, with no Publisher needed.<br><b>Opens Publisher files from 2002 and newer.</b> Publisher 97, 98 and 2000 files are not supported yet.<br>NiftyDesign is an early, unofficial test build.<br><i>Built on DesignCraft by the ArtCraft team.</i></p>
 
 <p align="center">
-  <img src="assets/app-icon/hicolor/256x256/apps/ai.storyteller.designcraft.png" width="128" height="128" alt="DesignCraft icon: an engraved cat in a polka-dot scarf on a green tile">
-</p>
-
-<h1 align="center">DesignCraft</h1>
-
-<p align="center">
-  <b>Page layout and publishing; an open-source, modern desktop publishing and page layout studio, built in pure Rust.</b>
+  <img alt="status: unofficial alpha" src="https://img.shields.io/badge/status-unofficial%20alpha-d9822b">
+  <img alt="runs on: Windows x64" src="https://img.shields.io/badge/runs%20on-Windows%20x64-1f6feb">
+  <img alt="license: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-1f6feb">
+  <img alt="built on DesignCraft 0.12" src="https://img.shields.io/badge/built%20on-DesignCraft%200.12-2da44e">
+  <img alt="build: unsigned" src="https://img.shields.io/badge/build-unsigned-6e7781">
 </p>
 
 <p align="center">
-  A fast, open-source desktop publishing and page layout workflow. It runs natively on macOS,
-  Windows and Linux, and in the browser via WebAssembly.<br>
-  <i>By the ArtCraft team.</i>
+  <a href="https://github.com/srt8hellcat2-ui/niftydesign/releases"><img alt="Download for Windows (alpha)" src="https://img.shields.io/badge/DOWNLOAD%20FOR%20WINDOWS-ALPHA-1f6feb?style=for-the-badge&logo=windows&logoColor=white"></a>
 </p>
 
-<p align="center">
-  <img alt="Written in Rust" src="https://img.shields.io/badge/written%20in-Rust-4d7a0a?style=flat-square&logo=rust&logoColor=white">
-  <img alt="Runs on macOS, Windows, Linux and the web" src="https://img.shields.io/badge/runs%20on-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux%20%C2%B7%20Web-7bb51c?style=flat-square">
-  <img alt="License: MIT OR Apache-2.0" src="https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-4d7a0a?style=flat-square">
-  <img alt="Agent-drivable over MCP" src="https://img.shields.io/badge/agents-MCP-7bb51c?style=flat-square">
-  <br>
-  <a href="https://sonarcloud.io/project/overview?id=storytold_designcraft"><img alt="Scanned by SonarCloud" src="https://img.shields.io/badge/Scanned_by-SonarCloud-4b9fd5?style=flat-square&logo=sonarqubecloud&logoColor=white"></a>
-  <a href="https://coderabbit.ai"><img alt="Reviewed by CodeRabbit" src="https://img.shields.io/coderabbit/prs/github/storytold/designcraft?style=flat-square&label=Reviewed%20by%20CodeRabbit&logo=coderabbit"></a>
-</p>
+<p align="center"><a href="#will-my-file-open">Will my file open?</a> · <a href="#install">Install</a> · <a href="#bring-your-file-tell-us-what-broke">Bring your file</a> · <a href="docs/KNOWN-LIMITATIONS.md">Known limitations</a> · <a href="https://github.com/srt8hellcat2-ui/niftydesign/issues/new/choose">Report a problem</a></p>
 
-<p align="center">
-  <a href="https://discord.gg/artcraft"><img alt="Join the ArtCraft community on Discord" src="https://img.shields.io/badge/Join%20us%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" height="40"></a>
-</p>
-
-<p align="center">
-  <a href="https://getartcraft.com/apps/designcraft"><b>DesignCraft on getartcraft.com</b></a> ·
-  <a href="https://getartcraft.com/">ArtCraft</a> ·
-  <a href="https://getartcraft.com/apps">All Crafting Apps</a>
-</p>
-
-<br>
-
-<p align="center">
-  <img src="docs/images/ui-spread.png" alt="DesignCraft showing a magazine spread: a threaded three-column story is selected with its in/out ports and thread line, the Control panel shows its position in picas and the Properties panel its text frame options" width="100%">
-  <br><sub><b>Quarterly, Spring Issue</b>: threaded three-column body text, a wrapped pull quote and parent-page folios, all set by DesignCraft's own paragraph composer.</sub>
-</p>
+<p align="center"><img src="docs/screenshots/windows-flyer-editor.png" alt="A coffee shop flyer open in the NiftyDesign editor on Windows"></p>
+<p align="center"><sub>A flyer built in NiftyDesign, running on Windows.</sub></p>
 
 > [!NOTE]
-> **ArtCraft is a community of artists from all walks of life.** Digital, generative, music,
-> games &mdash; if you make things, you're one of us. **[Come say hi on Discord](https://discord.gg/artcraft).**
+> NiftyDesign is independent and unofficial. It is not supported by or affiliated with ArtCraft or Microsoft. Microsoft Publisher is a Microsoft trademark. Report problems here, never to the ArtCraft projects.
 
-<p align="center">
-  <a href="#the-sample-magazine">The sample magazine</a> ·
-  <a href="#why-designcraft">Why DesignCraft</a> ·
-  <a href="#quick-start">Quick start</a> ·
-  <a href="#web">Web</a> ·
-  <a href="#architecture">Architecture</a> ·
-  <a href="#downloads">Downloads</a> ·
-  <a href="#the-crafting-apps">The Crafting Apps</a> ·
-  <a href="#license-and-credits">License and credits</a>
-</p>
+## What this is, and what to expect
 
-## The sample magazine
+NiftyDesign is the full DesignCraft desktop app with a Publisher importer added. You can open a `.pub` file, edit it, save it as a `.designcraft` document, and export a PDF. Opening a `.pub` never modifies your original file on disk. NiftyDesign opens a converted copy as a new, unsaved document. That copy can look different from what Publisher shows, because some features are lost or simplified (see the table below). Always compare it with your original.
 
-Every page below was laid out by DesignCraft from code (`crates/engine/src/sample.rs`) and exported
-by its own renderer. Try it yourself with `Help → Sample Document`, or start the app with
-`--sample`.
+NiftyDesign now shows a notice on every converted .pub: 'This is a converted copy. It can look different from what Publisher shows; some features are lost or simplified, and not every loss gives a warning. Compare it with your original.' The import notes list stays available in the app and in the command-line report.
+
+This is an alpha, and it is honest about that:
+
+- **It has been run by the maintainer on one Windows 11 PC.** There, the app launched, opened a Publisher test file, a flyer and a business card were built in it, saved, reopened after a restart, exported to PDF, and printed on one inkjet printer. Windows system fonts were found. Other PCs and printers are untested, so you may find problems we have not.
+- **Our real-file testing is small.** We have tested with public sample files from the Apache POI project and with files we generated for testing. We do not have a collection of real people's Publisher files. That is why we are asking for yours.
+- **Real files often open with warnings.** Of 24 real Apache test files: 9 opened with only notes about formatting settings we do not understand and skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. The 9 are not a claim that they match Publisher; we have not compared them with Publisher. Earlier counts called these 9 'warnings'; only the labelling changed, not the importer's fidelity. A warning means something was not converted fully. No warning does not prove the copy is perfect, because not every loss produces a warning. Always check the result against your original.
+
+## From a .pub file to a finished page
+
+We opened Apache's public `Sample2.pub` test file in NiftyDesign, then built a flyer and a business card, saved the document, and exported PDF. These are Windows screenshots.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/windows-sample2-opened.png" alt="Sample2.pub opened in NiftyDesign on Windows"><br><sub>1. Sample2.pub, opened</sub></td>
+    <td align="center"><img src="docs/screenshots/windows-flyer-page.png" alt="The flyer page"><br><sub>2. The flyer page</sub></td>
+    <td align="center"><img src="docs/screenshots/windows-card-page.png" alt="The business card page"><br><sub>3. The business card page</sub></td>
+  </tr>
+</table>
+
+## Will my file open?
+
+These are results from our own checks. Only nine test files have been compared side by side with Publisher reference images.
+
+| What | Status | Detail |
+|---|---|---|
+| Publisher 2002 and newer files | Opens, with warnings | Most real files open with warnings. Check against your original. |
+| Publisher 97, 98, 2000 files | Not supported | Refused with a message. Re-save in Publisher 2002 or newer first. |
+| Text, colours, bullets | Works | Tested on our sample files. |
+| Fonts | Partly | Installed fonts are used (Arial and Times New Roman were found on the test PC). Microsoft fonts that are not installed are replaced by a similar available font, so spacing and line breaks can change. |
+| Shapes, lines, fills, shadows | Partly | Common shapes, lines, fills and shadows work. Curves and polylines are editable paths and the heart draws as a heart. Other shape types can still come in as rectangles, with a warning. |
+| Pictures | Mostly works | PNG, JPEG, BMP. PICT and some clip art may look wrong. |
+| Tables | Partly | In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. |
+| WordArt | Partly | Default upward arch uses editable paths fitted from measured font advances. Circle and other warps stay straight. |
+| Numbered lists, custom tab stops | Not yet | Lost on import. |
+| Save as `.designcraft` and reopen | Works | Tested after a full restart. |
+| Export to PDF | Works | Tested on Windows. |
+| Printing | Worked on one printer | Tested on one inkjet printer. Other printers are untested. |
+
+Microsoft fonts may be substituted with available fonts when they are not installed. Original font names are kept, but spacing and line breaks can change.
+
+The full list is in [Known limitations](docs/KNOWN-LIMITATIONS.md).
+
+## See it in alpha.4
+
+These are screenshots of the NiftyDesign window itself, opening Publisher test files with the alpha.4 build.
 
 <table>
 <tr>
-<td width="50%" valign="top"><img src="docs/images/page-cover.png" alt="Magazine cover for The Spring Issue, No. 01: a dusk landscape of layered purple hills under a large pale sun, with the white serif headline The Quiet Art of Layout and an italic deck below" width="100%"><p align="center"><sub><b>Cover.</b> A full-bleed graphic frame, display type and an italic deck.</sub></p></td>
-<td width="50%" valign="top"><img src="docs/images/page-2.png" alt="Feature opener titled Notes on the Grid, with an orange FEATURE · DESIGN kicker over a rule, an italic deck, a wide landscape picture with a small caption, and two columns of justified body text above a QUARTERLY folio" width="100%"><p align="center"><sub><b>Styles.</b> Kicker rule, headline, deck, caption and justified two-column body.</sub></p></td>
+<td><img src="docs/demo/alpha4/app-heart.png" width="420" alt="NiftyDesign window showing a heart shape opened from a Publisher file"><br><sub>A heart shape from a Publisher file (new in alpha.4)</sub></td>
+<td><img src="docs/demo/alpha4/app-curve.png" width="420" alt="NiftyDesign window showing a curve opened from a Publisher file"><br><sub>A curve, now an editable path (new in alpha.4)</sub></td>
 </tr>
 <tr>
-<td width="50%" valign="top"><img src="docs/images/page-3.png" alt="Three-column page of justified, hyphenated body text that wraps around a shaded pull quote reading The best layouts disappear. What remains is the story., with a gradient rule and SPRING ISSUE folio at the foot" width="100%"><p align="center"><sub><b>Threading, columns and text wrap.</b> One story flows through three columns and around the pull quote.</sub></p></td>
-<td width="50%" valign="top"><img src="docs/images/page-4.png" alt="Coming Next page titled Color, Ink and Paper on a plum background, with four swatch circles labeled Ink Plum, Sunset, C=100 M=0 Y=0 K=0 and Paper Warm, above a short paragraph of body text" width="100%"><p align="center"><sub><b>Swatches.</b> Named colors and a CMYK process swatch, laid out as a palette.</sub></p></td>
+<td><img src="docs/demo/alpha4/app-polyline.png" width="420" alt="NiftyDesign window showing a polyline opened from a Publisher file"><br><sub>A polyline, now an editable path (new in alpha.4)</sub></td>
+<td><img src="docs/demo/alpha4/app-arch-wordart.png" width="420" alt="NiftyDesign window showing arched WordArt opened from a Publisher file"><br><sub>Arched WordArt as editable curved text (new in alpha.4)</sub></td>
+</tr>
+<tr>
+<td><img src="docs/demo/alpha4/app-sample2.png" width="420" alt="NiftyDesign window showing Apache's public Sample2.pub test file"><br><sub>A real Publisher file (Apache's public Sample2.pub test file)</sub></td>
+<td><img src="docs/demo/alpha4/app-flyer.png" width="420" alt="NiftyDesign window showing a flyer built in the app"><br><sub>A flyer built in NiftyDesign with text and shapes only</sub></td>
 </tr>
 </table>
 
-## Why DesignCraft
+The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PNG](docs/demo/alpha4/alpha4-flyer.png) and an [editable `.designcraft` file](docs/demo/alpha4/alpha4-flyer.designcraft). The saved copy of the Sample2 file is [here](docs/demo/alpha4/alpha4-sample2-copy.designcraft); the original `.pub` is never changed. The earlier coffee-shop flyer and business card are still in `docs/demo/coffee-shop`.
 
-- **Familiar.** A familiar layout, tools, menus, panels and shortcuts: spreads and parent pages,
-  master pages, text frames, threaded text, paragraph and character styles, tables, text wrap and
-  more. Everything is right where you expect it.
-- **Beautiful type.** A Knuth–Plass paragraph composer (plus single-line), dictionary hyphenation
-  (the public-domain Moby word list plus our own trained patterns), word, letter and glyph-scaling
-  justification, keeps, optical margin alignment, columns, baseline grid, tabs, rules and shading.
-  Line breaks are identical on screen and in PDF.
-- **Fast.** Multithreaded SIMD rendering (vello_cpu), copy-on-write documents with O(1) undo
-  snapshots, and cached composition.
-- **Open.** A documented native format, IDML import and export, INDD import (through
-  [indd-utils](https://github.com/storytold/indd-utils)), editable .pptx export, and PNG, PDF
-  (PDF/X-4, PDF/A-2b) and EPUB export.
+## Where NiftyDesign stands (alpha.4)
 
-  No subscription, no licence server, no telemetry.
-- **Agent-native.** Every menu item, tool gesture, panel control and dialog can be driven over a
-  JSON control channel and an **MCP server**, so Claude and other agents can lay out and edit
-  documents like a designer. See [`docs/control-protocol.md`](docs/control-protocol.md) and
-  [`docs/mcp.md`](docs/mcp.md).
-- **Everywhere.** One Rust codebase for desktop and the web.
+**Done**
 
-## Quick start
+- ✅ Opens Publisher 2002+ files as an editable copy; originals untouched
+- ✅ Text, colours and bullets
+- ✅ Pictures (PNG, JPEG, BMP)
+- ✅ Lines, fills, shadows and common shapes
+- ✅ Curves and polylines as editable paths (new in alpha.4)
+- ✅ The heart shape (new in alpha.4)
+- ✅ Upward-arch WordArt as editable curved text (new in alpha.4)
+- ✅ Missing fonts replaced by the closest available font (new in alpha.4)
+- ✅ No font pop-up window when you open a file (new in alpha.4)
+- ✅ Table text
+- ✅ Save as `.designcraft` and reopen
+- ✅ Export to PDF, and printing (tested on one printer)
+- ✅ [Command-line folder conversion to PDF](docs/folder-convert.md), with one report of results and things to check
 
-The egui frontend requires Rust 1.95 or newer (including its shared `craft-ui` components).
+**Partly**
 
-```sh
-cargo run --release -p designcraft                         # desktop app (start screen)
-cargo run --release -p designcraft -- --sample             # open the sample magazine
-cargo run --release -p designcraft -- --sample --control 7979   # + JSON control channel
-cargo run --release -p designcraft-cli -- run --sample --all-pages out/       # headless: render every page to PNG
-cargo run --release -p designcraft-cli -- commands         # list every command
-cargo run --release -p designcraft-cli -- script --help    # command script syntax (docs/agents.md)
-cargo xtask ci                                             # fmt, clippy, tests, assets, layering, wasm
-```
+- 🟡 Fonts: missing Microsoft fonts are substituted; line breaks can change
+- 🟡 Tables: fills, borders, padding and merged cells not decoded yet
+- 🟡 Other shape types can still come in as rectangles, with a warning
+- 🟡 WordArt: circle and other warps stay straight text
+- 🟡 Real files: most open with warnings; check them against the original
 
-Japanese text (UI and documents) uses fonts from
-[storytold/craft-fonts](https://github.com/storytold/craft-fonts), an optional build input (font
-files are never committed here; see the public
-[craft-fonts integration guide](https://github.com/storytold/craft-fonts/blob/main/docs/integration.md)
-for build instructions):
+**Not yet**
 
-```sh
-git clone https://github.com/storytold/craft-fonts ../craft-fonts
-CRAFT_FONTS_DIR="$PWD/../craft-fonts" cargo run --release -p designcraft   # absolute path
-```
+- ⬜ Page numbers and dates
+- ⬜ A signed download (Windows shows a warning for now)
+- ⬜ Testing on more than one Windows PC and printer
 
-Without it, Japanese falls back to the system's fonts (none on the web). Release builds always
-include it.
+**Still needs research** (we do not yet know how Publisher stores or does these)
 
-To drive a running app, send JSON lines to `127.0.0.1:7979`. The protocol is described in
-[`docs/control-protocol.md`](docs/control-protocol.md).
+- 🔬 How Publisher fits text to a frame (some headlines get cut off)
+- 🔬 Table cell fills, borders, padding and the small row-position drift
+- 🔬 How Publisher bends letters in circle, wave and other WordArt
+- 🔬 Numbered lists and custom tab stops (we need sample files)
+- 🔬 Publisher 97, 98 and 2000 files (refused today)
 
-### Logs
+Real-file check: of 24 real Apache test files, 9 opened with only notes about formatting settings we skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. We have compared only nine test files with Publisher's own images, so none of this is a claim that files match Publisher. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
 
-The desktop app writes its `log` records to standard error and to `logs/designcraft.log` in the
-settings directory, beside `ui.json` and `prefs.json` (Linux `~/.config/designcraft/logs/`, or
-`$XDG_CONFIG_HOME/designcraft/logs/`; macOS `~/Library/Application Support/DesignCraft/logs/`;
-Windows `%APPDATA%\DesignCraft\logs\`). A start launched from a desktop menu or the Dock has no
-terminal, so this file is what to attach to a bug report: the graphics adapters found and the
-one drawing, why the app stopped (also when its window never opened), the crash guard's panic
-report and a failed crash-recovery save land there. Each launch moves the previous log to `designcraft.1.log`
-(and that one to `designcraft.2.log`), so the log of a run that crashed survives the next start.
-The file stops growing at 16 MiB. `--version` writes no file.
+## Install
 
-| Variable | Effect |
-|---|---|
-| `RUST_LOG` | Log levels for standard error and the log file. Default: `info` for DesignCraft's own crates, `warn` for everything else. env_logger-style directives replace that, e.g. `RUST_LOG=debug`, `RUST_LOG=warn,designcraft_render=trace` or `RUST_LOG=info,wgpu_core=warn`; a directive ending in `*` covers every target starting with it (`designcraft*=debug`). |
-| `WGPU_BACKEND` | The graphics backend that composites the window: `dx12`, `vulkan`, `gl` or `metal` (a comma-separated list lets wgpu choose among them). Default: DirectX 12 on Windows, Vulkan on Linux, Metal on macOS, with OpenGL as the fallback. Setting it also turns off the start-up fallback described below. |
-| `WGPU_POWER_PREF` | The kind of GPU that draws the window: `low` (integrated), `high` (discrete) or `none` (the system's order). Default: the GPU that drives the primary display, then `low` on Windows and macOS and `none` elsewhere. |
-| `WGPU_ADAPTER_NAME` | The graphics adapter by (part of) its name, any case (`nvidia`, `radv`, `intel`); the log lists the names. |
-| `WGPU_VALIDATION_INDIRECT_CALL` | `1` turns wgpu's check of indirect draw arguments back on. DesignCraft draws nothing indirectly and turns it off: the compute shader it needs failed to compile on an Intel Mac and lost the graphics device (#334). |
+1. Download the zip from the [latest release](https://github.com/srt8hellcat2-ui/niftydesign/releases).
+2. Right-click the zip and choose **Extract All**.
+3. Open the new folder and double-click `designcraft.exe`.
+4. Windows may warn you because the alpha is not signed. Choose **More info**, then **Run anyway**. If Windows instead says "An Application Control policy has blocked this file", Smart App Control has blocked it and offers no Run anyway option. Trying again later sometimes helps. See [Known limitations](docs/KNOWN-LIMITATIONS.md#windows-smart-app-control-can-block-this-app).
 
-The logger is `apps/designcraft/src/logging.rs`; the web build logs to the browser console instead.
+<details>
+<summary>Want to verify the download? (optional)</summary>
 
-### Portable mode
+Each release file shows a SHA-256 value on the Releases page. In PowerShell, run `Get-FileHash .\NiftyDesign-...-windows-x64.zip` and compare it with the `.sha256` file.
+</details>
 
-A file named `portable.txt` next to the executable (on macOS, next to `DesignCraft.app`) makes the install portable: settings, logs and
-crash recovery are kept in a `DesignCraftData` folder beside it instead of the per-user folders
-above. The Windows portable zip ships with one; delete it to go back to `%APPDATA%\DesignCraft`.
-If `DesignCraftData` cannot be written (a copy unzipped into Program Files), the per-user folders
-are used instead and the log and the status bar say so.
-`DESIGNCRAFT_CONFIG_DIR` still takes precedence. The code is `apps/designcraft/src/profile.rs`.
+Full steps: [docs/TESTER-INSTALL.md](docs/TESTER-INSTALL.md). If the app misbehaves it writes a log. Attach `%APPDATA%\DesignCraft\logs\designcraft.log` to your report if you can.
 
-### Graphics backend and processor
+## Bring your file, tell us what broke
 
-The canvas is rendered on the CPU; the GPU only composites the interface, through wgpu, so any
-adapter that can show the window will do. The code is `apps/designcraft/src/gpu.rs` (the adapter)
-and `apps/designcraft/src/gpu/backend.rs` (the backend).
+You are among the first to run this. Whatever you find, good or bad, helps.
 
-- **Backend.** A graphics driver that faults takes the process down before any Rust code can
-  catch it, so each start creates its wgpu instance with one backend, chosen before the window
-  exists: on Windows DirectX 12, then OpenGL, then Vulkan, each on its own (creating an OpenGL
-  instance crashed inside AMD's `atio6axx.dll`, #167, and creating a Vulkan instance loads every
-  installed Vulkan driver, of which a faulty one can crash the app); on Linux Vulkan with OpenGL
-  beside it, then OpenGL alone; on macOS Metal. Seen in the wild: on an AMD hybrid-graphics laptop
-  (a Radeon RX 6800M beside an integrated Radeon) the AMD Vulkan driver faulted at the first
-  present, which is why DirectX 12 is the Windows default.
-- **A start that never showed a frame is remembered:** `gpu.json` in the settings directory
-  records the backend being tried until the first frame has been presented. A record left behind
-  means that backend crashed (or the app was killed) at start-up, so the next start tries the next
-  backend and says so in the status bar. The list starts over once every backend has failed, or
-  with a new DesignCraft version; delete the file or set `WGPU_BACKEND` to start afresh.
-- **Adapter.** Among the adapters of those backends, the app picks the one that draws the window
-  (eframe's `native_adapter_selector`): adapters that report they can't present to the window are
-  never tried; then the one `WGPU_ADAPTER_NAME` names; hardware before software (llvmpipe, WARP);
-  the native backends before OpenGL; the GPU that drives a display, and among those the one that
-  drives the primary display; then the power preference; then a GPU's DirectX 12 adapter before its
-  Vulkan one. A GPU without a monitor is the wrong one even when it can present: Windows has to
-  copy every frame to the GPU that shows it, and an integrated GPU's driver reset under that,
-  losing the graphics device or blanking every monitor for minutes. Windows says which GPU drives
-  which display (`EnumDisplayDevices`), Linux through `/sys/class/drm` (a built-in `eDP`, `LVDS` or
-  `DSI` panel counts as the primary display); on macOS, or when nothing matches, the power
-  preference decides: power saving on Windows and macOS, the system's order elsewhere (Mesa puts
-  the GPU the desktop runs on first, and a Wayland compositor may refuse frames from another GPU).
-  `WGPU_POWER_PREF` replaces this with the user's choice of kind.
-- **If the window fails on its adapter while starting up** (an error from wgpu, such as a lost
-  device, or a panic inside wgpu, egui-wgpu or naga during the first frames), the app starts
-  again without that adapter and tries the next one, telling which in the status bar; the run that
-  failed keeps its log as `designcraft.1.log`. When no adapter of the start's backends is left, it
-  starts again with the next backend. Software renderers (WARP, llvmpipe) come last: they are
-  passed over while another backend is left to try, and allowed once no graphics processor could
-  show the window. On Unix the new app replaces the process (an AppImage stays mounted); on
-  Windows it starts beside it. Adapters are told apart by backend and PCI ids, or by name where the
-  backend reports no ids (Metal lists every GPU of a dual-GPU Mac as `0000:0000`). What was left
-  out travels in the restarted app's `--gpu-skip=` argument (`Vulkan:1002:164e`, `Metal:Intel
-  Iris Pro Graphics`, or a whole backend such as `Dx12`), one more on each restart, so the
-  restarts end. When nothing is left, the app logs why and exits with an error. Documents
-  recovered after a crash stay in the recovery folder until they are saved or closed, so a restart
-  never loses them.
-- **If the window's first frame is late** (20 seconds after the app was created and the files
-  named at the start opened), the log and the status bar say so. The adapter counts as hanging,
-  and the app starts again without it, only when the UI thread has been stuck in the graphics
-  stack, outside DesignCraft's own code, for 60 seconds while the window wasn't known to be
-  minimized, covered or in the background. A large document composing on a slow machine never
-  counts.
-- **The log** lists the GPUs that drive a display (`display GPUs (PCI vendor:device): 10de:2204
-  (primary)`), every adapter with whether it drives a display, the one drawn on and why (`drawing
-  on NVIDIA GeForce RTX 3090 (Dx12, DiscreteGpu): it drives the primary display`), and the driver
-  version. That is the first thing to look for in a report of a window that stays black or never
-  opens.
-- On Linux with Mesa, `MESA_VK_DEVICE_SELECT=10de:2f04!` (vendor:device as `vulkaninfo --summary`
-  or `lspci -nn` show it) leaves only that GPU to Vulkan, and `DRI_PRIME=1` picks the other GPU.
+1. Open an [issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/new/choose) with the bug form or the "file failed to open" form.
+2. Tell us your NiftyDesign version, your Windows version, what you did, what happened, and the warning text if there was any.
+3. Issues are public. Attach a `.pub` only if everyone may see it, and never post private information. Not sure? Leave the file out and describe the problem.
+4. Looking for files? Here is what helps most: [docs/SAMPLE-REQUEST.md](docs/SAMPLE-REQUEST.md). Files from Publisher 2002 to 2010, and files with tables, numbered lists, WordArt or tab stops, are especially useful.
 
-### Web
+How we handle reports: [docs/TRIAGE.md](docs/TRIAGE.md). Security problems: [SECURITY.md](SECURITY.md).
 
-```sh
-cd apps/designcraft-web && trunk build --release          # → dist/web (serve it with any static server)
-cd apps/designcraft-web && trunk serve --release          # http://127.0.0.1:8767
-```
+## Common questions
 
-You need [trunk](https://trunkrs.dev) and the `wasm32-unknown-unknown` target. The same app runs
-through eframe's web runner on WebGPU, falling back to WebGL2 (`?webgl` forces it; `?sample` opens
-the sample magazine). Open and Place use the browser's file picker, and dropping files works too.
-Save and Export download the file. The web build has no control channel.
+**How do I open a .pub file without Microsoft Publisher?**
+Download NiftyDesign for Windows from the [latest release](https://github.com/srt8hellcat2-ui/niftydesign/releases), start it, choose **Open** and pick your .pub file. It works with files from Publisher 2002 and newer. It opens a converted copy as a new, unsaved document and never changes your original file.
 
-## Architecture
+**Can I convert a .pub file to PDF for free?**
+Yes. Open the file, then export PDF. Check the PDF against your original: some features, such as table fills and borders and numbered lists, are not converted yet. WordArt letter fitting remains approximate. See [Known limitations](docs/KNOWN-LIMITATIONS.md).
 
-DesignCraft is an engine-first Cargo workspace with enforced layering (`cargo xtask layers`). The
-egui frontend is a separate crate, so the UI can be swapped without touching the engine.
+**Is there a free alternative to Microsoft Publisher?**
+NiftyDesign is an early, unofficial alpha built to open and edit existing .pub files. It is not a full Publisher replacement. Other free tools that can import Publisher files include LibreOffice Draw and Scribus.
 
-| Layer | Crates |
-|---|---|
-| L0 | `geom` (paths, units & measurement parsing, corner options) · `color` (CMYK/RGB/Lab, swatches, tints, gradients) |
-| L1 | `doc` (spreads, pages, parents, layers, frames, stories, styles) · `fonts` (font DB, shaping, outlines) |
-| L2 | `compose` (the text engine) · `images` |
-| L3 | `render` (vello_cpu) · `pdf` · `idml` · `epub` · `pptx` · `textimport` · `format` |
-| L4 | `tools` (pointer events → commands + overlays) |
-| L5 | `engine` (session, history, command registry) |
-| L6 | `ui-egui` (publishing UI, control channel) · `mcp` |
-| L7 | `apps/designcraft`, `apps/designcraft-cli`, `apps/designcraft-web` |
+**Does it open old Publisher 97, 98 or 2000 files?**
+Not yet. Those files are refused with a message. Re-save them in Publisher 2002 or newer first.
 
-- **Status and milestones:** [ROADMAP.md](ROADMAP.md) (stage: pre-alpha); feature assessment: [`docs/target-app-parity.md`](docs/target-app-parity.md); known gaps: [`docs/gaps.md`](docs/gaps.md)
-- **Contributor and agent rules** (clean-room, asset policy, quality gates): [`AGENTS.md`](AGENTS.md)
-- **Bundled assets:** every one is listed with its licence in [`ASSETS.md`](ASSETS.md)
-- **App icon and colour:** a calico cat in a polka-dot scarf on DesignCraft green `#7bb51c`; see [`assets/app-icon/`](assets/app-icon/README.md)
+**Microsoft is retiring Publisher. What happens to my files?**
+Microsoft set October 1, 2026 as the date Publisher is retired and loses support. Your .pub files stay on your computer, but the program that edits them is going away. NiftyDesign is one way to keep opening them. Keep your original files either way.
 
-## Downloads
+**Why does Windows warn me or block it?**
+The alpha is not code-signed yet, so Windows SmartScreen or Smart App Control may warn about it or block it the first time. The [install steps](#install) explain what to do, and [Known limitations](docs/KNOWN-LIMITATIONS.md) says what we saw on our own test PC.
 
-**New to DesignCraft?** Download it from the [DesignCraft page on getartcraft.com](https://getartcraft.com/apps/designcraft). That's the easiest way to install it.
+## Credits and license
 
-**Want a specific build or format?** On GitHub, the [latest release](https://github.com/storytold/designcraft/releases/latest) has every build listed below, and [all releases](https://github.com/storytold/designcraft/releases) has earlier versions and their notes. `<ver>` in the file names is the version number, and `SHA256SUMS.txt` lists a checksum for every file.
+Based on **DesignCraft** by the ArtCraft team, licensed MIT OR Apache-2.0. The Publisher importer and NiftyDesign changes are by srt8hellcat2-ui, written clean-room ([how](docs/CLEANROOM.md)). Thanks to everyone who shares sample files, listed with their permission.
 
-### Windows
-
-| Build | Installer | Portable |
-|---|---|---|
-| x64 (64-bit Intel/AMD) | `designcraft-<ver>-windows-x64.msi` | `designcraft-<ver>-windows-x64-portable.zip` |
-| arm64 (Snapdragon and other ARM PCs) | `designcraft-<ver>-windows-arm64.msi` | `designcraft-<ver>-windows-arm64-portable.zip` |
-| x86 (32-bit) | `designcraft-<ver>-windows-x86.msi` | `designcraft-<ver>-windows-x86-portable.zip` |
-
-Installers and executables are code-signed.
-
-### macOS
-
-| Build | File | Notes |
-|---|---|---|
-| App and bundled CLI, universal (Apple silicon + Intel) | `designcraft-<ver>-macos-universal.dmg` | Signed and notarized |
-| Command-line tool, universal | `designcraft-cli-<ver>-macos-universal.zip` | Signed and notarized |
-
-### Linux
-
-| Format | x86_64 | aarch64 (ARM64) | Notes |
-|---|---|---|---|
-| AppImage | `designcraft-<ver>-linux-x86_64.AppImage` | `designcraft-<ver>-linux-aarch64.AppImage` | Runs anywhere; updates itself with [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) (`.zsync` files) |
-| Flatpak | `designcraft-<ver>-linux-x86_64.flatpak` | `designcraft-<ver>-linux-aarch64.flatpak` | Sandboxed; `flatpak install --user <file>` |
-| Debian/Ubuntu | `designcraft-<ver>-linux-x86_64.deb` | `designcraft-<ver>-linux-aarch64.deb` | |
-| Fedora/RHEL/openSUSE | `designcraft-<ver>-linux-x86_64.rpm` | `designcraft-<ver>-linux-aarch64.rpm` | |
-| Arch Linux/Manjaro | `designcraft-<ver>-linux-x86_64.pkg.tar.zst` | `designcraft-<ver>-linux-aarch64.pkg.tar.zst` | `sudo pacman -U <file>`; installs as `ai.storyteller.designcraft`, replacing an AUR package |
-| Tarball | `designcraft-<ver>-linux-x86_64.tar.gz` | `designcraft-<ver>-linux-aarch64.tar.gz` | Unpack anywhere |
-
-RISC-V (riscv64): `designcraft-<ver>-linux-riscv64.tar.gz` only, cross-compiled; needs glibc 2.39+ (Ubuntu 24.04 or newer).
-
-#### Community packages
-
-These packages are maintained by community members, not by the DesignCraft team.
-
-On Gentoo, the [::snakebyte overlay](https://github.com/switch87/snakebyte-overlay) packages the
-Linux release as `media-gfx/designcraft-bin` (prebuilt) and `media-gfx/designcraft` (built from source):
-
-```sh
-eselect repository add snakebyte git https://github.com/switch87/snakebyte-overlay.git
-emaint sync -r snakebyte
-echo 'media-gfx/designcraft-bin ~amd64' >> /etc/portage/package.accept_keywords/designcraft
-emerge --ask media-gfx/designcraft-bin
-```
-
-### FreeBSD
-
-| Build | File |
-|---|---|
-| x86_64 | `designcraft-<ver>-freebsd-x86_64.tar.gz` |
-
-### Web (WebAssembly)
-
-| Build | File | Notes |
-|---|---|---|
-| Static site | `designcraft-web-<ver>.zip` | Runs in a modern browser; host it on any static server |
-
-## The Crafting Apps
-
-DesignCraft is one of the **Crafting Apps**: free, open-source creative tools from the
-[ArtCraft](https://getartcraft.com/) team, each written from scratch in Rust and each able to
-stand on its own.
-
-| | App | What it's for | Code | Learn more |
-|:-:|---|---|---|---|
-| <img src="https://raw.githubusercontent.com/storytold/photocraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.photocraft.png" alt="" width="32" height="32"> | **PhotoCraft** | Image editing: layers, masks, type and real PSD files | [GitHub](https://github.com/storytold/photocraft) | [Website](https://getartcraft.com/apps/photocraft) |
-| <img src="https://raw.githubusercontent.com/storytold/vectorcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.vectorcraft.png" alt="" width="32" height="32"> | **VectorCraft** | Vector illustration | [GitHub](https://github.com/storytold/vectorcraft) | [Website](https://getartcraft.com/apps/vectorcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/filmcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.filmcraft.png" alt="" width="32" height="32"> | **FilmCraft** | Video editing, color and sound | [GitHub](https://github.com/storytold/filmcraft) | [Website](https://getartcraft.com/apps/filmcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/lightcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.lightcraft.png" alt="" width="32" height="32"> | **LightCraft** | Photo library and raw development | [GitHub](https://github.com/storytold/lightcraft) | [Website](https://getartcraft.com/apps/lightcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/pdfcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.pdfcraft.png" alt="" width="32" height="32"> | **PdfCraft** | Reading, organizing and protecting PDFs | [GitHub](https://github.com/storytold/pdfcraft) | [Website](https://getartcraft.com/apps/pdfcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/effectcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.effectcraft.png" alt="" width="32" height="32"> | **EffectCraft** | Motion graphics and visual effects | [GitHub](https://github.com/storytold/effectcraft) | [Website](https://getartcraft.com/apps/effectcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/designcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.designcraft.png" alt="" width="32" height="32"> | **DesignCraft** | Page layout and publishing | [GitHub](https://github.com/storytold/designcraft) | [Website](https://getartcraft.com/apps/designcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/figcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.figcraft.png" alt="" width="32" height="32"> | **FigCraft** | Interface design and prototyping | [GitHub](https://github.com/storytold/figcraft) | [Website](https://getartcraft.com/apps/figcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/wordcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.wordcraft.png" alt="" width="32" height="32"> | **WordCraft** | Word processing and documents | [GitHub](https://github.com/storytold/wordcraft) | [Website](https://getartcraft.com/apps/wordcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/soundcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.soundcraft.png" alt="" width="32" height="32"> | **SoundCraft** | Audio recording and editing | [GitHub](https://github.com/storytold/soundcraft) | [Website](https://getartcraft.com/apps/soundcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/deckcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.deckcraft.png" alt="" width="32" height="32"> | **DeckCraft** | Presentations and slide decks | [GitHub](https://github.com/storytold/deckcraft) | [Website](https://getartcraft.com/apps/deckcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/cadcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.cadcraft.png" alt="" width="32" height="32"> | **CADCraft** | Computer-aided design | [GitHub](https://github.com/storytold/cadcraft) | [Website](https://getartcraft.com/apps/cadcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/gridcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.gridcraft.png" alt="" width="32" height="32"> | **GridCraft** | Spreadsheets and data | [GitHub](https://github.com/storytold/gridcraft) | [Website](https://getartcraft.com/apps/gridcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/texturecraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.texturecraft.png" alt="" width="32" height="32"> | **TextureCraft** | 3D texture painting | [GitHub](https://github.com/storytold/texturecraft) | [Website](https://getartcraft.com/apps/texturecraft) |
-| <img src="https://raw.githubusercontent.com/storytold/craft-anything/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.craft-anything.png" alt="" width="32" height="32"> | **Craft Anything** | See how any software works, then build your own | [GitHub](https://github.com/storytold/craft-anything) | [Website](https://getartcraft.com/apps/craft-anything) |
-| <img src="https://raw.githubusercontent.com/tangency-labs/solidcraft/main/assets/icons/app/linux/exports/hicolor/64x64/apps/io.tangencylabs.solidcraft.png" alt="" width="32" height="32"> | **SolidCraft** | Parametric 3D CAD by Tangency Labs (community app) | [GitHub](https://github.com/tangency-labs/solidcraft) | |
-
-And [**ArtCraft**](https://getartcraft.com/) itself, our AI image and video studio for artists who want real control.
-
-<br>
-
-<p align="center">
-  <a href="https://discord.gg/artcraft"><img alt="Join the ArtCraft community on Discord" src="https://img.shields.io/badge/Join%20us%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" height="40"></a>
-</p>
-
-<h3 align="center">Come make things with us</h3>
-
-<p align="center">
-  Our Discord is where artists of every kind hang out: people who paint, shoot, draw, cut film,
-  set type, and people still figuring out what they like to make. Share what you're working on,
-  ask for help, tell us what's broken, or tell us what you wish these tools could do.
-  Whatever your medium and however long you've been at it, you're welcome here.
-</p>
-
-<p align="center">
-  <a href="https://discord.gg/artcraft"><b>discord.gg/artcraft</b></a> ·
-  <a href="https://getartcraft.com/">getartcraft.com</a> ·
-  <a href="https://getartcraft.com/apps">The Crafting Apps</a> ·
-  <a href="https://getartcraft.com/apps/designcraft">DesignCraft</a>
-</p>
-
-## License and credits
-
-DesignCraft is dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option.
-Copyright (c) 2026 ArtCraft Team and the DesignCraft contributors. Required notices are in [NOTICE](NOTICE).
-
-Bundled fonts, icons, images and other assets keep their own open licenses; each one is listed
-with its author, source and license in [ASSETS.md](ASSETS.md).
-
-The bundled fonts, and the craft-fonts fonts embedded by release builds, are under the SIL Open
-Font License; all UI icons are drawn in code and are original.
-
-The ArtCraft name, wordmark and logos in [`docs/brand/`](docs/brand/) are trademarks of the
-ArtCraft Team and are not covered by this license. They may be used only unmodified, and only as
-part of this repository and DesignCraft, under [`docs/brand/LICENSE-brand.txt`](docs/brand/LICENSE-brand.txt).
-Forks and modified versions must remove them.
-
-<br>
-
-<p align="center">
-  <a href="https://getartcraft.com/"><img alt="ArtCraft" src="docs/brand/artcraft-mark.svg" width="28"></a><br>
-  <sub>Made by the <a href="https://getartcraft.com/">ArtCraft</a> team and community.</sub>
-</p>
+See [NOTICE](NOTICE), [LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE).

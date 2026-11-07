@@ -1,0 +1,754 @@
+{
+  "same_and_fresh_all_document_fields_identical": true,
+  "same_and_fresh_all_embedded_bytes_identical": true,
+  "page_sizes_pt": [
+    [
+      612.0,
+      792.0
+    ],
+    [
+      252.0,
+      144.0
+    ]
+  ],
+  "image_moves_and_resizes": [
+    {
+      "id": 34,
+      "placed": [
+        40.0,
+        330.0,
+        280.0,
+        490.0
+      ],
+      "moved": [
+        52.0,
+        312.0,
+        292.0,
+        472.0
+      ],
+      "resized": [
+        52.0,
+        312.0,
+        332.0,
+        498.66666666666674
+      ]
+    },
+    {
+      "id": 36,
+      "placed": [
+        320.0,
+        315.0,
+        530.0,
+        490.0
+      ],
+      "moved": [
+        320.0,
+        297.0,
+        530.0,
+        472.0
+      ],
+      "resized": [
+        320.0,
+        296.99999999999994,
+        550.0,
+        488.66666666666663
+      ]
+    },
+    {
+      "id": 57,
+      "placed": [
+        185.0,
+        64.0,
+        238.0,
+        108.16666666666667
+      ],
+      "moved": [
+        181.0,
+        72.0,
+        234.0,
+        116.16666666666667
+      ],
+      "resized": [
+        181.0,
+        72.0,
+        239.0,
+        120.33333333333334
+      ]
+    }
+  ],
+  "PDF_alpha_edge_checks": [
+    {
+      "page": 1,
+      "id": 34,
+      "image": "croissant.png",
+      "zero_alpha_edge_probes": 8,
+      "maximum_RGB_difference_0_to_255": 0
+    },
+    {
+      "page": 1,
+      "id": 36,
+      "image": "coffee-cup.png",
+      "zero_alpha_edge_probes": 8,
+      "maximum_RGB_difference_0_to_255": 0
+    },
+    {
+      "page": 2,
+      "id": 57,
+      "image": "coffee-cup.png",
+      "zero_alpha_edge_probes": 8,
+      "maximum_RGB_difference_0_to_255": 0
+    }
+  ],
+  "assets": {
+    "25": {
+      "id": 25,
+      "name": "bakery-background.png",
+      "mime": "image/png",
+      "link": "/workspace/designcraft-pub/assets/demo/bakery-background.png",
+      "pixels": [
+        1102,
+        1427
+      ]
+    },
+    "33": {
+      "id": 33,
+      "name": "croissant.png",
+      "mime": "image/png",
+      "link": "/workspace/designcraft-pub/assets/demo/croissant.png",
+      "pixels": [
+        1536,
+        1024
+      ]
+    },
+    "35": {
+      "id": 35,
+      "name": "coffee-cup.png",
+      "mime": "image/png",
+      "link": "/workspace/designcraft-pub/assets/demo/coffee-cup.png",
+      "pixels": [
+        1374,
+        1145
+      ]
+    }
+  },
+  "fonts": [
+    {
+      "characters": 177,
+      "family": "Source Sans 3",
+      "matchStatus": "exact",
+      "missing": false,
+      "replacementFamily": "Source Sans 3",
+      "replacementStyle": "Regular",
+      "resolvedFamily": "Source Sans 3",
+      "resolvedStyle": "Regular",
+      "source": "bundled",
+      "style": "Regular",
+      "styleMissing": false
+    },
+    {
+      "characters": 53,
+      "family": "Source Sans 3",
+      "matchStatus": "exact",
+      "missing": false,
+      "replacementFamily": "Source Sans 3",
+      "replacementStyle": "Semibold",
+      "resolvedFamily": "Source Sans 3",
+      "resolvedStyle": "Semibold",
+      "source": "bundled",
+      "style": "Semibold",
+      "styleMissing": false
+    },
+    {
+      "characters": 45,
+      "family": "Source Serif 4",
+      "matchStatus": "exact",
+      "missing": false,
+      "replacementFamily": "Source Serif 4",
+      "replacementStyle": "Bold",
+      "resolvedFamily": "Source Serif 4",
+      "resolvedStyle": "Bold",
+      "source": "bundled",
+      "style": "Bold",
+      "styleMissing": false
+    }
+  ],
+  "preflight": {
+    "errors": 0,
+    "issues": [
+      {
+        "item": 26,
+        "kind": "lowResolution",
+        "message": "bakery-background.png: effective 130 ppi (< 150)",
+        "page": 0,
+        "severity": "warning"
+      },
+      {
+        "kind": "rgbColor",
+        "message": "RGB swatch in a print document: R=0 G=0 B=0",
+        "severity": "warning"
+      },
+      {
+        "kind": "rgbColor",
+        "message": "RGB swatch in a print document: R=0 G=102 B=255",
+        "severity": "warning"
+      },
+      {
+        "kind": "rgbColor",
+        "message": "RGB swatch in a print document: Espresso",
+        "severity": "warning"
+      },
+      {
+        "kind": "rgbColor",
+        "message": "RGB swatch in a print document: Caramel",
+        "severity": "warning"
+      },
+      {
+        "kind": "rgbColor",
+        "message": "RGB swatch in a print document: Cream",
+        "severity": "warning"
+      },
+      {
+        "kind": "rgbColor",
+        "message": "RGB swatch in a print document: Gold",
+        "severity": "warning"
+      }
+    ],
+    "warnings": 7
+  },
+  "import_warnings": [
+    "Publisher character formatting is unsupported for fields: defaults [none]; runs [0x00, 0x37, 0x38]. Supported attributes were retained.",
+    "Publisher paragraph formatting is unsupported for fields: defaults [0x30]; runs [none]. Supported attributes were retained.",
+    "Publisher table text across multiple stories/TCD sections is not decoded.",
+    "Publisher table used stored endings for row positions; largest difference from size sums: 9564 EMU; cause unknown.",
+    "Table cell-text association is unconfirmed or missing; the original text was retained after the table.",
+    "Publisher table cell fills, borders, padding and other cell formatting are not decoded; unpainted cells were used."
+  ],
+  "objects": [
+    {
+      "spread": 0,
+      "asset": 25,
+      "bounds": [
+        0.0,
+        0.0,
+        612.0,
+        792.0
+      ],
+      "fill": "[None]",
+      "hidden": false,
+      "id": 26,
+      "kind": "<image>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 0,
+      "bounds": [
+        44.0,
+        55.0,
+        570.0,
+        148.0
+      ],
+      "columnRule": false,
+      "columns": 1,
+      "fill": "[None]",
+      "hidden": false,
+      "id": 27,
+      "kind": "<text frame>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "story": 28,
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 0,
+      "bounds": [
+        48.0,
+        151.0,
+        565.0,
+        192.0
+      ],
+      "columnRule": false,
+      "columns": 1,
+      "fill": "[None]",
+      "hidden": false,
+      "id": 29,
+      "kind": "<text frame>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "story": 30,
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 0,
+      "bounds": [
+        50.0,
+        207.0,
+        560.0,
+        290.0
+      ],
+      "columnRule": false,
+      "columns": 1,
+      "fill": "[None]",
+      "hidden": false,
+      "id": 31,
+      "kind": "<text frame>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "story": 32,
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 0,
+      "asset": 33,
+      "bounds": [
+        52.0,
+        312.0,
+        332.0,
+        498.66666666666674
+      ],
+      "fill": "[None]",
+      "hidden": false,
+      "id": 34,
+      "kind": "<image>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 0,
+      "asset": 35,
+      "bounds": [
+        320.0,
+        296.99999999999994,
+        550.0,
+        488.66666666666663
+      ],
+      "fill": "[None]",
+      "hidden": false,
+      "id": 36,
+      "kind": "<image>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 0,
+      "bounds": [
+        48.0,
+        513.0,
+        564.0,
+        626.0
+      ],
+      "fill": "Caramel",
+      "hidden": false,
+      "id": 37,
+      "kind": "<rectangle>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 0,
+      "bounds": [
+        70.0,
+        529.0,
+        535.0,
+        562.0
+      ],
+      "columnRule": false,
+      "columns": 1,
+      "fill": "[None]",
+      "hidden": false,
+      "id": 38,
+      "kind": "<text frame>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "story": 39,
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 0,
+      "bounds": [
+        70.0,
+        568.0,
+        535.0,
+        608.0
+      ],
+      "columnRule": false,
+      "columns": 1,
+      "fill": "[None]",
+      "hidden": false,
+      "id": 40,
+      "kind": "<text frame>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "story": 41,
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 0,
+      "bounds": [
+        49.99999999999999,
+        652.0,
+        62.0,
+        664.0
+      ],
+      "fill": "Caramel",
+      "hidden": false,
+      "id": 42,
+      "kind": "<ellipse>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 0,
+      "bounds": [
+        78.0,
+        658.0,
+        560.0,
+        658.0
+      ],
+      "fill": "[None]",
+      "hidden": false,
+      "id": 43,
+      "kind": "<line>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "stroke": {
+        "swatch": "Caramel",
+        "weight": 1.5
+      }
+    },
+    {
+      "spread": 0,
+      "bounds": [
+        50.0,
+        680.0,
+        560.0,
+        712.0
+      ],
+      "columnRule": false,
+      "columns": 1,
+      "fill": "[None]",
+      "hidden": false,
+      "id": 44,
+      "kind": "<text frame>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "story": 45,
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 0,
+      "bounds": [
+        50.0,
+        722.0,
+        565.0,
+        752.0
+      ],
+      "columnRule": false,
+      "columns": 1,
+      "fill": "[None]",
+      "hidden": false,
+      "id": 46,
+      "kind": "<text frame>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "story": 47,
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 1,
+      "bounds": [
+        0.0,
+        0.0,
+        252.0,
+        144.0
+      ],
+      "fill": "Cream",
+      "hidden": false,
+      "id": 48,
+      "kind": "<rectangle>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 1,
+      "bounds": [
+        0.0,
+        0.0,
+        252.0,
+        17.0
+      ],
+      "fill": "Caramel",
+      "hidden": false,
+      "id": 49,
+      "kind": "<rectangle>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 1,
+      "bounds": [
+        16.0,
+        29.0,
+        184.0,
+        57.0
+      ],
+      "columnRule": false,
+      "columns": 1,
+      "fill": "[None]",
+      "hidden": false,
+      "id": 50,
+      "kind": "<text frame>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "story": 51,
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 1,
+      "bounds": [
+        16.0,
+        60.0,
+        180.0,
+        80.0
+      ],
+      "columnRule": false,
+      "columns": 1,
+      "fill": "[None]",
+      "hidden": false,
+      "id": 52,
+      "kind": "<text frame>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "story": 53,
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 1,
+      "bounds": [
+        16.0,
+        91.0,
+        180.0,
+        132.0
+      ],
+      "columnRule": false,
+      "columns": 1,
+      "fill": "[None]",
+      "hidden": false,
+      "id": 54,
+      "kind": "<text frame>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "story": 55,
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    },
+    {
+      "spread": 1,
+      "asset": 35,
+      "bounds": [
+        181.0,
+        72.0,
+        239.0,
+        120.33333333333334
+      ],
+      "fill": "[None]",
+      "hidden": false,
+      "id": 57,
+      "kind": "<image>",
+      "layer": 1,
+      "locked": false,
+      "name": "",
+      "stroke": {
+        "swatch": "[None]",
+        "weight": 1.0
+      }
+    }
+  ],
+  "stories": [
+    {
+      "frames": [
+        27
+      ],
+      "id": 28,
+      "length": 11,
+      "lines": 1,
+      "overset": false,
+      "paragraphs": 1,
+      "preview": "Fresh Today"
+    },
+    {
+      "frames": [
+        29
+      ],
+      "id": 30,
+      "length": 23,
+      "lines": 1,
+      "overset": false,
+      "paragraphs": 1,
+      "preview": "NiftyDesign Coffee Shop"
+    },
+    {
+      "frames": [
+        31
+      ],
+      "id": 32,
+      "length": 104,
+      "lines": 3,
+      "overset": false,
+      "paragraphs": 3,
+      "preview": "Small-batch coffee, made with care.\nButtery pastries, baked for your morning.\nA "
+    },
+    {
+      "frames": [
+        38
+      ],
+      "id": 39,
+      "length": 15,
+      "lines": 1,
+      "overset": false,
+      "paragraphs": 1,
+      "preview": "Today's special"
+    },
+    {
+      "frames": [
+        40
+      ],
+      "id": 41,
+      "length": 22,
+      "lines": 1,
+      "overset": false,
+      "paragraphs": 1,
+      "preview": "Croissant + coffee, $4"
+    },
+    {
+      "frames": [
+        44
+      ],
+      "id": 45,
+      "length": 15,
+      "lines": 1,
+      "overset": false,
+      "paragraphs": 1,
+      "preview": "Mon-Sat 7am-3pm"
+    },
+    {
+      "frames": [
+        46
+      ],
+      "id": 47,
+      "length": 34,
+      "lines": 1,
+      "overset": false,
+      "paragraphs": 1,
+      "preview": "123 Example Street  |  example.com"
+    },
+    {
+      "frames": [
+        50
+      ],
+      "id": 51,
+      "length": 12,
+      "lines": 1,
+      "overset": false,
+      "paragraphs": 1,
+      "preview": "Alex Example"
+    },
+    {
+      "frames": [
+        52
+      ],
+      "id": 53,
+      "length": 17,
+      "lines": 1,
+      "overset": false,
+      "paragraphs": 1,
+      "preview": "Barista and owner"
+    },
+    {
+      "frames": [
+        54
+      ],
+      "id": 55,
+      "length": 25,
+      "lines": 2,
+      "overset": false,
+      "paragraphs": 2,
+      "preview": "alex@example.com\n555-0100"
+    }
+  ]
+}

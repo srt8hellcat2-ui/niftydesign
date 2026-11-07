@@ -77,7 +77,7 @@ DesignCraft aims at full Adobe InDesign parity — and to be better: faster, ope
 - Index: page references (topic from the selection or up to 4 levels, sort keys; current page, to end of story, next n paragraphs, suppressed, See / See also), Generate / Update Index (section headings, nested or run-in, page ranges merged, Index Title / Section Head / Level 1–4 styles); IDML export/import as InDesign topics, page references and topic cross-references (verified in InDesign 2026); `index.*` commands.
 - Text clipboard keeps formatting (character/paragraph formats, footnotes, cross-references, index markers, tables) and falls back to plain text when the system clipboard changed; Paste without Formatting (⇧⌘V); Change Case (UPPERCASE, lowercase, Title Case, Sentence case — formatting kept); Type › Insert Special Character / White Space / Break Character submenus.
 - Anchored objects: items flow in the text inline (on the baseline, with Y offset; lines grow to fit) or above the line (left/center/right, space before/after); paste copied items into text to anchor them; Anchored Object Options and Release (back onto the page where shown); rendered, exported to PDF and to/from IDML (InDesign anchored object settings; verified in InDesign 2026); copy/paste and threading carry them; `anchored.*` commands.
-- Ruler guides: drag out of the rulers (page guides, or spread guides on the pasteboard), drag to move, drop on a ruler to delete; a dragged guide snaps along its axis to other guides, margins, columns, bleed, page and object edges and centers and the document grid (Shift: the ruler's ticks; Cmd suspends snapping); selected like objects (click, Shift-click, a marquee that touches no object, Edit › Select All Guides ⌥⌘G), moved together, nudged, deleted, and placed exactly with the X or Y field; Layout › Create Guides (rows/columns with gutters, fit to margins or page); Delete All Guides on Spread; `guide.*` commands.
+- Ruler guides: drag out of the rulers (page guides, or spread guides on the pasteboard), drag to move, drop on a ruler to delete; Layout › Create Guides (rows/columns with gutters, fit to margins or page); Delete All Guides on Spread; `guide.*` commands.
 - Links panel: every placed graphic with status (OK / Modified / Missing / Embedded, checked against the file on disk), page and effective PPI (low resolution flagged); Relink…, Go To, Update, Embed; `links.*` commands.
 - Missing fonts: highlighted pink on screen (never in output), listed by Preflight; Type › Find/Replace Font (fonts in the document, missing first; replace in text, cells, footnotes and styles); `font.list` / `font.replace`.
 - Missing glyphs, as in InDesign: a character the applied font lacks is drawn as that font's missing-glyph box (its .notdef; a drawn box when the font's is empty), on screen and in PDF (as a path, so PDF/A and PDF/UA exports take it), and Preflight lists the characters by font. Preferences › Composition › Draw Missing Glyphs from Fallback Fonts (`document.preferences {glyphFallback}`, stored with the document) draws them from other fonts instead; it is off in new documents and IDML imports, on in documents saved before it existed. A missing font's substitute always uses fallback fonts.
@@ -229,7 +229,7 @@ DesignCraft aims at full Adobe InDesign parity — and to be better: faster, ope
 ## How far from full parity (estimate, 2026-10-04)
 
 **Breadth: ~99% weighted** (P0 core 99%, P1 100%, P2 97%) over the 275 features of the InDesign catalogue, scored
-row by row in [docs/parity-checklist.md](docs/parity-checklist.md) (`cargo xtask parity` recomputes it). Many features scored done still
+row by row in [docs/parity.md](docs/parity.md) (`cargo xtask parity` recomputes it). Many features scored done still
 lack some of InDesign's options or dialog details, so **overall parity including depth is about 83%**.
 
 **Remaining work: about 170 wall-clock hours of a single Claude Opus 5.5 agent** (±30%), or roughly 60–85 hours with
@@ -392,6 +392,8 @@ list) · [roadmap.md](docs/roadmap.md) (milestones, plan) · [parity-checklist.m
 
 ## Progress log
 
+- **2026-10-24 (C8)** · Publisher heart shapes use the standard's guide formulas and two editable cubic curves. Six existing preset outlines are unchanged. Windows and comparison with Publisher's own drawing remain untested.
+- **2026-10-25 (C9)** · Publisher default upward arch WordArt uses editable path text fitted from measured font advances. Circle and other warps keep the straight-text fallback. Reference scores and limits are recorded in docs/pub-format/wordart.md.
 - **2026-11-04** · Striped strokes retain out-and-back cubic segments whose second control point is away from the coincident endpoints and first control point. A geometry regression checks the offset extent and both stripe bands. No readiness percentage change.
 - **2026-11-04** · Esperanto is a text language (Character › Language, `type.char {language: "Esperanto"}`, IDML `$ID/Esperanto`): tag `eo`, English-style quotes; not hyphenated yet (#1201). No readiness percentage change.
 
@@ -859,5 +861,3 @@ Newest first.
 The shared craft-installer UI preserves this revision's install options and provides persistent installation, repair and Windows Settings removal completion screens. Silent modes stay unattended. Earlier Windows acceptance is recorded in packaging/windows/README.md; normal CI and production-profile upgrade qualification against pinned current releases are in progress. No release or PR has been published.
 
 - **2026-10-15** · Windows recovery folders validate the identity of the live locked file without reading it through a second handle. Missing or replaced locks disable writes and cleanup; regression tests cover retained exclusive locking and replacement-file protection. No readiness percentage change.
-
-- PDF reader infrastructure: pinned shared parsing/rasterization, transformed page-box geometry and explicit failures for known incomplete layered-PDF exports. Application ownership and parity targets are unchanged.

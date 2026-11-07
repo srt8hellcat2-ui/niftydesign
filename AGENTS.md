@@ -1,3 +1,5 @@
+> **NiftyDesign clean-room note:** follow [docs/CLEANROOM.md](docs/CLEANROOM.md) and the provenance in [docs/pub-format/SOURCES.md](docs/pub-format/SOURCES.md). Never consult another .pub reader; truth data is for scoring only.
+
 <!-- craft-house-rules:start core source=dde09ea31e2e457f5b4653a6e76f7cdf55944bdf sha256=540e6cea75d12d0710c3dca89658328e81e508ecef102446ca5bb95b7c0b92bb -->
 ## House rules
 
