@@ -408,7 +408,7 @@ pub(crate) fn open_idml(s: &mut Session, p: &Value) -> Result<Value> {
         // What the converter can't read still comes over as IDML (#21).
         let conversion = indd::convert(&bytes, &file).map_err(|e| {
             EngineError::Other(format!(
-                "can't convert the InDesign file: {e}. In InDesign, choose File ▸ Export… ▸ InDesign Markup (IDML) and open the .idml in DesignCraft."
+                "can't convert the InDesign file: {e}. In InDesign, choose File ▸ Export… ▸ InDesign Markup (IDML) and open the .idml in NiftyDesign."
             ))
         })?;
         warnings.extend(conversion.warnings.iter().map(|w| w.message().to_string()));

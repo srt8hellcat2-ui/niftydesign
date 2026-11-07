@@ -1,7 +1,7 @@
-//! DesignCraft's MCP server.
+//! NiftyDesign's MCP server.
 //!
 //! [Model Context Protocol](https://modelcontextprotocol.io) over stdio: newline-delimited
-//! JSON-RPC 2.0, hand-written (no async runtime). The server exposes DesignCraft as a set of MCP
+//! JSON-RPC 2.0, hand-written (no async runtime). The server exposes NiftyDesign as a set of MCP
 //! tools and resources and forwards everything to a [`Backend`]:
 //!
 //! - [`Remote`] talks to a running desktop app through its loopback JSON-lines control channel

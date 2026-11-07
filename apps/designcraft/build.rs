@@ -14,9 +14,10 @@ fn main() {
     }
     let mut res = winresource::WindowsResource::new();
     res.set_icon("../../assets/app-icon/designcraft.ico")
-        .set("ProductName", "DesignCraft")
-        .set("FileDescription", "DesignCraft page layout")
-        .set("CompanyName", "Learning Machines LLC")
+        .set("ProductName", "NiftyDesign")
+        .set("ProductVersion", env!("CARGO_PKG_VERSION"))
+        .set("FileVersion", env!("CARGO_PKG_VERSION"))
+        .set("FileDescription", "NiftyDesign opens and edits Microsoft Publisher (.pub) files from Publisher 2002 and newer")
         .set("LegalCopyright", "Copyright (c) the DesignCraft authors. MIT OR Apache-2.0.")
         .set("OriginalFilename", "designcraft.exe")
         .set("InternalName", "designcraft");

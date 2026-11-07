@@ -1,4 +1,4 @@
-//! Headless DesignCraft.
+//! Headless NiftyDesign.
 //!
 //! ```text
 //! designcraft-cli run [--in FILE.designcraft|FILE.idml | --sample] [--cmd ID[=JSON]]... [--page N] [--scale S] [--pdf-options JSON] [--export OUT.png|.jpg|.pdf|.designcraft|.idml|.epub|.pptx|.html|.rtf|.txt] [--all-pages DIR]
@@ -85,9 +85,7 @@ non-zero exit when a step fails."#;
 /// The links line under the usage block.
 fn usage_footer() -> String {
     format!(
-        "\nCommunity: {}  ·  {}  ·  {}",
-        designcraft_engine::links::DISCORD,
-        designcraft_engine::links::APP_PAGE,
+        "\nNiftyDesign opens and edits Microsoft Publisher (.pub) files from Publisher 2002 and newer.\nNiftyDesign source: {}",
         designcraft_engine::links::GITHUB
     )
 }
@@ -199,7 +197,7 @@ fn main() -> ExitCode {
     }
     match args.first().map(String::as_str) {
         Some("--version" | "-V" | "version") => {
-            outln!("designcraft-cli {}", env!("CARGO_PKG_VERSION"));
+            outln!("NiftyDesign CLI {}", env!("CARGO_PKG_VERSION"));
             ExitCode::SUCCESS
         }
         Some("run") => report(run(&args[1..])),
@@ -227,8 +225,8 @@ fn main() -> ExitCode {
         Some("validate-pdf") => report(validate_pdf(args.get(1..).unwrap_or_default())),
         Some("thumbnail") => report(thumbnail(&args[1..])),
         Some("links") => {
-            use designcraft_engine::links::{APP_PAGE, DISCORD, GITHUB, ISSUES, WEBSITE};
-            outln!("Discord   {DISCORD}\nWebsite   {WEBSITE}\nApp page  {APP_PAGE}\nGitHub    {GITHUB}\nIssues    {ISSUES}");
+            use designcraft_engine::links::{GITHUB, ISSUES};
+            outln!("NiftyDesign source  {GITHUB}\nIssues              {ISSUES}");
             ExitCode::SUCCESS
         }
         // Asking for help is not an error: it goes to stdout and succeeds. An unknown command
@@ -380,7 +378,7 @@ so drop --connect (or use --connect without the roots)"
             let addr = control_addr(&c);
             Box::new(
                 Remote::connect(&addr)
-                    .map_err(|e| format!("cannot connect to the DesignCraft app at {addr}: {e} (start it with `designcraft --control PORT`)"))?,
+                    .map_err(|e| format!("cannot connect to the NiftyDesign app at {addr}: {e} (start it with `designcraft --control PORT`)"))?,
             )
         }
         None => {
@@ -691,7 +689,7 @@ fn script(args: &[String]) -> Result<(), String> {
             let addr = control_addr(c);
             Box::new(
                 Remote::connect(&addr)
-                    .map_err(|e| format!("cannot connect to the DesignCraft app at {addr}: {e} (start it with `designcraft --control PORT`)"))?,
+                    .map_err(|e| format!("cannot connect to the NiftyDesign app at {addr}: {e} (start it with `designcraft --control PORT`)"))?,
             )
         }
         None => Box::new(Headless::with_document()),
@@ -757,7 +755,7 @@ fn app(args: &[String]) -> Result<(), String> {
     }
     let addr = control_addr(&port);
     let mut r = Remote::connect(&addr)
-        .map_err(|e| format!("cannot connect to the DesignCraft app at {addr}: {e} (start it with `designcraft --control {port}`)"))?;
+        .map_err(|e| format!("cannot connect to the NiftyDesign app at {addr}: {e} (start it with `designcraft --control {port}`)"))?;
     let json_arg =
         |s: Option<&String>| -> Result<Value, String> { s.map_or(Ok(json!({})), |t| serde_json::from_str(t).map_err(|e| format!("bad JSON: {e}"))) };
     let out = match method {

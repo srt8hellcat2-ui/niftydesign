@@ -332,7 +332,7 @@ pub fn perf(args: &[String]) -> Result<(), String> {
     let doc = synthetic(&spec)?;
     let frames = spec.pages * spec.frames_per_page;
     outln!(
-        "DesignCraft performance budgets — synthetic: {} pages, {frames} text frames in {} threaded stories, {}k chars, {} images ({} assets), {} gradients (built in {:.0} ms)",
+        "NiftyDesign performance budgets — synthetic: {} pages, {frames} text frames in {} threaded stories, {}k chars, {} images ({} assets), {} gradients (built in {:.0} ms)",
         spec.pages,
         doc.stories.len(),
         doc.stories.values().map(|s| s.text.len()).sum::<usize>() / 1000,

@@ -37,7 +37,7 @@ pub(super) fn without_native_extension(name: &str) -> &str {
     }
 }
 
-/// Whether `bytes` are a document `file.open` reads: a DesignCraft package, an IDML package or a
+/// Whether `bytes` are a document `file.open` reads: a NiftyDesign package, an IDML package or a
 /// Publisher file (a compound file, recognised only when its directory is within `bytes`).
 /// The first [`DOCUMENT_SNIFF_BYTES`] of a file are enough for packages that start with their
 /// `mimetype` entry, as both formats write them.
@@ -256,7 +256,7 @@ mod extension_tests {
         std::fs::write(&notes, b"plain text").unwrap();
         assert!(!is_document(b"plain text"));
         let e = t.execute("file.open", &json!({"path": notes.to_string_lossy()})).unwrap_err();
-        assert!(e.to_string().contains("not a DesignCraft, IDML or Publisher file"), "{e}");
+        assert!(e.to_string().contains("not a NiftyDesign, IDML or Publisher file"), "{e}");
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

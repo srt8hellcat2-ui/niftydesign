@@ -461,7 +461,6 @@ fn interface_strings() -> HashSet<&'static str> {
     keys.extend(designcraft_tools::TOOL_GROUPS.iter().flat_map(|group| group.iter()).map(|tool| tool.label));
     // So do the About window's tab names, app descriptions and the credits' column and sort labels.
     keys.extend(crate::about::ABOUT_TABS);
-    keys.extend(crate::about::SIBLINGS.iter().map(|(_, _, what)| *what));
     keys.extend(crate::credits::NameMode::ALL.iter().map(|mode| mode.label()));
     keys.extend(crate::credits::SortKey::ALL.iter().flat_map(|key| [key.label().0, key.label().1]));
     // Docking chrome labels reach `tr` through craft-ui's localizer.

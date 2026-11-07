@@ -105,9 +105,8 @@ pub enum AppMenuItem {
 
 /// The macOS application menu. Settings… is `app.preferences`, which `native_menu_tree` leaves out of Edit.
 pub const MAC_APP_MENU: &[AppMenuItem] = &[
-    AppMenuItem::Cmd { id: "dc-about", label: "About DesignCraft", command: "help.about" },
+    AppMenuItem::Cmd { id: "dc-about", label: "About NiftyDesign", command: "help.about" },
     AppMenuItem::Cmd { id: "dc-updates", label: "Check for Updates…", command: "help.checkForUpdates" },
-    AppMenuItem::Cmd { id: "dc-discord", label: "Join the ArtCraft Discord…", command: "help.discord" },
     AppMenuItem::Sep,
     AppMenuItem::Cmd { id: "dc-settings", label: "Settings…", command: "app.preferences" },
     AppMenuItem::Language,
@@ -119,7 +118,7 @@ pub const MAC_APP_MENU: &[AppMenuItem] = &[
     AppMenuItem::ShowAll,
     AppMenuItem::Sep,
     // Not the predefined Quit: it terminates the app at once, past the unsaved-changes prompt.
-    AppMenuItem::Cmd { id: "dc-quit", label: "Quit DesignCraft", command: "app.quit" },
+    AppMenuItem::Cmd { id: "dc-quit", label: "Quit NiftyDesign", command: "app.quit" },
 ];
 
 /// A label as the macOS menu bar library takes it: it reads "&" as a mnemonic marker and drops

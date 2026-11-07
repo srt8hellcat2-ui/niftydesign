@@ -1039,14 +1039,6 @@ fn run_ui_part5(app: &mut DesignApp, id: &str, p: &Value) -> Option<Result<Value
             Ok(json!(app.ui.about))
         }
         "help.checkForUpdates" => crate::updates_ui::check(app),
-        "help.app" => match p.get("app").and_then(Value::as_str) {
-            Some(slug) if !slug.is_empty() && slug.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') => {
-                let url = format!("{}/apps/{slug}", designcraft_engine::links::WEBSITE);
-                app.ui.pending_urls.push(url.clone());
-                Ok(json!({"url": url}))
-            }
-            _ => Err("help.app: give `app` (e.g. \"photocraft\")".into()),
-        },
         h if h.starts_with("help.") && designcraft_engine::links::get(&h[5..]).is_some() => {
             let url = designcraft_engine::links::get(&h[5..]).unwrap_or_default().to_string();
             app.ui.pending_urls.push(url.clone());

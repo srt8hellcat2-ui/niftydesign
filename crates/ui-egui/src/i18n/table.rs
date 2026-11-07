@@ -1884,8 +1884,8 @@ pub(super) const TABLE: &[(&str, [&str; 5])] = &[
         ["Spreads of up to 10 pages", "Planches de 10 pages maximum", "Spreads of up to 10 pages", "Spreads of up to 10 pages", "最多10页的跨页"],
     ),
     ("for", ["for", "pour", "por", "に対して", "行"]),
-    ("About DesignCraft", ["About DesignCraft", "À propos de DesignCraft", "About DesignCraft", "About DesignCraft", "关于 DesignCraft"]),
-    ("Quit DesignCraft", ["DesignCraft beenden", "Quitter DesignCraft", "Salir de DesignCraft", "DesignCraft を終了", "退出 DesignCraft"]),
+    ("About NiftyDesign", ["About NiftyDesign", "À propos de NiftyDesign", "About NiftyDesign", "About NiftyDesign", "关于 NiftyDesign"]),
+    ("Quit NiftyDesign", ["NiftyDesign beenden", "Quitter NiftyDesign", "Salir de NiftyDesign", "NiftyDesign を終了", "退出 NiftyDesign"]),
     ("Accept All Changes", ["Accept All Changes", "Accepter toutes les modifications", "Accept All Changes", "Accept All Changes", "接受所有更改"]),
     ("Activate Document", ["Activate Document", "Activer le document", "Activate Document", "Activate Document", "激活文档"]),
     ("Add Anchor Point", ["Add Anchor Point", "Ajouter un point d'ancrage", "Add Anchor Point", "Add Anchor Point", "添加锚点"]),
@@ -2100,12 +2100,12 @@ pub(super) const TABLE: &[(&str, [&str; 5])] = &[
     ),
     ("Delete Workspace…", ["Delete Workspace…", "Supprimer l'espace de travail…", "Delete Workspace…", "Delete Workspace…", "删除工作区…"]),
     (
-        "DesignCraft Website…",
-        ["DesignCraft Website…", "Site web de DesignCraft…", "DesignCraft Website…", "DesignCraft Website…", "DesignCraft 网站…"],
+        "NiftyDesign Website…",
+        ["NiftyDesign Website…", "Site web de NiftyDesign…", "NiftyDesign Website…", "NiftyDesign Website…", "NiftyDesign 网站…"],
     ),
     (
-        "DesignCraft on GitHub…",
-        ["DesignCraft on GitHub…", "DesignCraft sur GitHub…", "DesignCraft on GitHub…", "DesignCraft on GitHub…", "DesignCraft 在 GitHub 上…"],
+        "NiftyDesign on GitHub…",
+        ["NiftyDesign on GitHub…", "NiftyDesign sur GitHub…", "NiftyDesign on GitHub…", "NiftyDesign on GitHub…", "NiftyDesign 在 GitHub 上…"],
     ),
     (
         "Detach All Objects from Parent",
@@ -2931,7 +2931,7 @@ pub(super) const TABLE: &[(&str, [&str; 5])] = &[
         ["Cross-Reference Format", "Format de référence croisée", "Cross-Reference Format", "Cross-Reference Format", "交叉引用格式"],
     ),
     ("Delete Workspace", ["Delete Workspace", "Supprimer l'espace de travail", "Delete Workspace", "Delete Workspace", "删除工作区"]),
-    ("DesignCraft", ["DesignCraft", "DesignCraft", "DesignCraft", "DesignCraft", "DesignCraft"]),
+    ("NiftyDesign", ["NiftyDesign", "NiftyDesign", "NiftyDesign", "NiftyDesign", "NiftyDesign"]),
     ("Display Performance", ["Display Performance", "Performances d'affichage", "Display Performance", "Display Performance", "显示性能"]),
     ("Document Grid", ["Document Grid", "Grille du document", "Document Grid", "Document Grid", "文档网格"]),
     (
@@ -3291,8 +3291,8 @@ pub(super) const TABLE: &[(&str, [&str; 5])] = &[
     ("Utilities", ["Utilities", "Utilitaires", "Utilities", "Utilities", "实用程序"]),
     ("Variable Font", ["Variable Font", "Police variable", "Variable Font", "Variable Font", "可变字体"]),
     (
-        "Welcome to DesignCraft",
-        ["Welcome to DesignCraft", "Bienvenue dans DesignCraft", "Welcome to DesignCraft", "Welcome to DesignCraft", "欢迎使用 DesignCraft"],
+        "Welcome to NiftyDesign",
+        ["Welcome to NiftyDesign", "Bienvenue dans NiftyDesign", "Welcome to NiftyDesign", "Welcome to NiftyDesign", "欢迎使用 NiftyDesign"],
     ),
     ("When Scaling", ["When Scaling", "Lors du redimensionnement", "When Scaling", "When Scaling", "缩放时"]),
     ("[Basic] (working) ▾", ["[Basic] (working) ▾", "[De base] (de travail) ▾", "[Basic] (working) ▾", "[Basic] (working) ▾", "[基本] (工作区) ▾"]),

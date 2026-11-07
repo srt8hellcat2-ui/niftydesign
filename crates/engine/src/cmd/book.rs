@@ -131,7 +131,7 @@ fn writable_chapter(s: &Session, path: &str, command: &'static str) -> Result<()
     use std::path::Path;
 
     if Path::new(path).extension().and_then(std::ffi::OsStr::to_str).is_some_and(|ext| ext.eq_ignore_ascii_case("idml")) {
-        return Err(bad(command, format!("cannot change imported IDML chapter {path}; convert it to a native DesignCraft document first")));
+        return Err(bad(command, format!("cannot change imported IDML chapter {path}; convert it to a native NiftyDesign document first")));
     }
     let target = crate::io::canonicalize(path).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
     if s.docs.iter().any(|doc| doc.path.as_ref().is_some_and(|open| crate::io::canonicalize(open).is_ok_and(|open| open == target))) {

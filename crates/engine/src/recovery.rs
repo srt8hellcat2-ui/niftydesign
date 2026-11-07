@@ -340,7 +340,7 @@ fn access(dir: &Path, created: bool) -> Result<Access> {
 fn check_unheld(dir: &Path) -> Result<()> {
     let path = dir.join(LOCK);
     let in_use =
-        || EngineError::Other(format!("{}: another running DesignCraft keeps its recovery data here; choose another recovery folder", dir.display()));
+        || EngineError::Other(format!("{}: another running NiftyDesign keeps its recovery data here; choose another recovery folder", dir.display()));
     match std::fs::symlink_metadata(&path) {
         Ok(metadata) if is_link_like(&metadata) || !metadata.file_type().is_file() => return Err(in_use()),
         Ok(_) => {}

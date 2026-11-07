@@ -1,4 +1,4 @@
-//! DesignCraft desktop app.
+//! NiftyDesign desktop app.
 //!
 //! Usage: `designcraft [--control <port>] [--sample] [files…]`
 //!
@@ -276,7 +276,7 @@ fn main() -> std::process::ExitCode {
             "--control" => control_port = control_port_from("--control", args.next()),
             "--sample" => sample = true,
             "--version" => {
-                println!("designcraft {}", env!("CARGO_PKG_VERSION"));
+                println!("NiftyDesign {}", env!("CARGO_PKG_VERSION"));
                 return std::process::ExitCode::SUCCESS;
             }
             _ => match gpu::skip_arg(&a) {
@@ -295,14 +295,14 @@ fn main() -> std::process::ExitCode {
     // leaves no file behind. Records logged until now are written to it first.
     if let (Some(logger), Some(dir)) = (logger, profile::config_dir()) {
         match logger.attach_dir(&dir.join("logs")) {
-            Ok(path) => log::info!("DesignCraft {}, log file {}", env!("CARGO_PKG_VERSION"), path.display()),
+            Ok(path) => log::info!("NiftyDesign {}, log file {}", env!("CARGO_PKG_VERSION"), path.display()),
             // Standard error only by now (`attach_dir` gave up on the file); unlike `eprintln!`, never panics.
             Err(e) => log::warn!("no log file: {e}"),
         }
     }
     let mut options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_title("DesignCraft")
+            .with_title("NiftyDesign")
             .with_inner_size([1440.0, 900.0])
             .with_min_inner_size([900.0, 560.0])
             .with_decorations(!cfg!(target_os = "windows"))
@@ -383,7 +383,7 @@ fn main() -> std::process::ExitCode {
     // A panic that ends the window (egui-wgpu's own) is caught here: never a crash.
     let run = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         eframe::run_native(
-            "DesignCraft",
+            "NiftyDesign",
             options,
             Box::new(move |cc| {
                 let mut restarted = None;
@@ -406,7 +406,7 @@ fn main() -> std::process::ExitCode {
                         // A processor chosen by `WGPU_POWER_PREF` can be the one that can't show the window.
                         let hint = if chosen_gpu { " (without WGPU_POWER_PREF it uses the one that drives your display)" } else { "" };
                         restarted = Some(format!(
-                            "The graphics processor tried first couldn't show the window, so DesignCraft started again on {} ({:?}, {:?}){hint}.",
+                            "The graphics processor tried first couldn't show the window, so NiftyDesign started again on {} ({:?}, {:?}){hint}.",
                             info.name.trim(),
                             info.backend,
                             info.device_type
@@ -474,7 +474,7 @@ fn main() -> std::process::ExitCode {
     match gpu::finish(run, &startup) {
         Ok(()) => std::process::ExitCode::SUCCESS,
         Err(e) => {
-            log::error!("DesignCraft stopped: {e}");
+            log::error!("NiftyDesign stopped: {e}");
             std::process::ExitCode::FAILURE
         }
     }

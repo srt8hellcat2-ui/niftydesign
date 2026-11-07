@@ -1,4 +1,4 @@
-//! macOS: DesignCraft's menu tree as the native system menu bar (like InDesign on the Mac).
+//! macOS: NiftyDesign's menu tree as the native system menu bar (like InDesign on the Mac).
 //! Items dispatch through the same command path as the in-window menus; enablement and check
 //! marks are refreshed a few times per second.
 
@@ -83,7 +83,7 @@ impl NativeMenu {
         let mut recent = None;
         // Application menu: our own About splash (with the community links) instead of the stock
         // panel, and Settings… (Edit › Preferences… on the other platforms).
-        let app_menu = Submenu::new("DesignCraft", true);
+        let app_menu = Submenu::new("NiftyDesign", true);
         for entry in menus::MAC_APP_MENU {
             let _ = match *entry {
                 AppMenuItem::Cmd { id, label, command } => {

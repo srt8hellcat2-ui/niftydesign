@@ -634,22 +634,7 @@ pub const MENUS: &[(&str, &[&str])] = &[
             "ui:window.brightness",
         ],
     ),
-    (
-        "Help",
-        &[
-            "ui:help.discord",
-            "-",
-            "ui:help.appPage",
-            "ui:help.github",
-            "ui:help.issues",
-            "ui:help.website",
-            "-",
-            "cmd:file.newSample",
-            "-",
-            "ui:help.checkForUpdates",
-            "ui:help.about",
-        ],
-    ),
+    ("Help", &["-", "ui:help.github", "ui:help.issues", "-", "cmd:file.newSample", "-", "ui:help.checkForUpdates", "ui:help.about"]),
 ];
 
 /// The built-in workspaces, in InDesign's order.

@@ -41,13 +41,13 @@ pub fn start() {
         if let Err(e) = create_error_panel(&document) {
             log::error!("couldn't create graphics error panel: {e:?}");
             if let Some(el) = document.get_element_by_id(LOADING_ID) {
-                el.set_text_content(Some("DesignCraft couldn't start. Reload this page to try again."));
+                el.set_text_content(Some("NiftyDesign couldn't start. Reload this page to try again."));
             }
             return;
         }
         let graphics = GraphicsState::default();
         let Some(canvas) = document.get_element_by_id(CANVAS_ID).and_then(|e| e.dyn_into::<web_sys::HtmlCanvasElement>().ok()) else {
-            graphics_failed(&graphics, "DesignCraft failed to start", "Reload this page to try again.", &format!("Missing canvas {CANVAS_ID}."));
+            graphics_failed(&graphics, "NiftyDesign failed to start", "Reload this page to try again.", &format!("Missing canvas {CANVAS_ID}."));
             return;
         };
         let mut options = eframe::WebOptions::default();
@@ -100,7 +100,7 @@ pub fn start() {
             Err(e) => {
                 graphics_failed(
                     &graphics,
-                    "DesignCraft failed to start",
+                    "NiftyDesign failed to start",
                     "Reload this page to try again. A browser with WebGPU or WebGL2 is required.",
                     &format!("{e:?}"),
                 );
@@ -399,7 +399,7 @@ fn services(inbox: Inbox, ctx: egui::Context) -> Services {
             } else if request.purpose == "place" {
                 rfd::AsyncFileDialog::new().add_filter("Graphics", IMAGE_EXTS)
             } else {
-                rfd::AsyncFileDialog::new().add_filter("DesignCraft, Publisher, IDML or InDesign", DOC_EXTS)
+                rfd::AsyncFileDialog::new().add_filter("NiftyDesign, Publisher, IDML or InDesign", DOC_EXTS)
             };
             wasm_bindgen_futures::spawn_local(async move {
                 let Some(file) = dialog.pick_file().await else {

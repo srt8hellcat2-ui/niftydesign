@@ -93,7 +93,7 @@ fn open_path(s: &mut Session, p: &Value) -> Result<Value> {
             return crate::cmd::interchange::open_pub(s, p);
         }
         if !native && ext != designcraft_format::EXTENSION {
-            return Err(bad("file.open", format!("{path}: not a DesignCraft, IDML or Publisher file")));
+            return Err(bad("file.open", format!("{path}: not a NiftyDesign, IDML or Publisher file")));
         }
         let (mut d, mut warnings) = load_bytes(&bytes)?;
         crate::cmd::interchange::resolve_packaged_links(&mut d, Some(std::path::Path::new(path)));

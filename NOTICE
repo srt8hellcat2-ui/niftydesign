@@ -1,11 +1,12 @@
-DesignCraft
-Copyright (c) 2026 ArtCraft Team and the DesignCraft contributors.
-Licensed under the MIT License or the Apache License, Version 2.0, at your option
-(LICENSE-MIT, LICENSE-APACHE).
+NiftyDesign
+Copyright (c) 2026 ArtCraft Team and the DesignCraft contributors. NiftyDesign modifications and the Publisher (.pub) importer: Copyright (c) 2026 srt8hellcat2-ui.
+Licensed under the MIT License or the Apache License, Version 2.0, at your option.
+See LICENSE-MIT and LICENSE-APACHE.
 
-The ArtCraft name, wordmark and logos in docs/brand/ are trademarks of the ArtCraft Team. They are
-not open source and are not covered by the license above; their terms are in
-docs/brand/LICENSE-brand.txt.
+NiftyDesign is an unofficial build based on DesignCraft by the ArtCraft team and is not supported by or affiliated with ArtCraft or Microsoft.
+The ArtCraft name, wordmark and logos are trademarks of the ArtCraft Team and are not included.
+The NiftyDesign name and the Nifty mark (assets/nifty/) are owned by srt8hellcat2-ui and are not covered by the code license.
+The retained trademark terms are in docs/brand/LICENSE-brand.txt.
 
 Third-party material
 
