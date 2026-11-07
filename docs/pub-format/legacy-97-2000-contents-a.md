@@ -295,13 +295,16 @@ decoded or B understood.
    boundary in all 93 records and exact array-tail extents in 44 records.
    UNKNOWN: authoritative duplicate fields in index-20, general relocation
    and the meaning of descriptor `0x0019`; descriptor stride is not universal.
-2. UNKNOWN: extents/padding for 23 records of numeric classes 2, 3, 10 and
-   195; semantic meanings of all four directory attribute values; header words
-   `0x0C`, `0x1E`, `0x20`, `0x24`. OBSERVATION: AP4 independently accounts
-   for the remaining 70 spans by three class-selected arithmetic rules and
-   confirms no unaccounted final stream gap. The high prefix byte equals
-   total extent only in the 15 class-0 records. UNKNOWN: no universal
-   total-record byte-length field or flag-bit meaning is established.
+2. UNKNOWN: independently length-derived extents/padding for 23 records of
+   numeric classes 2, 3, 10 and 195; semantic meanings of all four directory
+   attribute values; header words `0x0C`, `0x1E`, `0x20`, `0x24`.
+   OBSERVATION: AP4 accounts for 70 spans by three field-driven arithmetic
+   rules. AP5 narrows five of the 23 unresolved cases to identical 22-byte
+   index-49 tails, but establishes no stored tail-length/count algorithm;
+   eighteen other cases remain outside that five-record observation.
+   UNKNOWN: a universal length rule, padding in those 23 logical records,
+   and flag-bit meanings remain unproved. The five constant-tail fits are
+   not promoted to independently decoded extents.
 3. UNKNOWN: root/page ordering and master/scratch classification. OBSERVATION:
    AP2 accounts for all 24 direct directory children of the eight index-20
    records: 17 tail IDs and seven fixed-field IDs. OBSERVATION: AP3 accounts
@@ -317,13 +320,12 @@ decoded or B understood.
    is resolved. UNKNOWN: zmspub.pub and the claimed equality of the owner pair
    remain unverified; independent manufacture is owner-reported provenance.
 
-INFERENCE: after AP4, the next smallest step needing no new sample is to
-explain only the opaque tail framing of numeric class 2, index 49: five
-records across these two files each have boundary H=8 and span 30. Compare
-their structural count/length fields without decoding payload meaning before
-expanding to another index. UNKNOWN: distinguishing index-20's equal
-count-like words still needs a discriminating sample; B's table remains
-separate work.
+INFERENCE: after AP5, the next smallest step needing no new sample is to
+compare only the two remaining numeric-class-2/index-82 tails, whose AP4
+spans are 244 and 40 with H=18. Their differing residual sizes, 226 and 22,
+can test a length/count rule that identical index-49 tails cannot distinguish.
+Keep their contents opaque. UNKNOWN: a shared class-2 tail rule is not yet
+established; index-20's duplicate roles and B's table remain separate work.
 
 ## What a reader must do before implementation
 
@@ -924,3 +926,128 @@ No full CI, importer edit, protected-reader edit, B work, Quill repair,
 geometry/text/formatting decoding, environment script/setting change,
 environment save/publication or pull request was performed. Raw evidence and
 the private attachment remain uncommitted, and no extra remote was added.
+
+## Class-2 index-49 tails
+
+OBSERVATION: AP5 starts from `60890173b273a995bb555a8d85dbc54fce94e00f`.
+The restore check verifies all 317 pinned inputs with zero failures and no
+downloads. Both originals are present: Sample98.pub matches its recorded
+61440-byte size/hash, and the attached mspub.pub matches 19968 bytes and
+SHA-256 `0EFF0498172805BF1E52C74A6334ECC4CDC84FB2E531C0EA25734CFAC7923C7D`.
+Fresh Contents extractions remain in the ignored research directory. No
+single-sample fallback or new evidence source is used; SOURCES.md is unchanged.
+
+OBSERVATION: the check selects every directory-addressed leading index 49,
+then examines only the prefix, selected descriptor, record bounds and candidate
+tail-header fields. Opaque tails are compared for equality in memory without
+displaying them or interpreting their contents. No other payload class, B
+table, Quill, geometry, text, colour or formatting is decoded in this step.
+The private original and extracted stream bytes are not committed or reproduced.
+
+### Prefix, descriptor and bounds
+
+OBSERVATION: descriptor index 49 selects the descriptor at Contents `0x21C`
+in both samples. Its numeric words are word 0 = `0x0808`, word 1 = 2,
+word 2 = 4; its sole nonzero selector is 6. The terminator is at `0x224`.
+Word 1 supplies the numeric class-2 label used by this audit, not a decoded
+semantic type. The same descriptor was already inventoried before AP5.
+
+OBSERVATION: for each selected record at R, the leading u16 is 49, and the
+bytes at R+2 and R+3 both have numeric value 8. They match both bytes of
+descriptor word 0. The existing H-boundary convention therefore divides
+the directory span into `[R,R+8)` and the opaque residual `[R+8,E)`.
+The directory entry's offset field at D+4 supplies R; the next directory
+entry's offset field supplies E. Every selected span is 30, leaving 22
+bytes after H=8. No alignment rounding is used.
+
+INFERENCE: R+8 is the prefix-suggested fixed-part end and tail start for
+these five records. UNKNOWN: the equal prefix/descriptor bytes do not tell
+which copy a general reader should treat as authoritative; the word 4 is
+not independently proven to be a width merely by occurring in a descriptor.
+
+OBSERVATION: in the fields table below, positions and IDs are hexadecimal;
+sizes/counts are decimal. Reads are little-endian. Ranges are end-exclusive.
+The two candidate tail fields are numeric probes, not named decoded fields.
+
+| Basis | Sample / ID | Directory D | R / E / span | Prefix bytes at / values | H boundary / tail bytes | Candidate u32 at / value | Next candidate u32 at / value |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| OBSERVATION | Sample98 / `0x103` | `0x450` | `0xD14 / 0xD32 / 30` | `0xD16,0xD17 / 8,8` | `0xD1C / 22` | `0xD1C / 0` | `0xD20 / 4` |
+| OBSERVATION | Sample98 / `0x101` | `0x478` | `0xD80 / 0xD9E / 30` | `0xD82,0xD83 / 8,8` | `0xD88 / 22` | `0xD88 / 0` | `0xD8C / 4` |
+| OBSERVATION | mspub / `0x122` | `0x464` | `0xC7C / 0xC9A / 30` | `0xC7E,0xC7F / 8,8` | `0xC84 / 22` | `0xC84 / 0` | `0xC88 / 4` |
+| OBSERVATION | mspub / `0x126` | `0x48C` | `0xD40 / 0xD5E / 30` | `0xD42,0xD43 / 8,8` | `0xD48 / 22` | `0xD48 / 0` | `0xD4C / 4` |
+| OBSERVATION | mspub / `0x124` | `0x4A0` | `0xD78 / 0xD96 / 30` | `0xD7A,0xD7B / 8,8` | `0xD80 / 22` | `0xD80 / 0` | `0xD84 / 4` |
+
+OBSERVATION: the first candidate is at R+8; the next is at R+12. Reading
+their low u16 instead also gives 0 and 4. These examples cannot distinguish
+u16 from u32 storage semantics when the higher bytes are zero. No meaning
+is assigned to the remaining fourteen tail bytes after those two probes.
+
+### Tail-length rules and counterexamples
+
+OBSERVATION: **2/2 Sample98 and 3/3 mspub records** satisfy the constant
+observation `E = R + 8 + 22`. All five complete tails are identical in the
+in-memory equality check. There is no counterexample to that fixed-22-byte
+fit among these five records. This is an exact observation of supplied
+instances, not an independently stored total length or a varied-length test.
+
+| Basis | Candidate rule | Predicted value | Measured value / result |
+| --- | --- | --- | --- |
+| OBSERVATION | Constant tail size 22 | Tail 22, record 30 | 5/5 fit; no counterexamples in this set. |
+| OBSERVATION | First candidate u32 is total tail-byte length | Tail 0 | Refuted in 5/5; actual tail 22. |
+| OBSERVATION | Next candidate u32 is total tail-byte length | Tail 4 | Refuted in 5/5; actual tail 22. |
+| OBSERVATION | L or H is total record length | Record 8 | Refuted in 5/5; actual record span 30. |
+| OBSERVATION | Entire tail is a headerless list with descriptor width 4 | Whole number of four-byte elements | Refuted in 5/5: 22 leaves remainder 2 on division by 4. |
+| OBSERVATION | Reuse AP4 A: `H+10+n*w`, probing u16 n at R+8 and w at R+12 | Record 18 | Refuted in 5/5; under-consumes by 12. Class 2 is outside A's documented applicability. |
+| OBSERVATION | Reuse AP4 O: `H+8+q`, probing u32 q at R+8 | Record 16 | Refuted in 5/5; under-consumes by 14. Class 2 is outside O's documented applicability. |
+
+OBSERVATION: every refutation in the table applies to the complete same list:
+Sample98 IDs `0x103,0x101`; mspub IDs `0x122,0x126,0x124`, with the exact
+positions in the fields table. There are no omitted exceptions. The failed
+A/O transplants do not contradict AP4's rules: those rules explicitly
+exclude numeric class 2. Treating under-consumed bytes as padding would
+invent a framing rule, so no such padding is discarded.
+
+UNKNOWN: no variable tail-length rule is proven. A first value of zero could
+be a count for an empty container with non-element overhead; equality to
+zero is not proof of that meaning. The matching descriptor/instance value
+4 could be a width, a size or another field. A header plus fixed-size
+elements remains possible, as does an opaque fixed-size structure or a
+different length representation not established here. None is selected
+from five identical tails.
+
+UNKNOWN: the tail cannot yet be classified as a proven fixed-element list
+or a proven stored-length byte run. That is **neither interpretation proven**,
+not proof that the actual format is neither. Only the headerless four-byte
+list and the two specifically probed whole-tail byte-length interpretations
+are refuted. No content meaning is needed or inferred from these checks.
+
+### Extent accounting and checkpoint
+
+OBSERVATION: the prior **70/93 field-driven extent checks remain explained**.
+The five selected records add five exact constant-tail fits, giving **75/93
+fits only if that provisional constant is included**. They do not raise the
+independently length-derived count to 75: the 22-byte size was measured from
+directory ends, and no stored field or varying example independently predicts
+it. Of the 23 cases lacking an independent rule, these five are now narrowed
+to identical opaque tails and the other eighteen remain outside this step.
+
+INFERENCE: the next smallest available discriminating check is the two
+class-2/index-82 records already listed by AP4: their H=18 and spans 244/40
+leave residual sizes 226/22. Compare only structural count/length fields and
+boundaries, keeping both payloads opaque. Such differing residual sizes can
+test a shared class-2 framing rule; no claim that they actually share one
+is made here. No index-82 body was inspected during AP5.
+
+UNKNOWN: stored count/length/width roles, whether this is an empty container
+or an intrinsically fixed-size tail, any internal padding, general class-2
+framing, flag meanings, and behavior for nonidentical index-49 tails remain
+unverified. Sample independence is owner-reported provenance, not established
+by tail equality. No geometry, text, colour or formatting meaning was decoded.
+
+OBSERVATION: this is the first AP5 checkpoint. Fresh bounded checks pass both
+original identity checks, descriptor selection, all five directory spans and
+H boundaries, tail sizes/equality and the candidate-rule refutations. Only
+this appended section and the narrowed ranked-unknowns section change. No
+full CI, importer/protected-reader edit, environment script/setting change,
+environment save/publication, B work, Quill repair or pull request was made.
+No sample or extracted stream bytes are committed, and no extra remote was added.
