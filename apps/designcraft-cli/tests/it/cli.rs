@@ -833,3 +833,11 @@ fn subcommand_help_names_the_options_that_subcommand_takes() {
 /// The subcommands the binary's usage text lists. Kept here rather than imported because the
 /// binary is not a library; the assertion above on the count is what notices if it drifts.
 const USAGE_SUBCOMMANDS: &[&str] = &["run", "commands", "describe", "script", "app", "mcp", "perf", "bench", "validate-pdf", "links"];
+
+#[test]
+fn alpha_version_identifies_unofficial_build() {
+    let out = cli().arg("--version").output().unwrap();
+    assert!(out.status.success());
+    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), format!("NiftyDesign CLI {}", env!("CARGO_PKG_VERSION")));
+    assert!(env!("CARGO_PKG_VERSION").contains("-nifty-alpha."));
+}

@@ -3,14 +3,12 @@
 
 NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer, lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.12.0 by the ArtCraft team, with a Publisher importer added. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
 
-## What changed since 0.12.0-nifty-alpha.3
+## What changed since 0.12.0-nifty-alpha.4
 
-- Shapes drawn with Publisher's curve and polyline tools now come in as editable paths instead of rectangles. Segment types we can't draw still give a warning.
-- The heart shape now draws as a heart.
-- Upward-arch WordArt now comes in as editable curved text. Circle WordArt and other WordArt shapes still come in as straight text with a warning. Letter shapes and spacing still differ from Publisher's.
-- Missing fonts are replaced by the closest available font by type and width instead of always the default (for example Arial Black now uses a heavy sans-serif). Original font names are kept in the file. The Find/Replace Font window no longer opens by itself when you open a Publisher file; it is still in the menu. Line breaks and headline fit can change, and some headlines can still be cut off.
-- On our checks the controlled sample results are unchanged (142 of 142 files import, 152 of 152 objects found, all 111 scored objects within 1 point (41 image-labelled objects were unscored for position in that check), 52 of 52 texts and 111 of 111 styles correct) and the 24 real Apache test files give the same outcome (9 with notes, 10 with warnings, 2 refused, 3 damaged). Those checks don't measure how the new curves, heart and arch look. We compared those with Publisher's own images for only nine test files.
-- Not changed: table fills, borders and padding; numbered lists and tab stops; other WordArt shapes; page numbers and dates; Publisher 97, 98 and 2000 files.
+- Rebased on DesignCraft 0.18.0, with the Publisher importer taken from the reviewed importer branch.
+- A table whose stored column or row dimensions do not add up no longer makes the whole file fail with "inconsistent cumulative dimension" (issue 44, a calendar with one table per month). The rest of the file opens, the table is drawn from its stored sizes, and a warning names the table and what was approximated.
+- On our checks the controlled sample results are unchanged (142 of 142 files import, 152 of 152 objects found, all 111 scored objects within 1 point, 52 of 52 texts, 111 of 111 styles) and the 24-file real batch is unchanged (9 converted without warnings, 10 with warnings, 2 refused, 3 damaged).
+- Not changed: table fills, borders and padding; numbered lists and tab stops; other WordArt shapes; page numbers and dates; Publisher 97, 98 and 2000 files. Not yet tested by hand on Windows.
 
 ## This is a test build, and we need your help
 
@@ -31,7 +29,7 @@ On Windows 11 PCs where Smart App Control is turned On, Windows can block an uns
 Download the zip and its separate `.zip.sha256` file into the same folder. In PowerShell, change the version below to the version you downloaded:
 
 ```powershell
-$zip = 'NiftyDesign-0.12.0-nifty-alpha.4-windows-x64.zip'
+$zip = 'NiftyDesign-0.18.0-nifty-alpha.5-windows-x64.zip'
 $line = (Get-Content -LiteralPath "$zip.sha256").Trim()
 $hash, $filename = $line -split '  ', 2
 if ($filename -ne $zip -or $hash -notmatch '^[0-9a-fA-F]{64}$' -or
@@ -45,7 +43,7 @@ The sidecar verifies the finished zip before extraction. `SHA256SUMS` inside the
 
 ## Verified and unverified
 
-This version (alpha.4): built and smoke-tested automatically on Windows. Not yet tried by hand on a Windows PC.
+This version (alpha.5): built and smoke-tested automatically on Windows. Not yet tried by hand on a Windows PC.
 
 An earlier alpha worked on the maintainer's one Windows 11 PC: launching, opening a .pub, editing, saving and reopening, PDF export, printing on one inkjet printer, and Arial and Times New Roman found as installed fonts.
 
