@@ -13,6 +13,7 @@ name = "designcraft-cli"
 path = "src/main.rs"
 
 [dependencies]
+designcraft-pub = { workspace = true }
 designcraft-engine = { workspace = true }
 designcraft-render = { workspace = true }
 designcraft-doc = { workspace = true }

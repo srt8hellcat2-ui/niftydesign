@@ -1352,6 +1352,7 @@ dependencies = [
  "designcraft-geom",
  "designcraft-mcp",
  "designcraft-pdf",
+ "designcraft-pub",
  "designcraft-render",
  "image",
  "serde_json",
