@@ -91,6 +91,13 @@ pub(super) fn norm(s: &str) -> String {
     s.chars().filter(|c| c.is_alphanumeric()).flat_map(char::to_lowercase).collect()
 }
 
+/// OS/2 width class is an ordinal from ultra-condensed (1) to ultra-expanded (9), normal (5).
+/// Missing or invalid values stay unknown; no advances are estimated for an absent font.
+pub(super) fn font_width(f: &skrifa::FontRef<'_>) -> Option<u16> {
+    use skrifa::raw::TableProvider;
+    f.os2().ok().map(|t| t.us_width_class()).filter(|w| (1..=9).contains(w))
+}
+
 /// Weight implied by a style name.
 pub(super) fn style_weight(style: &str) -> f32 {
     let s = norm(style);

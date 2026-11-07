@@ -31,6 +31,7 @@ const ASSET_EXT: &[&str] = &[
     "woff2",
     "ase",
     "indd",
+    "pub",
     "idml",
     "aco",
     "abr",

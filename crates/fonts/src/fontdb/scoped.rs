@@ -1,8 +1,9 @@
 #[cfg(test)]
-use super::face::{BUNDLED, FontSource, enumerate_faces};
-use super::face::{FALLBACK_FAMILY, FontFace, last_resort_face, make_face};
+use super::face::{BUNDLED, enumerate_faces};
+use super::face::{FALLBACK_FAMILY, FontFace, FontSource, last_resort_face, make_face};
 use super::fallback::{cjk_chain, script_chain};
-use super::names::{alternate_names, base_style, has_wws_family, known_as, norm, style_italic, style_weight};
+use super::names::{alternate_names, base_style, font_width, has_wws_family, known_as, norm, style_italic, style_weight};
+use super::substitute;
 use super::{Arc, BezPath, FamilyInfo, FontDb, MetadataProvider, PoisonError};
 
 /// One document's view of the [`FontDb`] ([`FontDb::scoped`]): the fonts of its `Document Fonts`
@@ -68,9 +69,13 @@ impl ScopedFonts<'_> {
             || face.wws.as_ref().is_some_and(|w| w.0.eq_ignore_ascii_case(family) && norm(&w.1) == norm(style))
     }
 
-    /// Prefer known metric-compatible substitutes, then an appropriate script family. This
+    /// Prefer existing metric/script substitutes, then an available type and width match. This
     /// never changes `has_family`: a usable substitute is still a missing original font.
     pub fn substitute_family(&self, family: &str) -> String {
+        self.substitute_match(family, "Regular").0
+    }
+
+    fn preferred_substitute(&self, family: &str) -> Option<String> {
         let lower = family.to_lowercase();
         let candidates: &[&str] = match lower.as_str() {
             "calibri" | "calibri light" => &["Carlito", "Liberation Sans"],
@@ -86,7 +91,36 @@ impl ScopedFonts<'_> {
             _ if family.chars().any(|c| ('\u{3400}'..='\u{9fff}').contains(&c)) => &["Songti SC", "Noto Serif CJK SC", "PingFang SC"],
             _ => &[],
         };
-        candidates.iter().find_map(|name| self.canonical_family(name)).unwrap_or_else(|| FALLBACK_FAMILY.to_string())
+        candidates.iter().find_map(|name| self.canonical_family(name))
+    }
+
+    fn substitute_match(&self, family: &str, style: &str) -> (String, String) {
+        if let Some(preferred) = self.preferred_substitute(family) {
+            return (preferred, style.to_string());
+        }
+        let faces = self.db.read_faces();
+        let candidates = self.own().iter().chain(faces.iter()).map(|f| substitute::Candidate {
+            family: &f.family,
+            style: &f.style,
+            class: f.kind().class,
+            width: f.skrifa().as_ref().and_then(font_width),
+            weight: f.weight,
+            italic: f.italic,
+            bundled: f.source == FontSource::Bundled,
+        });
+        #[cfg(not(target_arch = "wasm32"))]
+        let catalog = self.db.read_catalog();
+        #[cfg(not(target_arch = "wasm32"))]
+        let candidates = candidates.chain(catalog.iter().map(|c| substitute::Candidate {
+            family: &c.family,
+            style: &c.style,
+            class: c.class,
+            width: c.width,
+            weight: c.weight,
+            italic: style_italic(&c.style),
+            bundled: false,
+        }));
+        substitute::choose(family, style, candidates).unwrap_or_else(|| (FALLBACK_FAMILY.to_string(), style.to_string()))
     }
 
     /// A replacement suggestion must cover the text being replaced, not just its main script.
@@ -238,16 +272,17 @@ impl ScopedFonts<'_> {
         v
     }
 
-    /// Resolve a family + style to a face, falling back to the closest style of the family, then to
-    /// Source Sans 3 Regular. Installed system fonts are found by name whatever ran before. A
+    /// Resolve a family + style to a face, preferring an available substitute of similar type
+    /// and stated width for missing families, then Source Sans 3 Regular. Installed system fonts are found by name whatever ran before. A
     /// family that isn't found as written is looked up without surrounding spaces, then without
     /// InDesign's `$ID/` prefix or a format suffix (`Minion Pro (OTF)` → `Minion Pro`).
     pub fn face(&self, family: &str, style: &str) -> Arc<FontFace> {
-        let canonical = self
-            .canonical_family(family)
-            .or_else(|| alternate_names(family).find_map(|f| self.canonical_family(f)))
-            .unwrap_or_else(|| self.substitute_family(alternate_names(family).last().unwrap_or(family)));
-        if let Some(f) = self.find_or_load(&canonical, style) {
+        let canonical = self.canonical_family(family).or_else(|| alternate_names(family).find_map(|f| self.canonical_family(f)));
+        let (canonical, selected_style) = match canonical {
+            Some(name) => (name, style.to_string()),
+            None => self.substitute_match(alternate_names(family).last().unwrap_or(family), style),
+        };
+        if let Some(f) = self.find_or_load(&canonical, &selected_style) {
             return f;
         }
         self.find(FALLBACK_FAMILY, style)

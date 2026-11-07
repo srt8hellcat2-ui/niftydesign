@@ -26,6 +26,10 @@ pub(super) static BUNDLED: &[&[u8]] = &[
     include_bytes!("../../../../assets/fonts/Inter-Medium.ttf"),
     include_bytes!("../../../../assets/fonts/Inter-SemiBold.ttf"),
     include_bytes!("../../../../assets/fonts/JetBrainsMono-Regular.ttf"),
+    include_bytes!("../../../../assets/fonts/NiftyNarrowSerif-Regular.ttf"),
+    include_bytes!("../../../../assets/fonts/NiftyNarrowSerif-Bold.ttf"),
+    include_bytes!("../../../../assets/fonts/BarlowCondensed-Regular.ttf"),
+    include_bytes!("../../../../assets/fonts/BarlowCondensed-Bold.ttf"),
 ];
 
 #[derive(Clone)]

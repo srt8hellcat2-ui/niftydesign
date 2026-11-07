@@ -8,7 +8,7 @@ use super::face::{
 #[cfg(not(target_arch = "wasm32"))]
 use super::fallback::SYSTEM_FALLBACKS;
 #[cfg(not(target_arch = "wasm32"))]
-use super::names::{aliases, face_names, in_catalog_family, name, norm, wws_names};
+use super::names::{aliases, face_names, font_width, in_catalog_family, name, norm, style_weight, wws_names};
 #[cfg(not(target_arch = "wasm32"))]
 use super::{Arc, FontGroup, MetadataProvider, Ordering, PoisonError, StringId};
 use super::{FontDb, ScopedFonts};
@@ -59,9 +59,12 @@ pub(super) struct CatalogEntry {
     pub(super) native: Option<String>,
     pub(super) aliases: Vec<String>,
     pub(super) postscript: Option<String>,
+    pub(super) class: crate::kind::FontClass,
+    pub(super) width: Option<u16>,
+    pub(super) weight: f32,
 }
 
-/// What the scan reads of one face in a font file: its names and font menu group.
+/// What the scan reads of one face: names, font menu group, and substitution traits.
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, PartialEq)]
 pub(super) struct ScannedFace {
@@ -72,6 +75,9 @@ pub(super) struct ScannedFace {
     native: Option<String>,
     aliases: Vec<String>,
     postscript: Option<String>,
+    class: crate::kind::FontClass,
+    width: Option<u16>,
+    weight: f32,
 }
 
 /// The tables glyph outlines are drawn from.
@@ -117,6 +123,16 @@ pub(super) fn file_face_names(path: &std::path::Path) -> Vec<ScannedFace> {
             if !records.as_chunks::<16>().0.iter().any(|r| OUTLINE_TABLES.iter().any(|t| r.starts_with(*t))) {
                 return None;
             }
+            // Fixed pitch lives in the common 32-byte post header. Glyph-name arrays can
+            // be much larger; the metadata reader does not need or inspect those arrays.
+            let post = records
+                .as_chunks::<16>()
+                .0
+                .iter()
+                .find(|r| r.starts_with(b"post"))
+                .and_then(|r| Some((be32(r, 8)?, be32(r, 12)?)))
+                .filter(|(_, len)| *len >= 32)
+                .and_then(|(offset, _)| read_at(u64::from(offset), 32));
             // Table `tag`, unless missing or over `max` bytes.
             let mut table = |tag: &[u8; 4], max: u32| -> Option<([u8; 4], Vec<u8>)> {
                 let rec = records.as_chunks::<16>().0.iter().find(|r| r.starts_with(tag))?;
@@ -130,6 +146,7 @@ pub(super) fn file_face_names(path: &std::path::Path) -> Vec<ScannedFace> {
             let mut found = vec![table(b"name", MAX_NAME_TABLE)?];
             found.extend(table(b"OS/2", MAX_SMALL_TABLE));
             found.extend(table(b"meta", MAX_SMALL_TABLE));
+            found.extend(post.map(|header| (*b"post", header)));
             let font = crate::group::sfnt(found.clone())?;
             let f = skrifa::FontRef::new(&font).ok()?;
             let (family, style) = face_names(&f)?;
@@ -141,6 +158,10 @@ pub(super) fn file_face_names(path: &std::path::Path) -> Vec<ScannedFace> {
                     crate::group::classify(&skrifa::FontRef::new(&font).ok()?, &family)
                 }
             };
+            use skrifa::raw::TableProvider;
+            let class = crate::kind::read_kind(&f, &family).class;
+            let width = font_width(&f);
+            let weight = f.os2().ok().map_or_else(|| style_weight(&style), |t| f32::from(t.us_weight_class()));
             let postscript = name(&f, &[StringId::POSTSCRIPT_NAME]);
             let wws = wws_names(&f, &family, &style);
             Some(ScannedFace {
@@ -151,6 +172,9 @@ pub(super) fn file_face_names(path: &std::path::Path) -> Vec<ScannedFace> {
                 native,
                 aliases: aliases(&f, &[StringId::TYPOGRAPHIC_FAMILY_NAME, StringId::FAMILY_NAME]),
                 postscript,
+                class,
+                width,
+                weight,
             })
         })
         .collect()
@@ -359,6 +383,9 @@ impl FontDb {
                         native: f.native,
                         aliases: f.aliases,
                         postscript: f.postscript,
+                        class: f.class,
+                        width: f.width,
+                        weight: f.weight,
                     });
                 }
             }
@@ -376,6 +403,9 @@ impl FontDb {
                     native: f.native,
                     aliases: f.aliases,
                     postscript: f.postscript,
+                    class: f.class,
+                    width: f.width,
+                    weight: f.weight,
                 });
             }
         }

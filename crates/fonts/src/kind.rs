@@ -123,7 +123,9 @@ pub fn classify(panose: &[u8; 10], ibm_class: u8, fixed_pitch: bool, family: &st
         10 => FontClass::Script,
         12 => FontClass::Symbol,
         _ if named(&["slab"]) => FontClass::SlabSerif,
-        _ if named(&["sans", "grotesk", "grotesque", "gothic", "helvetica", "arial"]) => FontClass::SansSerif,
+        // The bundled Barlow faces have zero family/serif PANOSE and IBM class;
+        // their upstream family metadata declares sans serif.
+        _ if named(&["sans", "grotesk", "grotesque", "gothic", "helvetica", "arial", "barlow condensed"]) => FontClass::SansSerif,
         _ if named(&["script", "hand", "brush"]) => FontClass::Script,
         _ if named(&["serif"]) => FontClass::Serif,
         _ => FontClass::Other,
