@@ -295,17 +295,18 @@ decoded or B understood.
    boundary in all 93 records and exact array-tail extents in 44 records.
    UNKNOWN: authoritative duplicate fields in index-20, general relocation
    and the meaning of descriptor `0x0019`; descriptor stride is not universal.
-2. UNKNOWN: independently length-derived extents/padding for 14 records of
-   numeric classes 3 and 195; semantic meanings of all four directory
+2. UNKNOWN: independently length-derived extents/padding for two records of
+   numeric class 195, index 41; semantic meanings of all four directory
    attribute values; header words `0x0C`, `0x1E`, `0x20`, `0x24`.
    OBSERVATION: AP4 accounts for 70 spans by three field-driven arithmetic
    rules. AP6/AP7 add nine sampled class-2/class-10 extents with the
-   unchanged field-driven rule `H+22+n*(4+w)`, checked against populated
-   index-82 and index-76 records and seven empty records: 79/93 endpoints
-   now agree independently of their directory bounds. UNKNOWN: only one
-   nonzero example per populated index is available; duplicate count roles,
-   nonempty index-49 behavior, a universal length rule, padding in the
-   fourteen remaining records and flag-bit meanings remain unproved.
+   unchanged field-driven rule `H+22+n*(4+w)`. AP8 adds all twelve class-3
+   records with `H+18+q`, verified by a count-selected relative-offset table
+   and stored q, including unequal payload widths in index 30: 91/93
+   endpoints now agree independently of their directory bounds. UNKNOWN:
+   duplicate count roles, nonempty index-49 behavior, a universal length
+   rule, padding in the two remaining records and flag-bit meanings remain
+   unproved. The fixed-width rule is not a universal class-3 rule.
 3. UNKNOWN: root/page ordering and master/scratch classification. OBSERVATION:
    AP2 accounts for all 24 direct directory children of the eight index-20
    records: 17 tail IDs and seven fixed-field IDs. OBSERVATION: AP3 accounts
@@ -321,12 +322,13 @@ decoded or B understood.
    is resolved. UNKNOWN: zmspub.pub and the claimed equality of the owner pair
    remain unverified; independent manufacture is owner-reported provenance.
 
-INFERENCE: after AP7, the next smallest step needing no new sample is the
-structural-only comparison of the two class-3/index-30 records already
-inventoried by AP4: H=4 and spans 26/114 leave residuals 22/110. Test
-their own fields and boundaries without assuming the class-2/class-10 rule
-applies. UNKNOWN: duplicate count roles still need discriminating evidence;
-nonempty index-49 behavior and B's table remain separate work.
+INFERENCE: after AP8, the next smallest step needing no new sample is the
+structural-only comparison of the two remaining class-195/index-41 records
+already inventoried by AP4: H=56 and spans 294/236 leave residuals 238/180.
+Test their own count/length fields and boundaries without assuming another
+class's framing applies. UNKNOWN: duplicate count roles still need
+discriminating evidence; nonempty index-49 behavior and B's table remain
+separate work.
 
 ## What a reader must do before implementation
 
@@ -1383,3 +1385,187 @@ unknowns. SOURCES.md is unchanged. No full CI, importer/protected-reader edit,
 B work, Quill repair, environment script/setting change, environment
 save/publication or pull request was performed. Sample and stream bytes remain
 uncommitted; no extra remote was added.
+
+## Class-3 index-30 comparison
+
+OBSERVATION: AP8 starts from `eaf5b9a24275b9502e932fd777de790110db5d9e`,
+titled Check counted framing in two more legacy records. Fetch succeeds and
+the branch is at that commit. The restore verifies all 317 pinned inputs,
+restores none and reports zero failures. The binary folders contain 142
+controlled and 24 Apache publications. Sample98.pub matches its recorded
+61440-byte size/hash; the attachment remains available and matches 19968
+bytes and SHA-256
+`0EFF0498172805BF1E52C74A6334ECC4CDC84FB2E531C0EA25734CFAC7923C7D`.
+Fresh Contents extracts remain in the ignored research directory. No private
+sample bytes or content are reproduced; all facts below are structural
+measurements or equality classes. Both samples are already listed in
+SOURCES.md, which is unchanged. No single-sample fallback is needed.
+
+### Index-30 fields and bounds, side by side
+
+OBSERVATION: positions are hexadecimal absolute Contents offsets; sizes,
+counts and relative offset-table values are decimal. Reads are little-endian
+and ranges are end-exclusive. A fresh descriptor walk ends at `0x37E` after
+88 entries in each file. Descriptor 30 at `0x17E` has words `0x0408`, 3,
+198, no nonzero selectors, and a terminator at `0x184`; the next descriptor
+starts at `0x186`. Numeric class 3 names only descriptor word 1.
+
+| Basis | Field/check | Sample98.pub | mspub.pub |
+| --- | --- | --- | --- |
+| OBSERVATION | Directory ordinal / ID / D | 19 / `0x119` / `0x464` | 21 / `0x110` / `0x478` |
+| OBSERVATION | D+4 u32 supplies R | `0x468`: `0xD4C` | `0x47C`: `0xCB4` |
+| OBSERVATION | Next D+4 u32 supplies E | `0x472`: `0xD66` | `0x486`: `0xD26` |
+| OBSERVATION | Leading index / prefix +2,+3 | `0xD4C`: 30; `0xD4E,0xD4F`: 8,4 | `0xCB4`: 30; `0xCB6,0xCB7`: 8,4 |
+| OBSERVATION | H / fixed part / T / residual | 4 / `[0xD4C,0xD50)` / `0xD50` / 22 | 4 / `[0xCB4,0xCB8)` / `0xCB8` / 110 |
+| OBSERVATION | u32 at T / n | `0xD50` / 0 | `0xCB8` / 3 |
+| OBSERVATION | u32 at T+4 / repeated n | `0xD54` / 0 | `0xCBC` / 3 |
+| OBSERVATION | u32 at T+8 / q | `0xD58` / 4 | `0xCC0` / 92 |
+| OBSERVATION | Six opaque header bytes at T+12..T+18 | `[0xD5C,0xD62)` | `[0xCC4,0xCCA)`; equal in memory |
+| OBSERVATION | Relative-offset base O=T+18 | `0xD62` | `0xCCA` |
+| OBSERVATION | n+1 u32 offsets at O | `[0xD62,0xD66)`: 4 | `[0xCCA,0xCDA)`: 16,50,66,92 |
+| OBSERVATION | Framed payload spans | none; `[0xD66,0xD66)` | `[0xCDA,0xCFC)`, `[0xCFC,0xD0C)`, `[0xD0C,0xD26)` |
+| OBSERVATION | Payload widths from successive offsets | none | 34,16,26; total 76 |
+| OBSERVATION | Predicted span H+18+q / measured span | 26 / 26 | 114 / 114 |
+
+OBSERVATION: H is the high prefix byte and high byte of descriptor word 0,
+both 4. The low byte is 8 in both descriptor and instance, so substituting
+that byte for H would move the tail start four bytes too far. The low byte
+is not silently treated as the fixed-part length. Descriptor word 2 is 198,
+not any of the measured payload widths; it does not supply the fixed width
+used by the earlier class-2/class-10 equation in these records.
+
+### Complete byte classes and variable spans
+
+OBSERVATION: all four fixed-part bytes compare equal; no fixed-part position
+differs. Across the first 22 tail bytes, every position is accounted for
+by this partition (decimal relative to T): equal =
+`1..3,5..7,9..17,19..21`; different = `0,4,8,18`.
+The differences are the low bytes of n, repeated n, q and the first offset.
+The six opaque bytes at T+12..T+18 are unchanged. Their meaning remains
+UNKNOWN; none is decoded as geometry, text, colour or formatting.
+
+OBSERVATION: the short tail's final offset word does not appear anywhere
+as an equal four-byte word in the long tail; its complete 22 bytes are also
+not a contiguous substring of that tail. The terminal word in class 3 is
+the relative end offset q, not the common constant boundary word observed
+in class 2/10. The long tail has an offset table of 16 bytes and 76 opaque
+payload bytes; the short tail has a four-byte offset table and zero payload
+bytes. The excess 88 bytes consists of twelve extra table bytes plus 76
+payload bytes. The three framed spans have unequal widths 34,16,26.
+
+OBSERVATION: this provides a stored count and repeated framing, but not a
+fixed-width list of the three counted payloads. Keeping overhead 22 and
+three four-byte slots would leave 76 bytes for three elements, which is
+not divisible by three. Thus no single integer w can make the original
+equation fit that record with n=3. UNKNOWN: smaller atomic units inside
+the opaque spans are not ruled out, and their contents are not inspected
+for a meaning or decoded as another class.
+
+### Failed fixed-width rule and the smallest alternative
+
+OBSERVATION: applying the earlier field positions literally gives u16 n at
+T = 0/3, u16 at T+2 = 0/0 and u16 w at T+4 = 0/3. The populated record's
+predicted span is `4+22+3*(4+3)=47`, not 114: under-consumption by 67.
+T+4 is the repeated count here, not a width; T+2 is the zero upper half
+of the first u32 probe, not the repeated count. The numeric first count
+remains usable, but the duplicate/width field layout changes. The 22-byte
+base overhead need not change. Substituting descriptor width 198 also
+fails, predicting 632. The empty record fits 26 without testing width.
+
+INFERENCE: the smallest arithmetic generalization retaining that overhead
+and count is `span = H+22+4*n+sum(payload widths)`. In the earlier nine
+class-2/class-10 records, the sum remains n*w, so all nine old predictions
+are unchanged. In class 3, widths come from a relative-offset table rather
+than a stored common width. This is a shared arithmetic relationship, not
+a claim that the two families share field representations or offset tables.
+
+OBSERVATION: the directly field-driven class-3 check is `span = H+18+q`.
+At T, T+4 and T+8 read n, repeated n and q with u32 probes. At O=T+18
+read n+1 u32 offsets; require first offset `4*(n+1)`, monotonic increasing
+boundaries for nonempty spans, and final offset q. Payload j is bounded by
+`[O+offset[j],O+offset[j+1])`; every table read and span must fit before
+O+q. The two index-30 examples give first/last offsets 4/4 and 16/92.
+Predicted O+q then equals E in both, independently of the directory difference.
+
+UNKNOWN: these observations do not establish that the three fields are
+semantically u32 rather than narrower values with zero upper bytes. Count
+versus capacity is still unresolved because the first two values agree.
+The six header bytes, relative-offset base meaning beyond these samples,
+and authoritative descriptor/instance choices remain unverified.
+
+### Every other class-3 record and earlier checks
+
+OBSERVATION: the table covers all twelve class-3 records, including the
+index-30 pair. D/R/T/O/E are hexadecimal; offsets, widths and spans are
+decimal. For each row, n and repeated n agree. The count and q are read
+at T and T+8; the repeated count is at T+4. Offset entries begin at O.
+These positions specify each field's absolute evidence without reproducing
+the opaque payload. The original-rule column uses its literal u16 reads
+at T and T+4. Every revised prediction agrees with the directory span.
+
+| Basis | Sample / ID / index | D / R / T / O / E | n / q | Relative offsets | Payload widths | Old span / revised span / measured span |
+| --- | --- | --- | --- | --- | --- | --- |
+| OBSERVATION | Sample98 / `0x123` / 40 | `0x3CE / 0x840 / 0x85C / 0x86E / 0x902` | 6 / 148 | 28,48,68,88,108,128,148 | 20,20,20,20,20,20 | 110 / 194 / 194 |
+| OBSERVATION | Sample98 / `0x11E` / 50 | `0x45A / 0xD32 / 0xD36 / 0xD48 / 0xD4C` | 0 / 4 | 4 | empty | 26 / 26 / 26 |
+| OBSERVATION | Sample98 / `0x119` / 30 | `0x464 / 0xD4C / 0xD50 / 0xD62 / 0xD66` | 0 / 4 | 4 | empty | 26 / 26 / 26 |
+| OBSERVATION | Sample98 / `0x105` / 31 | `0x46E / 0xD66 / 0xD6A / 0xD7C / 0xD80` | 0 / 4 | 4 | empty | 26 / 26 / 26 |
+| OBSERVATION | Sample98 / `0x104` / 50 | `0x482 / 0xD9E / 0xDA2 / 0xDB4 / 0xDB8` | 0 / 4 | 4 | empty | 26 / 26 / 26 |
+| OBSERVATION | mspub / `0x102` / 40 | `0x3C4 / 0x6F4 / 0x710 / 0x722 / 0x7B6` | 6 / 148 | 28,48,68,88,108,128,148 | 20,20,20,20,20,20 | 110 / 194 / 194 |
+| OBSERVATION | mspub / `0x101` / 35 | `0x45A / 0xC4A / 0xC4E / 0xC60 / 0xC7C` | 4 / 28 | 20,22,24,26,28 | 2,2,2,2 | 58 / 50 / 50 |
+| OBSERVATION | mspub / `0x121` / 50 | `0x46E / 0xC9A / 0xC9E / 0xCB0 / 0xCB4` | 0 / 4 | 4 | empty | 26 / 26 / 26 |
+| OBSERVATION | mspub / `0x110` / 30 | `0x478 / 0xCB4 / 0xCB8 / 0xCCA / 0xD26` | 3 / 92 | 16,50,66,92 | 34,16,26 | 47 / 114 / 114 |
+| OBSERVATION | mspub / `0x120` / 31 | `0x482 / 0xD26 / 0xD2A / 0xD3C / 0xD40` | 0 / 4 | 4 | empty | 26 / 26 / 26 |
+| OBSERVATION | mspub / `0x125` / 50 | `0x496 / 0xD5E / 0xD62 / 0xD74 / 0xD78` | 0 / 4 | 4 | empty | 26 / 26 / 26 |
+| OBSERVATION | mspub / `0x123` / 50 | `0x4AA / 0xD96 / 0xD9A / 0xDAC / 0xDB0` | 0 / 4 | 4 | empty | 26 / 26 / 26 |
+
+OBSERVATION: the original formula fits **8/12** empty class-3 records and
+fails on all four populated cases: Sample98 index 40 under by 84; mspub
+index 40 under by 84; mspub index 35 over by 8; mspub index 30 under by 67.
+These are every counterexample in class 3, not suppressed exceptions.
+The revised field/table rule predicts **12/12**, with zero disagreements:
+eight empty and four populated tails. The index-35 and index-40 payloads
+happen to have equal widths within each record, whereas index 30 does not.
+Descriptor word 2 is zero for indices 31/35/40/50, so it cannot supply their
+nonzero populated widths. No fixed-width claim follows from the empty cases.
+
+OBSERVATION: all earlier nine class-2/class-10 checks, including their equality
+and boundary checks, were rerun successfully. The generalized sum therefore
+fits **21/21** tested class-2/3/10 records. AP4's other 70 class-selected
+F/A/O predictions remain separate; this step does not apply either new
+field layout to them. Fresh leading-index/directory/descriptor comparisons
+match all 93 inventory entries. The class-195 bodies are not inspected.
+
+### Updated extent count and checkpoint
+
+OBSERVATION: of AP7's fourteen unexplained extents, all twelve class-3 cases
+are now predicted by stored fields and checked offset tables. None refutes
+that revised rule; the two class-195 cases stay unexplained. The total is
+**91/93 field-driven sampled extent predictions**, comprising **53/54**
+Sample98 and **38/39** mspub. Zero extra constant-only provisional fits
+are counted. The remaining complete list is:
+
+| Basis | Index / numeric class | Sample98 ID / H / span | mspub ID / H / span | Unexplained count |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | 41 / 195 | `0x11F` / 56 / 294 | `0x111` / 56 / 236 | 2 |
+
+UNKNOWN: agreeing endpoints do not prove internal padding, semantic payload
+types, valid content or a universal reader. Duplicate count roles, nonempty
+index-49 behavior, the role of descriptor word 2 in class 3, the six opaque
+header bytes, relative-offset semantics outside these twelve records,
+flags, saving versions and malformed-input behavior remain unverified.
+Only one populated variable-width index-30 example is available. No geometry,
+text, colour or formatting meaning was decoded.
+
+INFERENCE: the next smallest step is the remaining pair of class-195/index-41
+records already inventoried by AP4. H=56 and spans 294/236 leave residuals
+238/180. Compare structural length/count fields and bounds without assuming
+class-3 or class-2/10 framing applies. No index-41 body was inspected in AP8.
+
+OBSERVATION: this is the first AP8 checkpoint. Both original identities,
+fresh descriptor/directory comparisons, the fixed/shared-tail equality
+partition, all twelve count/length/offset-table checks and the earlier nine
+checks pass. Only this appended section and the narrowed ranked-unknowns
+section change. No full CI, importer/protected-reader edit, B work, Quill
+repair, environment script/setting change, environment save/publication or
+pull request was performed. Sample and stream bytes remain uncommitted;
+no extra remote was added.
