@@ -298,9 +298,14 @@ decoded or B understood.
    corroboration, nine have one corroborated hit, sixteen are zero-only,
    and descriptor 21's +208 is outside both record spans. Descriptor 41's
    +16 has one child-ID hit and one zero, so remains probable.
+   OBSERVATION: AP11 extends the bounds census to all 170 instantiated
+   selector occurrences: +208 fails twice and descriptors 2/3's +370 fail
+   four times. Record-relative u16 reads preserve all 46 prior corroborated
+   targets; tested tail bases and a uniform -32 shift preserve none.
    UNKNOWN: authoritative duplicate fields in index-20, general relocation
-   (including the invalid literal +208 selection), optional zero-only roles
-   and the meaning of descriptor `0x0019`; descriptor stride is not universal.
+   (including +208/+370 mappings), optional versus stale +208 applicability,
+   zero-only roles and the meaning of descriptor `0x0019`; descriptor stride
+   is not universal. No conditional flag/count rule for +208 is established.
 2. UNKNOWN: universal framing and internal padding interpretation beyond
    the tested extent rules; semantic meanings of all four directory
    attribute values; header words `0x0C`, `0x1E`, `0x20`, `0x24`.
@@ -335,12 +340,12 @@ decoded or B understood.
    is resolved. UNKNOWN: zmspub.pub and the claimed equality of the owner pair
    remain unverified; independent manufacture is owner-reported provenance.
 
-INFERENCE: after AP10, the next smallest step is to investigate only why
-descriptor 21's literal +208 selection lies outside both bounded records.
-Test possible schema-to-instance position relationships against actual
-boundaries before treating it as a field; do not read into the next record.
-UNKNOWN: any relocation rule, probable/zero-only selector roles, duplicate
-counts, nonempty index-49 behavior and B's table remain separate questions.
+INFERENCE: after AP11, the next smallest byte-only test is descriptors 2/3's
++370 selection in their four instances. Compare the literal selection with
+the bounded candidate +114 (370 modulo 256), using directory-ID and matched
+controls before accepting any high-byte tagging hypothesis. UNKNOWN: this
+is not an established mapping, and it does not resolve +208. Probable/zero-only
+roles, duplicate counts, nonempty index-49 behavior and B remain separate.
 
 ## What a reader must do before implementation
 
@@ -1931,3 +1936,173 @@ No full CI, importer/protected-reader edit, B work, Quill repair, environment
 script/setting change, environment save/publication or pull request was
 performed. Sample and extracted bytes remain uncommitted; no extra remote
 was added.
+
+## Descriptor 21 offset +208 and the selector base
+
+OBSERVATION: AP11 starts from `ca435a96877b186a0401db339471c527e72ec137`,
+titled Check reference selectors against record directories. Fetch succeeds
+and the branch is at that commit. The restore verifies all 317 pinned inputs,
+restores none and reports zero failures; binary folders contain 142 controlled
+and 24 Apache publications. Sample98.pub matches its recorded 61440-byte
+size/hash. The attachment remains available and matches 19968 bytes and
+SHA-256 `0EFF0498172805BF1E52C74A6334ECC4CDC84FB2E531C0EA25734CFAC7923C7D`.
+Fresh Contents extractions remain ignored. Evidence consists of derived
+structural facts, with no private bytes or content reproduced. SOURCES.md
+already lists both samples and is unchanged. No fallback is needed.
+
+### Every descriptor-21 instance and selector
+
+OBSERVATION: each file has exactly one directory-addressed descriptor-21
+record. Descriptor 21 at Contents `0xE6` has words `0xB2D2`, 25, 2. Its
+32 nonzero selectors, in serialized order and decimal, are
+`4,6,8,52,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,104,136,108,132,110,134,106,138,176,208`.
+The final selector word is at `0x12A`, followed by a zero terminator at
+`0x12C` and descriptor 22 at `0x12E`. Both descriptor lists are identical.
+No selector is an inferred extra entry after the terminator.
+
+OBSERVATION: positions and IDs below are hexadecimal; counts, widths and
+sizes are decimal. Numeric reads are little-endian, ranges end-exclusive.
+H is the high prefix byte; L is its low companion, not a proven fixed length.
+
+| Basis | Field/check | Sample98.pub | mspub.pub |
+| --- | --- | --- | --- |
+| OBSERVATION | ID / directory D / R / E | `0x100 / 0x3B0 / 0x5E0 / 0x6AA` | `0x127 / 0x3B0 / 0x540 / 0x608` |
+| OBSERVATION | L / H at R+2,R+3 | `0x5E2,0x5E3`: 210 / 178 | `0x542,0x543`: 210 / 178 |
+| OBSERVATION | Tail start T=R+H | `0x692` | `0x5F2` |
+| OBSERVATION | u16 n / repeat / w at T,T+2,T+4 | `0x692,0x694,0x696`: 7 / 7 / 2 | `0x5F2,0x5F4,0x5F6`: 6 / 6 / 2 |
+| OBSERVATION | Proven span H+10+n*w | `178+10+7*2=202` | `178+10+6*2=200` |
+| OBSERVATION | Directory attribute at D+8 | `0x3B8`: `0x16C0` | `0x3B8`: `0x16C0` |
+| OBSERVATION | R+208, not dereferenced | `0x6B0`, beyond E by 6 | `0x610`, beyond E by 8 |
+| OBSERVATION | Literal selector +176 | `0x690`, bounded u16 is zero | `0x5F0`, bounded u16 is zero |
+| OBSERVATION | Selectors outside record for u16 | 208 only | 208 only |
+
+OBSERVATION: +208 is outside every available descriptor-21 record, not just
+one shorter example; no longer counterexample exists in these two files.
+A one-, two- or four-byte read would require spans at least 209,210,212,
+respectively, so changing width alone cannot rescue either record. All other
+31 literal selectors fit inside the fixed part `[R,R+178)`, including +176.
+The record ends are independently field-predicted and equal the next directory
+offsets; no neighbor bytes are read to manufacture a +208 value.
+
+### Bounds across every descriptor, not only AP10's five
+
+OBSERVATION: walking all 88 descriptors finds 17 nonempty selector lists.
+Across all 93 directory records there are 86/84 instantiated selector
+occurrences in Sample98/mspub, 170 total. Exactly six fail a literal
+record-relative u16 bounds check, listed completely below. The remaining
+164 are bounded, without asserting their semantic reference roles.
+Uninstantiated descriptors cannot supply field-value evidence.
+
+| Basis | Sample / ID | Descriptor / selector | Directory D / R / E | Span / H | Bounds result |
+| --- | --- | --- | --- | --- | --- |
+| OBSERVATION | Sample98 / `0x100` | 21 / 208 | `0x3B0 / 0x5E0 / 0x6AA` | 202 / 178 | Requires 210 bytes; rejected. |
+| OBSERVATION | Sample98 / `0x133` | 2 / 370 | `0x3E2 / 0x93E / 0x9D4` | 150 / 140 | Requires 372 bytes; rejected. |
+| OBSERVATION | Sample98 / `0x134` | 3 / 370 | `0x3EC / 0x9D4 / 0xA6A` | 150 / 140 | Requires 372 bytes; rejected. |
+| OBSERVATION | mspub / `0x127` | 21 / 208 | `0x3B0 / 0x540 / 0x608` | 200 / 178 | Requires 210 bytes; rejected. |
+| OBSERVATION | mspub / `0x10C` | 2 / 370 | `0x3E2 / 0x866 / 0x8FC` | 150 / 140 | Requires 372 bytes; rejected. |
+| OBSERVATION | mspub / `0x10B` | 3 / 370 | `0x3EC / 0x8FC / 0x992` | 150 / 140 | Requires 372 bytes; rejected. |
+
+OBSERVATION: +208 is therefore not the only out-of-bounds selector across
+all instantiated descriptors. AP10's narrower five-descriptor scope had one
+failing family; the full bounds census adds descriptors 2 and 3's +370.
+Their bodies and selector meanings are not decoded in this step.
+
+### The three explanations and bounded countertests
+
+| Basis | Explanation/test | Evidence and result |
+| --- | --- | --- |
+| OBSERVATION | (a) Add selector to fixed-part end T=R+H | +208 would require relative end 388, versus spans 202/200. Refuted as a rescue for +208. |
+| OBSERVATION | (a) Add selector to A-tail data start T+10 | +208 would require relative end 398. Refuted as a rescue for +208. |
+| OBSERVATION | Width or units alone | Widths 1/2/4 still overrun; multiplying 208 by two increases the overrun. These interpretations do not rescue +208. |
+| OBSERVATION | Shift every selector by -(L-H)=-32 | +208 maps to existing +176, which is zero in both files; selectors +4,+6,+8 would map before R. Refuted as one uniform record-relative relocation. |
+| UNKNOWN | Apply -32 only to the last selector | Numerically bounded but duplicates the existing zero-only +176 selection. No independent positive target distinguishes it from an arbitrary adjustment. Not proven or adopted. |
+| UNKNOWN | (b) Conditional live selector in a longer record | For the observed H=178,w=2 equation, n>=11 would make a u16 +208 bounded. Current n=7/6 do not test that condition; no live-field meaning follows merely from length. |
+| UNKNOWN | (b) Flag-dependent applicability | Both directory attributes are `0x16C0`; both L/H pairs and descriptors match. No discriminating flag change or proven gating bit is available. |
+| OBSERVATION | (c) Ordinary zero padding or a word after the selector terminator | Refuted: 208 is a nonzero word before the verified terminator, not zero padding or an extra post-terminator entry. |
+| UNKNOWN | (c) Stale, unused or broader-schema selector | Compatible with its being unused in both instances. L=210 equals 208+2, while H=178; that numeric fit could suggest a larger layout but does not establish what L means. No example distinguishes stale metadata from a conditional selector or another mapping. |
+
+OBSERVATION: every positive additive base located at or after R makes the
+already invalid +208 position no smaller; it cannot explain this overrun.
+The tested negative shift fails a shared-base check. UNKNOWN: an encoded
+selector, a per-field relocation, a genuine conditional field and a stale
+entry are not exhaustively excluded. The cause is therefore narrowed, not
+uniquely decoded. No flag/count gating rule is invented from the two short
+records, and no width or base change is silently applied to preserve a theory.
+
+### Shared convention tested on all prior P/R families
+
+OBSERVATION: all 15 sample-proven and nine probable selector families from
+AP10 are tested, 24 pairs with 78 instantiated probes. Their 46 previously
+corroborated nonzero target IDs are the identity anchors. The table below
+counts bounded probes, direct-child ID hits, and preservation of those exact
+prior targets; accidental hits on a different child do not preserve an anchor.
+T+10 is specifically the known A-tail data base where applicable, and only
+an arithmetic comparison base in the other families, not a decoded tail rule.
+
+| Basis | u16 candidate base | Bounded / 78 probes | Direct-child ID hits | Exact prior targets retained / 46 |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | R, the record start | 78 | 46 | 46 |
+| OBSERVATION | T=R+H | 29 | 2 | 0 |
+| OBSERVATION | T+10 | 16 | 9 | 0 |
+| OBSERVATION | R-32 | 37 | 8 | 0 |
+
+OBSERVATION: alternate bases sometimes land on already framed tail IDs,
+which explains why simple membership hits alone do not establish a base.
+None retains any of the 46 original nonzero targets. With base R unchanged,
+one-, two- and four-byte unsigned whole-field reads are all bounded on the
+78 P/R probes, but yield 0,46,23 directory child-ID hits respectively.
+One byte cannot express these IDs, all at least `0x100`; four-byte whole-ID
+interpretation loses half the anchored hits. This rejects a universal full-u32
+ID interpretation, not a possible wider container whose low 16 bits encode
+an ID alongside other data. Descriptor 49 alone cannot separate widths two
+and four because its following bytes are zero in these examples.
+
+OBSERVATION: the per-family convention supported by the identity anchors is
+below. Offsets and probe counts are decimal; each listed reference selection
+is also bounded within its observed fixed prefix. This restates a sample
+extraction convention, not a universal writer specification.
+
+| Basis | Descriptor family | Supported base / width extraction | P/R probes / corroborated targets | Limit |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | 10 | u16 at R+s | 9 / 3 | All three selector families remain probable; no tail-relative replacement retains their targets. |
+| OBSERVATION | 20 | u16 at R+s | 28 / 8 | Applies to sample-proven +4,+28; zero-only +6,+26 remain UNKNOWN. |
+| OBSERVATION | 21 | u16 at R+s for bounded P/R selectors | 34 / 29 | +208 is not covered; zero-only fields do not prove a mapping. |
+| OBSERVATION | 41 | u16 at R+16 | 2 / 1 | Probable, not promoted by this base test. |
+| OBSERVATION | 49 | u16 at R+6 | 5 / 5 | Low-u16 identity extraction works; wider storage remains possible. |
+| UNKNOWN | 2,3 literal +370 | No live-field base established for this selection | Four out-of-bounds instances | Bounds-only census here; reference interpretation untested. |
+
+INFERENCE: use record-relative bounded u16 extraction for the existing
+sample anchors, while retaining explicit exceptions. There is no evidence
+for changing their shared base to a tail base or shifting every field by 32.
+UNKNOWN: +208's invalidity does not prove those other selectors use a different
+base, and their successful extraction does not prove every listed selector
+is live in every record. AP10's classifications and graph are unchanged;
+all 93 extent predictions are also rechecked unchanged.
+
+### Checkpoint, remaining unknowns and next smallest step
+
+UNKNOWN: the requested unique explanation for +208 cannot be verified with
+these two available instances. Conditional long-record use, stale/unused
+metadata and a selector-specific mapping remain compatible with the bytes.
+No general width/relocation rule, flag bit, optional-null meaning or full
+reference graph is proven. Exact product releases, broader sample behavior,
+duplicate count roles and internal padding remain unknown. No geometry,
+text, colour or formatting meaning is decoded.
+
+INFERENCE: the next smallest available byte-only check is the four +370
+instances of descriptors 2/3. Compare literal +370 with the bounded candidate
++114 (370 modulo 256), using ID resolution, independent directory-parent
+checks and matched controls before accepting a tagged-offset hypothesis.
+No such target is inspected or hypothesis accepted in AP11. Distinguishing
+conditional +208 use directly would instead need a discriminating independent
+record, such as the same layout with n>=11; mere bounds success in that record
+would still not prove that a writer uses the selector.
+
+OBSERVATION: this is the first AP11 checkpoint. Both original identities,
+all prior bounded checks, 93 extents, all 170 selector bounds, both descriptor-21
+tail equations, 24 P/R base/width comparisons and exact target retention
+checks pass. Only this appended section and the narrowed ranked-unknowns
+section change. SOURCES.md is unchanged. No full CI, importer/protected-reader
+edit, B work, Quill repair, environment script/setting change, environment
+save/publication or pull request was performed. Sample and extracted bytes
+remain uncommitted; no extra remote was added.
