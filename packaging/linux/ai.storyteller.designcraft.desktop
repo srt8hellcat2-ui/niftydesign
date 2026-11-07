@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=DesignCraft
+Name=NiftyDesign
 GenericName=Page Layout
 Comment=Lay out magazines, books and print documents
 Exec=designcraft %F

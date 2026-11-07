@@ -5,23 +5,22 @@
   <id>ai.storyteller.designcraft</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT OR Apache-2.0</project_license>
-  <name>DesignCraft</name>
+  <name>NiftyDesign</name>
   <summary>Lay out magazines, books and print documents</summary>
   <developer id="ai.storyteller">
-    <name>Learning Machines LLC</name>
+    <name>NiftyDesign (unofficial)</name>
   </developer>
   <description>
     <p>
-      DesignCraft is a page layout. Lay out magazines, books and print documents
+      NiftyDesign is a page layout. Lay out magazines, books and print documents
     </p>
   </description>
   <launchable type="desktop-id">ai.storyteller.designcraft.desktop</launchable>
   <icon type="stock">ai.storyteller.designcraft</icon>
   <!-- Only url types known to appstream 0.15 (Ubuntu 22.04, where CI validates): no vcs-browser. -->
-  <url type="homepage">https://getartcraft.com/apps/designcraft</url>
-  <url type="bugtracker">https://github.com/storytold/designcraft/issues</url>
-  <url type="help">https://github.com/storytold/designcraft</url>
-  <url type="contact">https://discord.gg/artcraft</url>
+  <url type="homepage">https://github.com/srt8hellcat2-ui/niftydesign</url>
+  <url type="bugtracker">https://github.com/srt8hellcat2-ui/niftydesign/issues</url>
+  <url type="help">https://github.com/srt8hellcat2-ui/niftydesign</url>
   <categories>
     <category>Graphics</category>
     <category>RasterGraphics</category>
@@ -33,12 +32,7 @@
     <keyword>psd</keyword>
     <keyword>layers</keyword>
   </keywords>
-  <screenshots>
-    <screenshot type="default">
-      <caption>Magazine spread with threaded text frames and layout properties</caption>
-      <image type="source" width="1600" height="1000">https://raw.githubusercontent.com/storytold/designcraft/main/docs/images/ui-spread.png</image>
-    </screenshot>
-  </screenshots>
+
   <branding>
     <color type="primary" scheme_preference="light">#9fd0ff</color>
     <color type="primary" scheme_preference="dark">#1f64ba</color>

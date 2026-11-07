@@ -1,4 +1,4 @@
-# Hosting DesignCraft for the web
+# Hosting NiftyDesign for the web
 
 `designcraft-web-<version>.zip` (from the GitHub release, or `packaging/web/package.sh`) holds a
 static site in `designcraft-web-<version>/`:
@@ -31,7 +31,7 @@ hash, so they can be cached forever. Only `index.html` needs revalidation.
   `.js` files, and `no-cache` on `index.html`.
 - **HTTPS:** WebGPU (and the clipboard) only work in a secure context, which means `https://`
   or `http://localhost`. Over plain HTTP elsewhere, the app falls back to WebGL2.
-- **No special isolation headers:** DesignCraft doesn't use `SharedArrayBuffer`, so it doesn't
+- **No special isolation headers:** NiftyDesign doesn't use `SharedArrayBuffer`, so it doesn't
   need `Cross-Origin-Opener-Policy` or `Cross-Origin-Embedder-Policy`. If your site already sends
   COEP `require-corp`, also send `Cross-Origin-Resource-Policy: same-origin` (or `cross-origin`
   when the files live on a CDN) on the app's files.
@@ -55,7 +55,7 @@ Local test: `python3 -m http.server 8765` inside the folder, then open http://lo
 ```html
 <iframe
   src="https://example.com/designcraft/"
-  title="DesignCraft image editor"
+  title="NiftyDesign image editor"
   style="width: 100%; height: 720px; border: 0;"
   allow="fullscreen; clipboard-read; clipboard-write"
   allowfullscreen>
@@ -75,7 +75,7 @@ Local test: `python3 -m http.server 8765` inside the folder, then open http://lo
 
 ## Renderer selection and fallback flags
 
-DesignCraft renders with wgpu. It uses **WebGPU** when the browser has it and falls back to
+NiftyDesign renders with wgpu. It uses **WebGPU** when the browser has it and falls back to
 **WebGL2** on its own. URL query flags override this, and they work on the iframe `src` too:
 
 | Flag | Effect |

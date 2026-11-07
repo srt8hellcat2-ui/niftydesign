@@ -4,7 +4,7 @@
      claim every archive. -->
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
   <mime-type type="application/x-designcraft">
-    <comment>DesignCraft document</comment>
+    <comment>NiftyDesign document</comment>
     <sub-class-of type="application/zip"/>
     <generic-icon name="ai.storyteller.designcraft"/>
     <glob pattern="*.designcraft"/>

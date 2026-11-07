@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build and package DesignCraft for Linux (<arch> is x86_64 or aarch64, or riscv64 when cross-compiling):
+# Build and package NiftyDesign for Linux (<arch> is x86_64 or aarch64, or riscv64 when cross-compiling):
 #
 #   $DIST/designcraft-<version>-linux-<arch>.AppImage  any distro with glibc >= the build host's
 #   $DIST/designcraft-<version>-linux-<arch>.AppImage.zsync  delta updates (needs zsyncmake)
@@ -43,10 +43,10 @@ case "$ARCH" in
   aarch64 | arm64) ARCH=aarch64; DEB_ARCH=arm64 ;;
   *) echo "unsupported architecture $ARCH" >&2; exit 2 ;;
 esac
-export DESIGNCRAFT_MAINTAINER="${DESIGNCRAFT_MAINTAINER:-DesignCraft maintainers <designcraft@storyteller.ai>}"
-BASENAME="designcraft-$VERSION-linux-$ARCH"
+export DESIGNCRAFT_MAINTAINER="${DESIGNCRAFT_MAINTAINER:-NiftyDesign maintainers <designcraft@storyteller.ai>}"
+BASENAME="niftydesign-$VERSION-linux-$ARCH"
 
-echo "==> DesignCraft $VERSION for Linux $ARCH ($FORMATS)"
+echo "==> NiftyDesign $VERSION for Linux $ARCH ($FORMATS)"
 
 has() {
   local fmt="$1"
@@ -121,7 +121,7 @@ if has appimage; then
     # No pinned download (e.g. riscv64): set APPIMAGETOOL or put appimagetool on PATH.
     *) APPIMAGETOOL_SHA256="" ;;
   esac
-  APPDIR="$WORK/DesignCraft.AppDir"
+  APPDIR="$WORK/NiftyDesign.AppDir"
   cp -R "$STAGE" "$APPDIR"
   # Keep sctk-adwaita's MIT notice in the AppImage.
   install -Dm644 "$ROOT/NOTICE" "$APPDIR/usr/share/doc/designcraft/NOTICE"

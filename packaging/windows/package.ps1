@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-  Build, sign and package DesignCraft for Windows.
+  Build, sign and package NiftyDesign for Windows.
 
 .DESCRIPTION
   Produces, in $env:DIST (default: dist/release):
-    designcraft-<version>-windows-<arch>.msi            per-machine installer (WiX v5)
-    designcraft-<version>-windows-<arch>-portable.zip   designcraft.exe + designcraft-cli.exe + portable.txt
+    niftydesign-<version>-windows-<arch>.msi            per-machine installer (WiX v5)
+    niftydesign-<version>-windows-<arch>-portable.zip   designcraft.exe + designcraft-cli.exe + portable.txt
 
   The binaries link the C runtime statically (+crt-static), so neither the MSI nor the portable
   zip needs the Visual C++ redistributable. Signing is delegated to sign.ps1 (skipped with a
@@ -53,7 +53,7 @@ New-Item -ItemType Directory -Force -Path $Dist | Out-Null
 if (-not $env:DESIGNCRAFT_BUILD_SHA) { $env:DESIGNCRAFT_BUILD_SHA = (git -C $Root rev-parse HEAD 2>$null) }
 if (-not $env:DESIGNCRAFT_BUILD_DATE) { $env:DESIGNCRAFT_BUILD_DATE = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd') }
 
-Write-Output "DesignCraft $Version for Windows $Arch ($Target)"
+Write-Output "NiftyDesign $Version for Windows $Arch ($Target)"
 
 if (-not $SkipBuild) {
   # Static CRT: no VC++ redistributable needed. Scoped to the target so host build scripts and
@@ -87,6 +87,7 @@ $Stage = Join-Path $TargetDir "windows-package\$Arch"
 Remove-Item -Recurse -Force $Stage -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Stage | Out-Null
 Copy-Item (Join-Path $Bin 'designcraft.exe'), (Join-Path $Bin 'designcraft-cli.exe') $Stage
+Invoke-Native 'stage/check package legal files' { python (Join-Path $Root 'packaging/check-branding.py') --copy-legal $Stage }
 
 & (Join-Path $PSScriptRoot 'sign.ps1') (Join-Path $Stage 'designcraft.exe') (Join-Path $Stage 'designcraft-cli.exe')
 
@@ -107,10 +108,10 @@ if ($env:CRAFT_FONTS_DIR) {
 # ---- end font notices for the MSI --------------------------------------------------------------
 
 # ---- MSI ---------------------------------------------------------------------------------------
-$Msi = Join-Path $Dist "designcraft-$Version-windows-$Arch.msi"
+$Msi = Join-Path $Dist "niftydesign-$Version-windows-$Arch.msi"
 Invoke-Native 'wix build' {
   wix build (Join-Path $PSScriptRoot 'designcraft.wxs') (Join-Path $PSScriptRoot 'installer-ui.wxs') -arch $Arch `
-    -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "IconPath=$(Join-Path $Root 'assets\app-icon\designcraft.ico')" `
+    -d "Version=$MsiVersion" -d "DisplayVersion=$Version" -d "BinDir=$Stage" -d "IconPath=$(Join-Path $Root 'assets\app-icon\designcraft.ico')" `
     -d "DocsDir=$Docs" -d "HasCraftFontLicences=$HasCraftFontLicences" `
     -o $Msi
 }
@@ -121,15 +122,15 @@ Remove-Item -Force -ErrorAction SilentlyContinue ([IO.Path]::ChangeExtension($Ms
 & (Join-Path $PSScriptRoot 'sign.ps1') $Msi
 
 # ---- portable zip ------------------------------------------------------------------------------
-$Portable = Join-Path $TargetDir "windows-package\designcraft-$Version-windows-$Arch-portable"
+$Portable = Join-Path $TargetDir "windows-package\niftydesign-$Version-windows-$Arch-portable"
 Remove-Item -Recurse -Force $Portable -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Portable | Out-Null
 Copy-Item (Join-Path $Stage '*.exe') $Portable
-# The marker that makes DesignCraft keep its data in .\DesignCraftData next to the exe instead of
+# The marker that makes NiftyDesign keep its data in .\DesignCraftData next to the exe instead of
 # %APPDATA% (#574; see apps/designcraft/src/profile.rs).
 Set-Content -Encoding ascii -Path (Join-Path $Portable 'portable.txt') -Value @(
-  'DesignCraft portable: preferences, logs and crash recovery are kept in the DesignCraftData folder',
-  'next to designcraft.exe. Delete this file to use %APPDATA%\DesignCraft instead.'
+  'NiftyDesign portable: preferences, logs and crash recovery are kept in the DesignCraftData folder',
+  'next to designcraft.exe. Delete this file to use %APPDATA%\NiftyDesign instead.'
 )
 foreach ($f in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE') {
   $p = Join-Path $Root $f
@@ -141,12 +142,13 @@ if ($env:CRAFT_FONTS_DIR) {
     Copy-Item $ofl.FullName (Join-Path $Portable "OFL-$($ofl.Directory.Name).txt")
   }
 }
-$Zip = Join-Path $Dist "designcraft-$Version-windows-$Arch-portable.zip"
+Invoke-Native 'portable package branding/legal check' { python (Join-Path $Root 'packaging/check-branding.py') --copy-legal $Portable }
+$Zip = Join-Path $Dist "niftydesign-$Version-windows-$Arch-portable.zip"
 Remove-Item -Force $Zip -ErrorAction SilentlyContinue
 Compress-Archive -Path $Portable -DestinationPath $Zip
 
 # Smoke-test the CLI when this machine can run it. An ARM64 build made on an x64 runner can't run
-# here; .github/workflows/windows-arm64.yml installs and runs it on ARM64 instead.
+# here; native smoke testing requires a host that can execute the target architecture.
 $HostArch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
 if ($Arch -ne 'arm64' -or $HostArch -eq 'arm64') {
   Invoke-Native 'designcraft-cli --version' { & (Join-Path $Stage 'designcraft-cli.exe') --version }

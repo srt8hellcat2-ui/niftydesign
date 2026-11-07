@@ -3,30 +3,30 @@
   <?ifndef HasCraftFontLicences ?>
   <?define HasCraftFontLicences=0 ?>
   <?endif?>
-  <Package Name="DesignCraft" Manufacturer="Learning Machines LLC" Version="$(var.Version)" UpgradeCode="49E87D30-BB68-4896-AA1D-F45C833CFC3C" Scope="perUserOrMachine" Compressed="yes" Language="1033">
-    <SummaryInformation Description="DesignCraft page layout and publishing" Manufacturer="Learning Machines LLC" />
+  <Package Name="NiftyDesign $(var.DisplayVersion)" Manufacturer="NiftyDesign (unofficial)" Version="$(var.Version)" UpgradeCode="49E87D30-BB68-4896-AA1D-F45C833CFC3C" Scope="perUserOrMachine" Compressed="yes" Language="1033">
+    <SummaryInformation Description="NiftyDesign opens and edits Microsoft Publisher (.pub) files from Publisher 2002 and newer" Manufacturer="NiftyDesign (unofficial)" />
     <?include $(sys.SOURCEFILEDIR)install-policy.wxi?>
     <!-- Same-version upgrades let successive pre-releases of one X.Y.Z replace each other
          (MSI versions are numeric, so 1.2.3-rc.1 and 1.2.3-rc.2 are both 1.2.3). -->
-    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of DesignCraft is already installed." />
+    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of NiftyDesign is already installed." />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
     <Icon Id="DesigncraftIcon.ico" SourceFile="$(var.IconPath)" />
     <Property Id="ARPPRODUCTICON" Value="DesigncraftIcon.ico" />
-    <Property Id="ARPURLINFOABOUT" Value="https://getartcraft.com/apps/designcraft" />
-    <Property Id="ARPURLUPDATEINFO" Value="https://getartcraft.com/apps/designcraft" />
-    <Property Id="ARPHELPLINK" Value="https://discord.gg/artcraft" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/srt8hellcat2-ui/niftydesign" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/srt8hellcat2-ui/niftydesign" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/srt8hellcat2-ui/niftydesign/issues" />
 
     <!-- Shared native setup UI, including install/uninstall completion. -->
 
     <StandardDirectory Id="ProgramFiles6432Folder">
       <Directory Id="CraftSuiteFolder" Name="ArtCraft">
-        <Directory Id="INSTALLFOLDER" Name="DesignCraft" />
+        <Directory Id="INSTALLFOLDER" Name="NiftyDesign" />
       </Directory>
     </StandardDirectory>
     <StandardDirectory Id="ProgramMenuFolder" />
 
-    <Feature Id="Main" Title="DesignCraft" Level="1">
+    <Feature Id="Main" Title="NiftyDesign" Level="1">
       <?if $(var.HasCraftFontLicences) = 1 ?>
       <ComponentGroupRef Id="CraftFontLicences" />
       <?endif?>
@@ -49,11 +49,11 @@
       </Component>
       <Component Id="DesigncraftApp" Guid="DE018EF3-EE87-4E36-9F76-0B7B060A195E">
         <File Id="DesigncraftExe" Source="$(var.BinDir)\designcraft.exe" KeyPath="yes">
-          <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="DesignCraft" Description="DesignCraft page layout and publishing" WorkingDirectory="INSTALLFOLDER" Advertise="yes" Icon="DesigncraftIcon.ico" IconIndex="0" />
+          <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="NiftyDesign" Description="NiftyDesign opens and edits Microsoft Publisher (.pub) files from Publisher 2002 and newer" WorkingDirectory="INSTALLFOLDER" Advertise="yes" Icon="DesigncraftIcon.ico" IconIndex="0" />
         </File>
 
-        <!-- .designcraft: DesignCraft's own format; DesignCraft is its default app. -->
-        <ProgId Id="Designcraft.Document" Description="DesignCraft Document" Icon="DesigncraftExe" IconIndex="0">
+        <!-- .designcraft: NiftyDesign's own format; NiftyDesign is its default app. -->
+        <ProgId Id="Designcraft.Document" Description="NiftyDesign Document" Icon="DesigncraftExe" IconIndex="0">
           <Extension Id="designcraft" ContentType="application/x-designcraft">
             <Verb Id="open" Command="Open" TargetFile="DesigncraftExe" Argument="&quot;%1&quot;" />
           </Extension>
@@ -64,14 +64,26 @@
         <RegistryValue Root="HKMU" Key="Software\Classes\.idml\OpenWithProgids" Name="Designcraft.Idml" Value="" Type="string" />
 
         <!-- "Open with" app list and the Run dialog (Win+R "designcraft"). -->
-        <RegistryValue Root="HKMU" Key="Software\Classes\Applications\designcraft.exe" Name="FriendlyAppName" Value="DesignCraft" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\Applications\designcraft.exe" Name="FriendlyAppName" Value="NiftyDesign" Type="string" />
         <RegistryValue Root="HKMU" Key="Software\Classes\Applications\designcraft.exe\shell\open\command" Value="&quot;[#DesigncraftExe]&quot; &quot;%1&quot;" Type="string" />
         <RegistryValue Root="HKMU" Key="Software\Classes\Applications\designcraft.exe\SupportedTypes" Name=".designcraft" Value="" Type="string" />
         <RegistryValue Root="HKMU" Key="Software\Classes\Applications\designcraft.exe\SupportedTypes" Name=".idml" Value="" Type="string" />
         <RegistryValue Root="HKMU" Key="Software\Microsoft\Windows\CurrentVersion\App Paths\designcraft.exe" Value="[#DesigncraftExe]" Type="string" />
-      <RegistryValue Root="HKMU" Key="Software\DesignCraft" Name="InstallDir" Value="[INSTALLFOLDER]" Type="string" />
+      <RegistryValue Root="HKMU" Key="Software\NiftyDesign" Name="InstallDir" Value="[INSTALLFOLDER]" Type="string" />
       </Component>
 
+      <Component Id="Legal0" Directory="INSTALLFOLDER"><File Id="LegalFile0" Source="$(var.BinDir)\NOTICE" KeyPath="yes" /></Component>
+      <Component Id="Legal1" Directory="INSTALLFOLDER"><File Id="LegalFile1" Source="$(var.BinDir)\LICENSE-MIT" KeyPath="yes" /></Component>
+      <Component Id="Legal2" Directory="INSTALLFOLDER"><File Id="LegalFile2" Source="$(var.BinDir)\LICENSE-APACHE" KeyPath="yes" /></Component>
+      <Component Id="Legal3" Directory="INSTALLFOLDER"><File Id="LegalFile3" Source="$(var.BinDir)\ASSETS.md" KeyPath="yes" /></Component>
+      <Component Id="Legal4" Directory="BrandTerms"><File Id="LegalFile4" Source="$(var.BinDir)\docs\brand\LICENSE-brand.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal5" Directory="IconTerms"><File Id="LegalFile5" Source="$(var.BinDir)\assets\app-icon\LICENSE.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal6" Directory="FontTerms"><File Id="LegalFile6" Source="$(var.BinDir)\assets\fonts\OFL-SourceSans3.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal7" Directory="FontTerms"><File Id="LegalFile7" Source="$(var.BinDir)\assets\fonts\OFL-JetBrainsMono.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal8" Directory="FontTerms"><File Id="LegalFile8" Source="$(var.BinDir)\assets\fonts\OFL-SourceSerif4.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal9" Directory="FontTerms"><File Id="LegalFile9" Source="$(var.BinDir)\assets\fonts\OFL-Inter.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal10" Directory="FontTerms"><File Id="LegalFile10" Source="$(var.BinDir)\assets\fonts\OFL-BarlowCondensed.txt" KeyPath="yes" /></Component>
+      <Component Id="Legal11" Directory="FontTerms"><File Id="LegalFile11" Source="$(var.BinDir)\assets\fonts\OFL-RobotoSerif.txt" KeyPath="yes" /></Component>
       <Component Id="DesigncraftCli">
         <File Id="DesigncraftCliExe" Source="$(var.BinDir)\designcraft-cli.exe" KeyPath="yes" />
       </Component>

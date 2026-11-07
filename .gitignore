@@ -9,3 +9,10 @@ plan/
 /.claude/
 /target-*/
 /craft-fonts/
+
+# Local import/scoring reports and downloaded sample evidence are never source.
+/.builder/
+
+# Generated Python bytecode is not source.
+__pycache__/
+*.py[cod]
