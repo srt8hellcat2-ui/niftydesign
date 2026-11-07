@@ -1381,3 +1381,5 @@ OBSERVATION: the final unchanged controlled and real-file gates pass again with 
 ## AE preset fallback census — 2026-10-31
 
 OBSERVATION: reused all 142 controlled and 24 real publication binaries, 142 scoring JSON files and nine scoring PNGs from the existing publisher-fixtures.csv manifest. The restore check verified all 317 recorded sizes and SHA-256 values. Existing compound-file, Escher and import code supplied the binary census in preset-geometry.md; no private files or other readers were used. Truth JSON and PNGs were used only by the unchanged scoring tools. Existing MS-ODRAW and ECMA geometry notes supplied terminology; no new external specification or geometry definition was fetched.
+
+OBSERVATION: AP uses only pinned Apache binary Sample98.pub (variant A) and Sample2000.pub (bounded comparison B), at bf7c9b6a1490046517cbd8e1504e702a89be4bc9 with the hashes recorded above, own stream-byte experiments and existing repository notes; no scoring data or external Publisher description supplies encoding evidence; mspub.pub and zmspub.pub are unavailable; findings and limits are in [legacy-97-2000-contents-a.md](legacy-97-2000-contents-a.md).
