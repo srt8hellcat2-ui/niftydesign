@@ -420,3 +420,26 @@ frame heights establish numeric geometry, not a fixed-height text-layout flag.
 The synthetic test retains its row-position and single-warning assertions and
 no longer asserts a mode. Configured heights matching drawn bounds are not a
 promise that content-driven layout cannot expand rows.
+
+## Inconsistent stored dimensions — import approximation (issue #44)
+
+A calendar publication (one table per month) was refused with "table:
+inconsistent cumulative dimension". A table whose stored cumulative endings
+do not add up no longer fails the file. The importer now:
+
+- lays out columns from the stored sizes (key 0x02) and, when the column
+  endings (key 0x01) disagree with their running sums, imports the table
+  anyway and warns;
+- lays out rows from the stored endings when they are positive, strictly
+  increasing and in range (as before), and from the stored row sizes when they
+  are not, with a warning.
+
+Each warning names the spread (or master page), the grid size and the frame
+position, and says what was approximated. Still refused: wrong dimension
+count, zero or out-of-range sizes, size overflow, and sizes that do not add up
+to the declared width or height. Which of size or ending is "right" for such
+files is unknown; no sample of the reported file was available, so the
+choice (sizes for columns, sizes for rows when endings are unusable) is an
+approximation. Tests build the bytes in code; no Publisher file is committed.
+Pinned counts before and after: 142/142 imports, 152/152 objects, 111/111
+positions, 52/52 texts, 111/111 styles; real batch 9 / 10 / 2 / 3 unchanged.
