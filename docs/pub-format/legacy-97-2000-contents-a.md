@@ -286,24 +286,32 @@ decoded or B understood.
 
 ## Ranked unknowns and next smallest step
 
-1. UNKNOWN: how the layout descriptors determine core lengths, field locations,
-   variable tails and reference relocation; B defeats the simple A walk.
-2. UNKNOWN: general record extent/padding rules beyond adjacent directory offsets,
-   directory flag meanings, and header words `0x0C`, `0x1E`, `0x20`, `0x24`.
-3. UNKNOWN: complete child-list framing, root/page ordering and master/scratch
-   classification; inferred owner links are not sufficient for a reader.
+1. UNKNOWN: general descriptor semantics and reference relocation; B defeats
+   the simple A walk. OBSERVATION: AP2 narrows A index-20 to a boundary of
+   30 bytes, a ten-byte tail header, two-byte IDs and four fixed-reference
+   selectors, all checked on eight records. UNKNOWN: which duplicate boundary
+   byte/count-like word is authoritative and the meaning of descriptor `0x0019`.
+2. UNKNOWN: general record extent/padding rules, directory flag meanings, and
+   header words `0x0C`, `0x1E`, `0x20`, `0x24`. OBSERVATION: the AP2 formula
+   exactly consumes all eight index-20 directory spans without leftover padding;
+   no independent total-record byte-length field is established.
+3. UNKNOWN: root/page ordering and master/scratch classification. OBSERVATION:
+   AP2 accounts for all 24 direct directory children of the eight index-20
+   records: 17 tail IDs and seven fixed-field IDs. UNKNOWN: the semantic roles
+   of those references and child-list rules for any other class or sample.
 4. UNKNOWN: general shape-to-story mapping, field widths, geometry, formatting,
    table-cell ownership and displayed visibility. Existing Quill import failure
    on kind `0x19` was not repaired or bypassed into a complete import.
 5. UNKNOWN: independent saving versions and wider coverage, including the absent
    owner pair and any confirmed Publisher 97-specific sample.
 
-INFERENCE: the next smallest decoding step is to explain only A index-20's
-variable child-ID tail, starting with the 44-byte record `0x10A` and checking
-its two directory children, then the 50-byte `0x127` and five children. Prove
-each count/length/element-width field and how the descriptor participates
-before trying another record class or B's descriptor table. This checkpoint
-does not perform that follow-up.
+INFERENCE: after the bounded AP2 check below, the next smallest discriminating
+step is to obtain one independently produced variant-A index-20 list with
+unequal count-like words, or an independent description of its used versus
+allocated element counts. That can distinguish count from capacity/length
+without guessing. UNKNOWN: such an example is not present in Sample98; the
+equal bytes also cannot distinguish the two boundary bytes. Other record
+classes and B's table remain separate work.
 
 ## What a reader must do before implementation
 
@@ -335,3 +343,144 @@ OBSERVATION: this is a documentation-only checkpoint. No importer, protected
 reader, test suite, environment script or setting was changed. No full CI,
 corpus import, application render, native save, deployment or environment
 publication was run. Research scratch files remain ignored and uncommitted.
+
+## Index-20 child-ID tail
+
+OBSERVATION: AP2 continues from `70ed64d1f8a25e31c286d806fe132197fdfc439b`,
+using only the same pinned Sample98.pub and existing notes. A fresh extraction
+of root Contents matches the prior 5930-byte stream and SHA-256
+`55fd826e7fa0b1b08ffc6be72c9927c7eab10810934e266cea08a5033f977553`;
+the original publication still matches the sample hash above. The corpus
+folders contain 142 controlled and 24 Apache publications. No new evidence
+source was used, so SOURCES.md is unchanged. No B table, Quill payload or
+other record-class body was decoded in this step; the directory and each
+payload's leading index were sufficient to select every reachable index-20.
+
+OBSERVATION: numbers prefixed `0x` are hexadecimal; counts and byte sizes are
+decimal. Record-relative offsets include the leading two-byte index. The
+44-byte `0x10A` starts at Contents `0x10D6` and ends at the next directory
+offset `0x1102`; the 50-byte `0x127` starts at `0x1212` and ends at `0x1244`.
+In both, bytes `+0x00..+0x03` are `14 00 1E 1E`: index 20 followed by two
+equal boundary-like bytes. The complete observed tail-header shape is two
+count-like u16 words, a u16 width and four zero bytes, then u16 IDs.
+
+| Basis | Field / record-relative offset | 0x10A absolute bytes / value | 0x127 absolute bytes / value | Check and limit |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | Boundary-like bytes `+0x02`, `+0x03` | `0x10D8..0x10DA`: `1E 1E` | `0x1214..0x1216`: `1E 1E` | Each byte is 30: exactly the offset where the first count-like word begins. Same value in descriptor word 0's two bytes. |
+| OBSERVATION | First count-like u16 `+0x1E` | `0x10F4..0x10F6`: `02 00` = 2 | `0x1230..0x1232`: `05 00` = 5 | Equals actual number of tail IDs resolving to matching directory children; ten-byte header plus count times width reaches the next directory offset exactly. |
+| OBSERVATION | Second count-like u16 `+0x20` | `0x10F6..0x10F8`: `02 00` = 2 | `0x1232..0x1234`: `05 00` = 5 | Repeats the first count and the actual number of IDs. A distinct used-count, allocated-count or element-length role is not distinguished by these equal values. |
+| OBSERVATION | Width u16 `+0x22` | `0x10F8..0x10FA`: `02 00` = 2 | `0x1234..0x1236`: `02 00` = 2 | Independently, remaining bytes / actual ID count is `4/2 = 2` and `10/5 = 2`; matches descriptor word 2. |
+| UNKNOWN | Four-byte field `+0x24` | `0x10FA..0x10FE`: all zero | `0x1236..0x123A`: all zero | Four bytes occur before the IDs; pointer, reserved or other meaning is not established. |
+| OBSERVATION | ID data `+0x28` | `0x10FE..0x1102`: `25 01 26 01` | `0x123A..0x1244`: `2A 01 2B 01 2E 01 2F 01 30 01` | Two-byte LE decoding gives IDs `125,126` and `12A,12B,12E,12F,130`, respectively; all resolve to the corresponding parent candidate. |
+
+OBSERVATION: ranges in the field table are end-exclusive. The two examples'
+different nonzero counts independently constrain the element width. One-byte
+elements would consume only 2/5 bytes, leaving 2/5 bytes unexplained and
+splitting the observed IDs; four-byte elements require 8/20 bytes and overrun
+the record spans. Two-byte elements consume exactly 4/10 bytes and each
+decoded value matches a distinct directory ID with the expected parent.
+
+OBSERVATION: there is no separate proven byte-length word here. The second
+count-like word is 2/5, not the ID byte length 4/10, the full tail length
+14/20, or record span 44/50. The proven extent relationship in these records
+is `30 + 10 + 2*n`, namely `30 + 10 + 4 = 44` and
+`30 + 10 + 10 = 50`. INFERENCE: either `0x1E` byte can serve as the fixed-core
+boundary/length for a bounded experimental walk. UNKNOWN: which repeated
+byte is the actual format length field, and whether either duplicate
+count-like word has a distinct length/capacity role. No label promotes those
+undistinguished alternatives into a decoded semantic field.
+
+### Descriptor rule and exact byte selections
+
+OBSERVATION: A descriptor 20 occupies Contents `[0xD6,0xE6)`:
+`1E 1E 19 00 02 00 04 00 06 00 1A 00 1C 00 00 00`.
+The three initial u16 words are numbered 0, 1 and 2 here; following them
+are the previously observed terminated selector words.
+
+| Basis | Descriptor field | Measured selection in an index-20 record at R |
+| --- | --- | --- |
+| OBSERVATION | Word 0 at `0xD6`: `0x1E1E` | Its low byte and high byte are both 30, matching both bytes at `R+2` and selecting tail-header start `T = R+0x1E`. For `0x10A`, T is `0x10F4`; for `0x127`, `0x1230`. |
+| UNKNOWN | Word 1 at `0xD8`: `0x0019` | Constant in this sole descriptor; no bit meaning, count role or variable-tail flag is established. The rule below does not use it to guess a layout. |
+| OBSERVATION | Word 2 at `0xDA`: `0x0002` | Matches width at `T+4` and the independently measured two-byte stride. Element j occupies `[T+10+2*j,T+12+2*j)`. |
+| OBSERVATION | Selector at `0xDC`: `0x0004` | Selects fixed u16 `[R+4,R+6)`; only record `0x107` has a nonzero ID here, `0x121`. |
+| OBSERVATION | Selector at `0xDE`: `0x0006` | Selects fixed u16 `[R+6,R+8)`; all eight values are zero. Its reference role is not positively demonstrated. |
+| OBSERVATION | Selector at `0xE0`: `0x001A` | Selects fixed u16 `[R+0x1A,R+0x1C)`; all eight values are zero. Its reference role is not positively demonstrated. |
+| OBSERVATION | Selector at `0xE2`: `0x001C` | Selects fixed u16 `[R+0x1C,R+0x1E)`; six nonzero values resolve to matching direct directory children, including `0x10B` at `0x10F2` and `0x128` at `0x122E`. |
+| OBSERVATION | Terminator at `0xE4`: zero | Ends the descriptor's selector list before descriptor 21 at `0xE6`; not an extra zero-offset selector. |
+
+INFERENCE: the reproducible, sample-bounded rule is to match the leading
+index to descriptor 20; take one of word 0's equal bytes as boundary B=30;
+use word 2 as stride W=2; require the record's two boundary bytes, both
+count-like words and width to match the observed relationships; skip the
+ten-byte tail header; read n two-byte IDs; and require `R+B+10+n*W` to equal
+the next directory offset. Separately, apply the four selector offsets from
+the record start, not from the end of its index or from T. All seven nonzero
+fixed selections resolve to direct directory children in this file.
+
+UNKNOWN: these equal-byte checks do not prove that a writer or reader uses
+the descriptor rather than instance bytes as its authoritative boundary or
+width. Both produce identical selections here. The arithmetic establishes
+an observed rule for this class and sample, not the universal meaning of
+descriptor words or a way to decode `0x0019` by analogy with another format.
+No mutation of these sample bytes would provide independent evidence of the
+original format's intended behavior.
+
+### Records tested and disagreements
+
+OBSERVATION: scanning all 54 directory-addressed leading indices finds
+exactly eight index-20 records. Every one is tested below. The two count-like
+words agree in all eight; the width and descriptor stride are always 2; the
+four-byte tail-header field is always zero. The table gives absolute count
+and data positions. ID lists are hexadecimal, and an empty list is explicit.
+
+| Basis | ID | Start / span | First count at / n | Second count at / value | ID data start / bytes | Tail IDs | Nonzero fixed-selector IDs |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| OBSERVATION | `12C` | `0902 / 60` | `0920 / 10` | `0922 / 10` | `092A / 20` | `133,134,135,136,137,138,139,13A,13B,13C` | empty |
+| OBSERVATION | `117` | `1036 / 40` | `1054 / 0` | `1056 / 0` | `105E / 0` | empty | empty |
+| OBSERVATION | `107` | `105E / 40` | `107C / 0` | `107E / 0` | `1086 / 0` | empty | `121,108` |
+| OBSERVATION | `10A` | `10D6 / 44` | `10F4 / 2` | `10F6 / 2` | `10FE / 4` | `125,126` | `10B` |
+| OBSERVATION | `127` | `1212 / 50` | `1230 / 5` | `1232 / 5` | `123A / 10` | `12A,12B,12E,12F,130` | `128` |
+| OBSERVATION | `10D` | `1670 / 40` | `168E / 0` | `1690 / 0` | `1698 / 0` | empty | `10E` |
+| OBSERVATION | `110` | `16AE / 40` | `16CC / 0` | `16CE / 0` | `16D6 / 0` | empty | `111` |
+| OBSERVATION | `113` | `16EC / 40` | `170A / 0` | `170C / 0` | `1714 / 0` | empty | `114` |
+
+OBSERVATION: the framing formula agrees in **8/8** reachable records, with
+zero discrepancies: **3/3 nonempty tails** and **5/5 empty tails**. Empty
+tails still have the ten-byte header and end at R+40. Across the eight
+records there are 17 tail IDs and seven nonzero fixed-selector IDs; the
+combined 24 distinct direct-child references equal the directory's 24
+matching parent-candidate edges, without omissions or duplicates per owner.
+
+OBSERVATION: for `0x10A`, directory entry `0x518` contains ID `0x125`, parent
+`0x10A`; entry `0x522` contains ID `0x126`, parent `0x10A`. Its additional
+direct child `0x10B` is in entry `0x50E` and is selected by fixed offset
+`+0x1C`, not the tail. For `0x127`, tail IDs resolve in directory entries
+`0x540,0x54A,0x572,0x57C,0x586`, respectively, all with parent `0x127`.
+The additional direct child `0x128` is entry `0x536`, again selected at
+fixed offset `+0x1C`. Only these directory fields are used; the children’s
+body layouts are outside this step.
+
+OBSERVATION: the interpretation “the tail lists every direct directory
+child” disagrees in **6/8** records: `107,10A,127,10D,110,113` each have
+additional fixed-selector children. It agrees only for `12C` and the
+childless `117`. This is a semantic overreach rejected by the check, not
+a discrepancy in the two-byte tail framing. An empty tail cannot be used
+as evidence of no children or of a blank visible page.
+
+### What stays unknown and the checkpoint limit
+
+UNKNOWN: count versus allocation/element-length roles of the two equal
+u16 words; which equal boundary byte is authoritative; a separate total
+record-byte-length field; descriptor `0x0019`; the four zero tail-header
+bytes; semantics of the two always-zero fixed selectors; ordering/roles
+of the references; page/master/scratch meaning; malformed-input behavior;
+and applicability beyond Sample98 index-20. A unique descriptor algorithm
+cannot be proved from duplicates that never differ in these records.
+
+OBSERVATION: this is the first AP2 checkpoint. A fresh, bounded byte check
+passes all eight framing equations and all directory-reference comparisons;
+the documented field positions and ID lists are checked against that output.
+No importer or protected-reader change, other class decoding, B-table work,
+Quill repair, full CI, environment script/setting change, environment save
+or publication was performed. Only this appended section and the narrowed
+ranked-unknowns section change; the local evidence remains ignored.
