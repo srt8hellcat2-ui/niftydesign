@@ -306,6 +306,8 @@ decoded or B understood.
    (including +208/+370 mappings), optional versus stale +208 applicability,
    zero-only roles and the meaning of descriptor `0x0019`; descriptor stride
    is not universal. No conditional flag/count rule for +208 is established.
+   OBSERVATION: AP12 parks +208/+370 as UNKNOWN at the task's direction;
+   their bounds failures are not used to block the content-structure research.
 2. UNKNOWN: universal framing and internal padding interpretation beyond
    the tested extent rules; semantic meanings of all four directory
    attribute values; header words `0x0C`, `0x1E`, `0x20`, `0x24`.
@@ -329,10 +331,21 @@ decoded or B understood.
    prior proven index-20 tails, has 38/27 edges and 16/12 indegree-zero
    vertices in Sample98/mspub; both are partial forests, with no cycles or
    dangling included IDs and every edge agreeing with the parent candidate.
+   OBSERVATION: AP12 verifies all thirteen root-list references against
+   directory parents and establishes six Sample98 text-linked record chains
+   through collections `0x10A`/`0x127` to root-like `0x100`. The two groups
+   have first-/second-page wording, but no independent page-count field is
+   decoded; the eight/seven direct class-25 collections are not proven pages.
    UNKNOWN: reference roles and child-list rules for other classes or beyond
-   these two samples; the partial graph does not identify publication roots.
-4. UNKNOWN: general shape-to-story mapping, field widths, geometry, formatting,
-   table-cell ownership and displayed visibility. Existing Quill import failure
+   these two samples; page identity/order and visual reading order remain
+   unproved. File/list order is not independently established page order.
+4. UNKNOWN: general text-frame semantics, field widths, geometry, formatting,
+   table-cell ownership and displayed visibility. OBSERVATION: AP12 rechecks
+   six Sample98 Quill associations at index-8 +0x58 and index-10 +0x66;
+   ranges come from Quill SYID/STRS/TEXT, with no nearby literal range pair
+   proven in Contents. mspub has no TEXT/STRS and zero SYID count, supplying
+   a negative control, not a second positive text-link example. Existing Quill
+   import failure
    on kind `0x19` was not repaired or bypassed into a complete import.
 5. UNKNOWN: independent saving versions and wider coverage, including any
    confirmed Publisher 97-specific sample. OBSERVATION: AP3 verifies the
@@ -340,12 +353,12 @@ decoded or B understood.
    is resolved. UNKNOWN: zmspub.pub and the claimed equality of the owner pair
    remain unverified; independent manufacture is owner-reported provenance.
 
-INFERENCE: after AP11, the next smallest byte-only test is descriptors 2/3's
-+370 selection in their four instances. Compare the literal selection with
-the bounded candidate +114 (370 modulo 256), using directory-ID and matched
-controls before accepting any high-byte tagging hypothesis. UNKNOWN: this
-is not an established mapping, and it does not resolve +208. Probable/zero-only
-roles, duplicate counts, nonempty index-49 behavior and B remain separate.
+INFERENCE: after AP12, the next smallest available content-structure test is
+Sample98's already listed 36-byte Quill TCD section. Test numeric ID/range
+or order candidates against SYID/STRS and the six anchored records, with
+matched controls, without entering formatting or repairing kind 0x19.
+UNKNOWN: no TCD field is decoded here; independent page-count evidence and
+actual visual order remain missing. Out-of-bounds selectors stay parked.
 
 ## What a reader must do before implementation
 
@@ -2106,3 +2119,234 @@ section change. SOURCES.md is unchanged. No full CI, importer/protected-reader
 edit, B work, Quill repair, environment script/setting change, environment
 save/publication or pull request was performed. Sample and extracted bytes
 remain uncommitted; no extra remote was added.
+
+## Text records, page candidates and order
+
+OBSERVATION: AP12 starts from `14d879fbf15d748a105dd2495c8ec72568e13270`,
+titled Bound selector offsets and test their reference bases. Fetch succeeds
+and the branch is at that commit. The restore verifies all 317 pinned inputs,
+restores none and reports zero failures. Both originals match their recorded
+identities: Sample98.pub is 61440 bytes; the attachment is 19968 bytes with
+SHA-256 `0EFF0498172805BF1E52C74A6334ECC4CDC84FB2E531C0EA25734CFAC7923C7D`.
+Fresh root Contents and Quill CONTENTS extracts remain ignored. Only the
+needed SummaryInformation header/property prefixes (112/264 bytes) are
+retained from its 44640/8232-byte streams. Only derived facts are committed; no private bytes or content
+are reproduced. Both evidence files are already listed in SOURCES.md, which
+is unchanged. The attachment remains available; no fallback is used.
+
+OBSERVATION: the task parks selectors +208/+370 as UNKNOWN; no attempt is
+made to map or dereference them. The investigation uses bounded directory,
+extent, reference and Quill section framing. It does not run a complete
+import, render a page or repair the kind-0x19 failure. Stored text is evidence
+of content bytes, not independently verified visible output. No geometry,
+colour, formatting or picture content is decoded.
+
+### Quill sections and lengths, including the negative sample
+
+OBSERVATION: the section directory is rewalked with bounded entries and a
+seen-set for its next-block chain, following the existing text-store notes.
+Only TEXT, SYID and STRS supply text/range evidence. Other section bodies
+are not decoded. Positions below are hexadecimal relative to their named
+stream; lengths and counts are decimal.
+
+| Basis | Quill fact | Sample98.pub | mspub.pub |
+| --- | --- | --- | --- |
+| OBSERVATION | Quill stream length | 6144 | 1024 |
+| OBSERVATION | TEXT section | `0x200`, 976 bytes = 488 UTF-16 units | Absent from the directory. |
+| OBSERVATION | SYID section / count field | `0xC00`, 32 bytes; u32 at `0xC04` is 6 | `0x25A`, 8 bytes; u32 at `0x25E` is 0. |
+| OBSERVATION | SYID list | Six u32 IDs at `0xC08`: 1,3,4,6,7,8 | Empty; no story IDs to resolve. |
+| OBSERVATION | STRS section / count | `0x11FE`, 82 bytes; count 6 | Absent from the directory. |
+| OBSERVATION | STRS length list | At `0x120A`: 86,98,62,80,87,75 | No length list. |
+| OBSERVATION | Text-length check | Lengths sum to 488; each section-bounded slice ends with CR. | No TEXT to partition. |
+
+OBSERVATION: Sample98's six slices have respectively 2,3,3,6,4,4 CR units,
+including the final CR. They are multi-paragraph stored ranges, not six
+single-line strings. Lengths are UTF-16 units including control units, not
+glyph counts or a measurement of visible frame capacity. Neither clamping
+nor scanning beyond TEXT is used: the six lengths consume exactly its 976
+bytes. mspub cannot provide a positive replication of the text linkage;
+no text is inferred from its structural record types alone.
+
+### Contents-to-Quill fields and controls
+
+OBSERVATION: the table gives every positive association in Sample98. Probe
+width is u16; Quill IDs are u32 list entries. R is a root Contents record
+start; Quill range columns are UTF-16 units relative to TEXT. SYID and STRS
+field positions are relative to the separate Quill stream. The range start
+is the sum of earlier STRS lengths, not a decoded neighboring Contents field.
+
+| Basis | Contents ID / index / numeric class | R / relative probe / absolute probe | Quill ID / SYID field | STRS length field / units | Derived start / end |
+| --- | --- | --- | --- | --- | --- |
+| OBSERVATION | `0x125` / 8 / 9 | `0x1112 / +0x58 / 0x116A` | 1 / `0xC08` | `0x120A` / 86 | 0 / 86 |
+| OBSERVATION | `0x126` / 8 / 9 | `0x1192 / +0x58 / 0x11EA` | 3 / `0xC0C` | `0x120E` / 98 | 86 / 184 |
+| OBSERVATION | `0x12A` / 8 / 9 | `0x125A / +0x58 / 0x12B2` | 4 / `0xC10` | `0x1212` / 62 | 184 / 246 |
+| OBSERVATION | `0x12B` / 10 / 1 | `0x12DA / +0x66 / 0x1340` | 6 / `0xC14` | `0x1216` / 80 | 246 / 326 |
+| OBSERVATION | `0x12F` / 8 / 9 | `0x1570 / +0x58 / 0x15C8` | 7 / `0xC18` | `0x121A` / 87 | 326 / 413 |
+| OBSERVATION | `0x130` / 8 / 9 | `0x15F0 / +0x58 / 0x1648` | 8 / `0xC1C` | `0x121E` / 75 | 413 / 488 |
+
+OBSERVATION: scanning every directory-addressed index-8/index-10 record gives
+these six positive fields and four zero controls across the two files:
+
+| Basis | Sample / Contents ID / index | Probe position | Value / actual Quill resolution |
+| --- | --- | --- | --- |
+| OBSERVATION | Sample98 / `0x139` / 8 | `0xBB9` | 0; not a SYID ID. |
+| OBSERVATION | Sample98 / `0x13B` / 10 | `0xC84` | 0; not a SYID ID. |
+| OBSERVATION | mspub / `0x106` / 8 | `0xAE1` | 0; SYID has no IDs. |
+| OBSERVATION | mspub / `0x104` / 10 | `0xBAC` | 0; SYID has no IDs. |
+
+OBSERVATION: all ten anchor positions are inside the known fixed prefix.
+The upper probe byte and following two bytes are zero, so reading the same
+position as a byte, u16 or u32 yields the same small ID in these instances.
+The semantic storage width is therefore UNKNOWN. Zero is not a Quill ID
+here; a general null convention is not established from these examples.
+
+OBSERVATION: false-positive controls enumerate even-offset u16 fields from
++4 through H-2 in each index-8/index-10 fixed part, excluding the anchor.
+This does not assign any meaning to other fields. A cohort control compares
+fields at the same relative offset against each positive record's specific
+expected story ID, not merely membership in the small ID set.
+
+| Basis | Sample / index | Anchor matches / records | Background matches to this file's SYID set / fields | Specific-ID cohort result |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | Sample98 / 8 | 5 / 6 | 18 / 336 | Only +88 matches all five distinct positive IDs; +36,+86,+98 each match one of five. |
+| OBSERVATION | Sample98 / 10 | 1 / 2 | 6 / 110 | +102 is the only cohort offset matching the single positive ID 6. |
+| OBSERVATION | mspub / 8 | 0 / 1 | 0 / 56 | Empty local SYID set; no positive cohort. |
+| OBSERVATION | mspub / 10 | 0 / 1 | 0 / 55 | Empty local SYID set; no positive cohort. |
+
+OBSERVATION: ordinary small fields produce many accidental story-ID hits:
+24/446 Sample98 control probes match some ID. A uniform 16-bit model would
+predict 6/65536 per probe, but that model is plainly not a faithful model
+of these structured fields. If Sample98's six IDs are improperly borrowed
+for mspub, its control pools have 4/56 and 3/55 hits despite having no TEXT.
+Thus generic low-number matches do not establish text. No significance
+claim is made from these densities or the post-selected cohort.
+
+INFERENCE: index-8 +0x58 has a strong sample-bounded story-link association:
+five distinct positive IDs, the unique common cohort offset, six-way Quill
+coverage together with index 10, bounded text partitions and zero controls.
+Index-10 +0x66 is a probable story link, supported by one positive and one
+same-index zero control in Sample98 and the zero mspub record. It lacks a
+second populated independent sample. These are text-linked record candidates;
+a numeric record class alone does not prove a visible text frame or distinguish
+other text-hosting structures. No importer behavior is inferred or changed.
+
+OBSERVATION: literal range-field tests examine every byte alignment for
+unsigned two-/four-byte values in the bounded window anchor-16 through H:
+index 8 `[+0x48,+0x76)` and index 10 `[+0x56,+0x74)`.
+None of the six records contains its corresponding length or global end
+in that window, in either UTF-16 units or bytes; none of the five nonzero
+global starts appears either. The first story's start zero has many coincidental
+matches and is not discriminating. No nearby start/length pair is proven.
+UNKNOWN: zero fields could represent local start zero; encoded, indirect
+or more distant ranges are not excluded. For now, ranges must be derived
+from SYID/STRS/TEXT rather than guessed from adjacent zeros.
+
+### Reference-backed parent chains
+
+OBSERVATION: AP10's partial selector graph alone did not supply every path
+to the document-level root candidate. AP12 additionally reads the already
+proven class-25 A-tail framing of the root-like index-21 records and checks
+every listed u16 against directory IDs and their independent parent fields.
+All seven Sample98 entries and six mspub entries resolve and name the root
+as parent. These thirteen verified correspondences add the needed collection
+links without filling graph gaps from assumptions about record meanings.
+
+OBSERVATION: Sample98 root `0x100` has ordered tail IDs at `0x69C`:
+`0x117,0x107,0x10A,0x127,0x10D,0x110,0x113`, each index 20/class 25.
+mspub root `0x127` has ordered tail IDs at `0x5FC`:
+`0x11F,0x11E,0x11D,0x11C,0x11B,0x11A`; `0x11B` is index 65/class 25,
+the others index 20/class 25. Fixed selector +8 additionally selects
+`0x12C` / `0x10E`, respectively, already corroborated in AP10. Those extra
+collections are not entries in the root tail list.
+
+| Basis | Sample98 text-linked records / Quill IDs | Child-to-parent chain | Record index / class pattern |
+| --- | --- | --- | --- |
+| OBSERVATION | `0x125,0x126` / 1,3 | Each record -> `0x10A` -> `0x100` | 8/9 -> 20/25 -> 21/25 |
+| OBSERVATION | `0x12A,0x12F,0x130` / 4,7,8 | Each record -> `0x127` -> `0x100` | 8/9 -> 20/25 -> 21/25 |
+| OBSERVATION | `0x12B` / 6 | Record -> `0x127` -> `0x100` | 10/1 -> 20/25 -> 21/25 |
+
+OBSERVATION: the six text-to-collection edges are the previously checked
+index-20 child-tail correspondences, and collection-to-root edges now have
+both root-list and directory-parent corroboration. There are no cycles on
+these chains. All six end at root-like `0x100`, whose parent value `0xFF`
+is outside the directory. mspub has no text-linked records; its structurally
+corresponding zero-link records `0x106,0x104` sit below collection `0x10E`
+and root-like `0x127` (outside-parent value `0xFE`). Sample98's zero-link
+`0x139,0x13B` likewise sit below `0x12C` and root-like `0x100`.
+
+OBSERVATION: the text-bearing immediate collections share index 20/class 25,
+but their text-linked children do not share a single class: one collection
+has two index-8/class-9 records, the other three such records plus an
+index-10/class-1 record. Empty-link records also use indices 8 and 10.
+Thus neither class 9 nor class 1 alone is a sufficient visible-text test,
+and class 25 alone cannot distinguish the collection from the root.
+
+### Page hypotheses and independent-evidence limits
+
+OBSERVATION: this table separates observed group counts from actual page
+counts. A root-like record here means the unique directory record whose
+parent candidate is outside the ID set, not an AP10 partial-graph root.
+
+| Basis | Hypothesis/test | Sample98 evidence | mspub evidence | Supported conclusion |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | One root-like record equals one page | One root-like record, but text linked through two immediate collections. | One root-like record; no text groups to compare. | Root count is measured; root=page is not established. |
+| OBSERVATION | Direct class-25 records identify all pages | Eight such records: seven root-tail entries plus fixed +8 collection. Only two carry linked text. | Seven such records: six root-tail entries plus fixed +8 collection. None has a Quill story. | Class membership is not a proven page discriminator; absent text does not imply absent pages. |
+| OBSERVATION | Independent page-count metadata | Bounded SummaryInformation property-directory probes find IDs 1,4,17; the only type-2/3 numeric candidate is 1252 at `0x54`. | Directory contains only property 17; no type-2/3 numeric candidate. | No page-count field is independently decoded by these probes; property meanings are not inferred as page counts. |
+| OBSERVATION | Text divides into page-like groups | IDs 1,3 under `0x10A` include stored first-page wording; IDs 4,6,7,8 under `0x127` include second-page wording. | No TEXT section; no comparable wording. | Two text-bearing groups are established, not an independently verified total page count. |
+
+INFERENCE: `0x10A` and `0x127` are probable page-like collection candidates
+in Sample98 because independent reference grouping aligns with the already
+documented stored first-/second-page wording. UNKNOWN: wording is authored
+content, not an authoritative page-count declaration or visible-page oracle.
+It could occur on a different page or in non-visible content. Neither total
+page count nor the page role of other class-25 collections is proven.
+No thumbnail, picture, native render or external reader is used to supply
+that missing evidence. SummaryInformation's private strings/picture data
+are not decoded or copied. No named page-count property interpretation is
+borrowed from another format description.
+
+### Stored order versus page and reading order
+
+OBSERVATION: Quill SYID/STRS defines the stored story sequence
+`1,3,4,6,7,8` and cumulative TEXT ranges. The root's ordered reference list
+places `0x10A` third and `0x127` fourth, not first and second. Their own
+ordered child tails yield story IDs 1,3 and 4,6,7,8 after skipping non-story
+child `0x12E`; these orders agree with the Quill storage order and increasing
+physical record positions for the six linked records. The root reference
+list itself is not numerically sorted, and record/story IDs have gaps.
+These are reproducible serialized orders, not page ordinal fields.
+
+OBSERVATION: the previously corroborated fixed selectors point to directory
+children rather than proving a sibling chain. Counts give list sizes (7/6
+at the root), not a decoded number of visible pages. No page-number index,
+next-page pointer, next-text-frame chain or semantic reading-order field is
+proven by the bounded checks in this step.
+
+UNKNOWN: physical/list/story order may agree with visual order, but the
+samples provide no independent rendering or explicit ordering contract to
+prove that. Text mentioning first/second page gives supporting content
+context, not proof that list ordinals 3/4 are page numbers 1/2. The one
+positive text sample cannot establish behavior for threaded frames, hidden
+content, blank pages or altered ordering. No complete page/text-frame reader
+is claimed from these associations.
+
+INFERENCE: the next smallest available content-structure check is the
+already listed 36-byte Sample98 Quill TCD section at `0xFA6`. Test only
+numeric ID/range/order candidates against the six SYID/STRS associations and
+matched controls, without decoding formatting or repairing kind 0x19.
+No TCD body field is decoded here; mspub has no TCD section for replication.
+Independent page-count or visible-order evidence would still be needed for
+stronger page claims.
+
+OBSERVATION: this is the first AP12 checkpoint. Original identities, all 93
+extent rules, both Quill directories, the six ID/range partitions and final
+CR checks, ten anchor probes, four zero controls, 557 background u16 fields,
+cohort/range countertests, thirteen root-list parent resolutions and all six
+text-record chains pass their stated checks. An initial diagnostic assumed
+STRS existed in both files and failed its lookup on mspub; the final bounded
+check explicitly asserts its absence and the zero SYID count rather than
+skipping that sample. Only this appended section and
+the narrowed ranked-unknowns section change. SOURCES.md is unchanged. No full
+CI, importer/protected-reader edit, B work, kind-0x19 repair, environment
+script/setting change, environment save/publication or pull request was
+performed. Sample and stream bytes remain uncommitted; no extra remote was added.
