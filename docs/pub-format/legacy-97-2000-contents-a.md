@@ -291,13 +291,17 @@ decoded or B understood.
    30 bytes, a ten-byte tail header, two-byte IDs and four fixed-reference
    selectors, all checked on eight records. OBSERVATION: AP3 extends those
    checks to six agreeing records in a second structurally matching sample.
-   UNKNOWN: which duplicate boundary byte/count-like word is authoritative
-   and the meaning of descriptor `0x0019`.
-2. UNKNOWN: general record extent/padding rules, directory flag meanings, and
-   header words `0x0C`, `0x1E`, `0x20`, `0x24`. OBSERVATION: the AP2 formula
-   exactly consumes all eight index-20 directory spans without leftover padding;
-   AP3 also consumes all six tested spans in mspub.pub. UNKNOWN: no independent
-   total-record byte-length field is established.
+   OBSERVATION: AP4 checks a shared prefix high-byte/descriptor-high-byte
+   boundary in all 93 records and exact array-tail extents in 44 records.
+   UNKNOWN: authoritative duplicate fields in index-20, general relocation
+   and the meaning of descriptor `0x0019`; descriptor stride is not universal.
+2. UNKNOWN: extents/padding for 23 records of numeric classes 2, 3, 10 and
+   195; semantic meanings of all four directory attribute values; header words
+   `0x0C`, `0x1E`, `0x20`, `0x24`. OBSERVATION: AP4 independently accounts
+   for the remaining 70 spans by three class-selected arithmetic rules and
+   confirms no unaccounted final stream gap. The high prefix byte equals
+   total extent only in the 15 class-0 records. UNKNOWN: no universal
+   total-record byte-length field or flag-bit meaning is established.
 3. UNKNOWN: root/page ordering and master/scratch classification. OBSERVATION:
    AP2 accounts for all 24 direct directory children of the eight index-20
    records: 17 tail IDs and seven fixed-field IDs. OBSERVATION: AP3 accounts
@@ -313,13 +317,13 @@ decoded or B understood.
    is resolved. UNKNOWN: zmspub.pub and the claimed equality of the owner pair
    remain unverified; independent manufacture is owner-reported provenance.
 
-INFERENCE: after the bounded AP2 and AP3 checks below, the next smallest discriminating
-step is to obtain one independently produced variant-A index-20 list with
-unequal count-like words, or an independent description of its used versus
-allocated element counts. That can distinguish count from capacity/length
-without guessing. OBSERVATION: no such counterexample occurs in either
-Sample98 or mspub.pub. UNKNOWN: the equal bytes also cannot distinguish the two boundary bytes. Other record
-classes and B's table remain separate work.
+INFERENCE: after AP4, the next smallest step needing no new sample is to
+explain only the opaque tail framing of numeric class 2, index 49: five
+records across these two files each have boundary H=8 and span 30. Compare
+their structural count/length fields without decoding payload meaning before
+expanding to another index. UNKNOWN: distinguishing index-20's equal
+count-like words still needs a discriminating sample; B's table remains
+separate work.
 
 ## What a reader must do before implementation
 
@@ -632,3 +636,291 @@ walk, control boundaries/pointers, directory bounds/IDs/leading indices,
 all six tail equations and all twelve reference resolutions. The original
 sample remains unchanged. No full CI, environment save/publication,
 environment script/setting change, importer change or pull request was made.
+
+## Record extent, padding and directory flags
+
+OBSERVATION: AP4 starts from `3b7b75de1e3e8335f469298fdd1865283dbfc3b5`.
+The pinned restore check verifies all 317 inputs, restoring none and reporting
+zero failures. Both requested originals are present and match their previously
+recorded sizes and SHA-256 values: Sample98.pub is 61440 bytes and mspub.pub
+is 19968 bytes. Fresh root Contents extractions have lengths 5930 and 4152.
+The attachment therefore remains available; no single-sample fallback is used.
+The same evidence sources are already listed, so SOURCES.md is unchanged.
+
+OBSERVATION: this step examines every directory entry and only structural
+prefixes, descriptors and tail headers. It treats every tail body as opaque;
+no geometry, text or formatting is decoded. Only derived structural facts are
+published here; the private original and extracted bytes remain uncommitted.
+
+### Directory fields: observation versus interpretation
+
+OBSERVATION: in both files the four-byte directory header is followed by
+ten-byte entries. D below is an entry's absolute Contents position, R its
+addressed payload start, and E the next directory offset or stream length
+for the final entry. Positions and IDs are hexadecimal; counts and sizes
+are decimal. All numeric reads are little-endian.
+
+| Basis | Entry field | Evidence across all entries | Interpretation limit |
+| --- | --- | --- | --- |
+| OBSERVATION | u16 at `D+0` | 54/54 and 39/39 distinct values; referenced values resolve to these IDs. First IDs are `0x100` and `0x127`, respectively. | An explicit ID, not the directory ordinal or a demonstrated byte length; visible-object role is not implied. |
+| INFERENCE | u16 at `D+2` | 53/54 and 38/39 values resolve to another directory ID; only the root-like entries use unresolved values `0xFF` and `0xFE`. Previous fixed/tail links corroborate the relationship. | Owner/parent candidate; exact hierarchy semantics remain unknown. |
+| OBSERVATION | u32 at `D+4` | All 93 values are strictly increasing, after the directory and inside Contents; they address valid leading descriptor indices. At the first entry `0x3B0`, field `0x3B4` selects `0x5E0` / `0x540`. | Absolute start offset, not a size. Full logical extent needs an independent structural check. |
+| UNKNOWN | u16 at `D+8` | Values `0x1640,0x16C0,0x16E0,0x1740`; none equals its record span. Each is larger than every observed span (maximum 294). | Attribute/flags candidate, not an unscaled record-byte-length field; no bit meaning established. |
+
+OBSERVATION: the ten bytes are exhausted by these fields; there is no additional
+directory length word in this framing. A packed length interpretation of the
+attribute word is not proven or ruled out merely by rejecting its literal
+numeric value as a length. IDs and parent candidates must not be substituted
+for byte lengths either.
+
+### Bounded extent rules
+
+OBSERVATION: for each record define S=E-R, L=the byte at R+2, H=the byte at
+R+3, and I=the leading u16 descriptor index. Define C as the selected
+descriptor's second u16 word, numbered from zero. C is a **numeric class
+label for this audit**, not a newly decoded semantic type. For all 93 records,
+H equals the high byte of descriptor word 0. L does not supply a universal
+total length. No payload interpretation is needed for these comparisons.
+
+| Basis | Numeric C / rule label | Independent predicted span | Sample98 agreeing / tested | mspub agreeing / tested |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | 0 / F | H | 8/8 | 7/7 |
+| OBSERVATION | 1,9,25 / A | `H + 10 + n*w`, with u16 n at `R+H`, repeated u16 at `R+H+2`, u16 w at `R+H+4` | 27/27 | 17/17 |
+| OBSERVATION | 4 / O | `H + 8 + q`, with u32 q at `R+H` | 9/9 | 2/2 |
+| UNKNOWN | 2,3,10,195 / U | No independent end rule established in this checkpoint | 10 unresolved | 13 unresolved |
+
+OBSERVATION: n equals its repeated word in all 44 A records; w is positive.
+The A header's final four bytes are not required to be zero. The O header's
+other four bytes remain opaque; q is used only as an observed byte-count
+relationship, not to decode the following content. All reads and predicted
+ends are bounded before comparison with E. These rules are selected by C,
+not by the directory attribute word.
+
+INFERENCE: H marks a fixed-prefix boundary in the observed F/A/O classes:
+F ends there, A adds a ten-byte header and n elements, O adds an eight-byte
+header and q bytes. These three predictions exactly reach E in **70/70**
+applicable records. The remaining **23** are unresolved, not failed examples
+of those class-restricted rules and not silently treated as padding. This
+does not establish encoder intent or malformed-input behavior.
+
+OBSERVATION: using descriptor word 2 universally as A's element width fails
+at index 67. Sample98 ID `0x102`, R=`0xCF2`, has H=10, n=7 and w=2 at
+`0xD00`, but descriptor word 2 is 8. Using the instance width predicts 34,
+the observed span; substituting 8 predicts 76 and crosses the next offset
+`0xD14` by 42 bytes. In mspub ID `0x119`, R=`0xC36`, w=2 at `0xC44`
+also differs from descriptor width 8, but n=0 makes both extent predictions
+20. These are the only two descriptor/instance-width disagreements among
+the 44 A records. UNKNOWN: the reason; index-20's matching stride alone
+must not be generalized to every descriptor.
+
+### Padding, gaps and literal-length counterexamples
+
+OBSERVATION: the directory-to-first-payload zero-filled gap is twenty bytes
+in Sample98 (`0x5CC..0x5E0`) and ten in mspub (`0x536..0x540`). Neither
+gap belongs to a directory-addressed record. INFERENCE: padding/reserved
+space is a plausible role; its allocation or alignment rule is UNKNOWN.
+
+OBSERVATION: all 93 starts are ordered and bounded, producing 54/39 disjoint
+directory-derived spans. Four starts in each sample are odd, refuting a
+universal two- or four-byte record alignment requirement. The three
+class-restricted predictions leave no unaccounted bytes between predicted
+end and next start for their 70 records. For the 23 U records, the presence,
+absence or size of internal trailing padding remains UNKNOWN: E is a bound,
+not an independently recovered logical end.
+
+OBSERVATION: Sample98's final ID `0x114`, R=`0x1714`, is O: H=4, q=10,
+so predicted span 22 ends at `0x172A`, exactly the 5930-byte stream end.
+mspub's final ID `0x11A`, R=`0x1010`, is A: H=30, n=0, w=2, so predicted
+span 40 ends at `0x1038`, exactly 4152 bytes. No unexplained trailing stream
+gap follows either final structurally accounted record. Compound-file sector
+slack outside the stream is not part of this extent calculation.
+
+OBSERVATION: the universal candidate S=H fails at **46/54** Sample98 and
+**32/39** mspub records; only the 15 F records match. Candidate S=L fails
+at **53/54** and **35/39**, respectively. Its only matches are Sample98
+`0x120` and mspub `0x10A,0x109,0x107,0x115`. Treating the two bytes at
+R+2 as one u16 total length matches **0/93**; treating the leading u32 at
+R as a total length also matches **0/93**. A schema index is not a current-family
+length prefix. No universal own-length-field rule is proven.
+
+OBSERVATION: the complete per-entry tables below list every counterexample,
+not just examples. Totals lists which literal byte candidates equal S:
+`H` means L fails, `L+H` means both match, and `none` means both fail. All
+rows fail the u16-at-R+2 and u32-at-R total-length candidates. U rows list
+every record whose true end remains unresolved; F/A/O rows match their
+class-restricted prediction without exception. Each row is OBSERVATION;
+U's unresolved logical length remains UNKNOWN. L/H, indices and C are
+decimal; ID, R and attribute values are hexadecimal.
+
+#### Sample98: all 54 entries
+
+OBSERVATION: complete measured census for this sample.
+
+| ID | R | S | Index | C | Attribute | L/H | Rule | Totals |
+| --- | --- | ---: | ---: | ---: | --- | --- | --- | --- |
+| 100 | 05E0 | 202 | 21 | 25 | 16C0 | 210/178 | A | none |
+| 11F | 06AA | 294 | 41 | 195 | 16C0 | 56/56 | U | none |
+| 120 | 07D0 | 112 | 54 | 0 | 16C0 | 112/112 | F | L+H |
+| 123 | 0840 | 194 | 40 | 3 | 16C0 | 28/28 | U | none |
+| 12C | 0902 | 60 | 20 | 25 | 1640 | 30/30 | A | none |
+| 133 | 093E | 150 | 2 | 1 | 1640 | 178/140 | A | none |
+| 134 | 09D4 | 150 | 3 | 1 | 1640 | 180/140 | A | none |
+| 135 | 0A6A | 67 | 4 | 0 | 1640 | 57/67 | F | H |
+| 136 | 0AAD | 70 | 5 | 0 | 1640 | 60/70 | F | H |
+| 137 | 0AF3 | 61 | 6 | 0 | 1640 | 55/61 | F | H |
+| 138 | 0B30 | 49 | 7 | 0 | 1640 | 39/49 | F | H |
+| 139 | 0B61 | 128 | 8 | 9 | 1640 | 126/118 | A | none |
+| 13A | 0BE1 | 61 | 9 | 4 | 1640 | 43/53 | O | none |
+| 13B | 0C1E | 126 | 10 | 1 | 1640 | 115/116 | A | none |
+| 13C | 0C9C | 86 | 11 | 4 | 1640 | 68/78 | O | none |
+| 102 | 0CF2 | 34 | 67 | 9 | 16C0 | 10/10 | A | none |
+| 103 | 0D14 | 30 | 49 | 2 | 16C0 | 8/8 | U | none |
+| 11E | 0D32 | 26 | 50 | 3 | 16C0 | 4/4 | U | none |
+| 119 | 0D4C | 26 | 30 | 3 | 16C0 | 8/4 | U | none |
+| 105 | 0D66 | 26 | 31 | 3 | 16E0 | 4/4 | U | none |
+| 101 | 0D80 | 30 | 49 | 2 | 16C0 | 8/8 | U | none |
+| 104 | 0D9E | 26 | 50 | 3 | 16C0 | 4/4 | U | none |
+| 131 | 0DB8 | 14 | 55 | 1 | 16E0 | 4/4 | A | none |
+| 132 | 0DC6 | 14 | 56 | 1 | 16E0 | 4/4 | A | none |
+| 124 | 0DD4 | 56 | 57 | 0 | 16E0 | 88/56 | F | H |
+| 11D | 0E0C | 192 | 71 | 1 | 16E0 | 150/150 | A | none |
+| 11A | 0ECC | 8 | 69 | 0 | 16C0 | 56/8 | F | H |
+| 11B | 0ED4 | 70 | 76 | 10 | 16C0 | 18/18 | U | none |
+| 11C | 0F1A | 244 | 82 | 2 | 16C0 | 18/18 | U | none |
+| 106 | 100E | 40 | 51 | 4 | 1640 | 4/4 | O | none |
+| 117 | 1036 | 40 | 20 | 25 | 16C0 | 30/30 | A | none |
+| 107 | 105E | 40 | 20 | 25 | 16C0 | 30/30 | A | none |
+| 121 | 1086 | 58 | 44 | 1 | 16C0 | 24/24 | A | none |
+| 108 | 10C0 | 22 | 51 | 4 | 1640 | 4/4 | O | none |
+| 10A | 10D6 | 44 | 20 | 25 | 16C0 | 30/30 | A | none |
+| 10B | 1102 | 16 | 51 | 4 | 1640 | 4/4 | O | none |
+| 125 | 1112 | 128 | 8 | 9 | 1740 | 126/118 | A | none |
+| 126 | 1192 | 128 | 8 | 9 | 1740 | 126/118 | A | none |
+| 127 | 1212 | 50 | 20 | 25 | 16C0 | 30/30 | A | none |
+| 128 | 1244 | 22 | 51 | 4 | 1640 | 4/4 | O | none |
+| 12A | 125A | 128 | 8 | 9 | 1740 | 126/118 | A | none |
+| 12B | 12DA | 166 | 10 | 1 | 1640 | 115/116 | A | none |
+| 141 | 1380 | 290 | 78 | 1 | 1640 | 10/10 | A | none |
+| 140 | 14A2 | 86 | 79 | 1 | 1640 | 10/10 | A | none |
+| 13F | 14F8 | 50 | 80 | 1 | 1640 | 10/10 | A | none |
+| 12E | 152A | 70 | 5 | 0 | 1640 | 60/70 | F | H |
+| 12F | 1570 | 128 | 8 | 9 | 1740 | 126/118 | A | none |
+| 130 | 15F0 | 128 | 8 | 9 | 1740 | 126/118 | A | none |
+| 10D | 1670 | 40 | 20 | 25 | 16C0 | 30/30 | A | none |
+| 10E | 1698 | 22 | 51 | 4 | 1640 | 4/4 | O | none |
+| 110 | 16AE | 40 | 20 | 25 | 16C0 | 30/30 | A | none |
+| 111 | 16D6 | 22 | 51 | 4 | 1640 | 4/4 | O | none |
+| 113 | 16EC | 40 | 20 | 25 | 16C0 | 30/30 | A | none |
+| 114 | 1714 | 22 | 51 | 4 | 1640 | 4/4 | O | none |
+
+#### mspub: all 39 entries
+
+OBSERVATION: complete measured census for this sample.
+
+| ID | R | S | Index | C | Attribute | L/H | Rule | Totals |
+| --- | --- | ---: | ---: | ---: | --- | --- | --- | --- |
+| 127 | 0540 | 200 | 21 | 25 | 16C0 | 210/178 | A | none |
+| 111 | 0608 | 236 | 41 | 195 | 16C0 | 56/56 | U | none |
+| 102 | 06F4 | 194 | 40 | 3 | 16C0 | 28/28 | U | none |
+| 10E | 07B6 | 62 | 20 | 25 | 1640 | 30/30 | A | none |
+| 10D | 07F4 | 114 | 1 | 1 | 1640 | 104/104 | A | none |
+| 10C | 0866 | 150 | 2 | 1 | 1640 | 188/140 | A | none |
+| 10B | 08FC | 150 | 3 | 1 | 1640 | 190/140 | A | none |
+| 10A | 0992 | 67 | 4 | 0 | 1640 | 67/67 | F | L+H |
+| 109 | 09D5 | 70 | 5 | 0 | 1640 | 70/70 | F | L+H |
+| 108 | 0A1B | 61 | 6 | 0 | 1640 | 65/61 | F | H |
+| 107 | 0A58 | 49 | 7 | 0 | 1640 | 49/49 | F | L+H |
+| 106 | 0A89 | 128 | 8 | 9 | 1640 | 136/118 | A | none |
+| 105 | 0B09 | 61 | 9 | 4 | 1640 | 53/53 | O | none |
+| 104 | 0B46 | 126 | 10 | 1 | 1640 | 125/116 | A | none |
+| 103 | 0BC4 | 86 | 11 | 4 | 1640 | 78/78 | O | none |
+| 115 | 0C1A | 28 | 64 | 0 | 16C0 | 28/28 | F | L+H |
+| 119 | 0C36 | 20 | 67 | 9 | 16C0 | 10/10 | A | none |
+| 101 | 0C4A | 50 | 35 | 3 | 16C0 | 4/4 | U | none |
+| 122 | 0C7C | 30 | 49 | 2 | 16E0 | 8/8 | U | none |
+| 121 | 0C9A | 26 | 50 | 3 | 16E0 | 4/4 | U | none |
+| 110 | 0CB4 | 114 | 30 | 3 | 16C0 | 8/4 | U | none |
+| 120 | 0D26 | 26 | 31 | 3 | 16E0 | 4/4 | U | none |
+| 126 | 0D40 | 30 | 49 | 2 | 16E0 | 8/8 | U | none |
+| 125 | 0D5E | 26 | 50 | 3 | 16E0 | 4/4 | U | none |
+| 124 | 0D78 | 30 | 49 | 2 | 16E0 | 8/8 | U | none |
+| 123 | 0D96 | 26 | 50 | 3 | 16E0 | 4/4 | U | none |
+| 100 | 0DB0 | 14 | 55 | 1 | 16E0 | 4/4 | A | none |
+| 116 | 0DBE | 56 | 57 | 0 | 16E0 | 88/56 | F | H |
+| 113 | 0DF6 | 192 | 71 | 1 | 16E0 | 150/150 | A | none |
+| 118 | 0EB6 | 8 | 69 | 0 | 16C0 | 56/8 | F | H |
+| 117 | 0EBE | 40 | 76 | 10 | 16E0 | 18/18 | U | none |
+| 114 | 0EE6 | 40 | 82 | 2 | 16C0 | 18/18 | U | none |
+| 11F | 0F0E | 40 | 20 | 25 | 16C0 | 30/30 | A | none |
+| 11E | 0F36 | 40 | 20 | 25 | 16C0 | 30/30 | A | none |
+| 10F | 0F5E | 58 | 44 | 1 | 16C0 | 24/24 | A | none |
+| 11D | 0F98 | 40 | 20 | 25 | 1640 | 30/30 | A | none |
+| 11C | 0FC0 | 40 | 20 | 25 | 16C0 | 30/30 | A | none |
+| 11B | 0FE8 | 40 | 65 | 25 | 1640 | 30/30 | A | none |
+| 11A | 1010 | 40 | 20 | 25 | 1640 | 30/30 | A | none |
+
+### Attribute-word correlations
+
+OBSERVATION: each row below groups the complete directory census by the
+literal attribute word. Span ranges are inclusive extrema, not all sizes
+inside the range. Indices and numeric C labels are decimal. These are
+correlations, not assigned flag semantics.
+
+| Basis | Sample | Attribute | Entries | Span range | Descriptor indices | Numeric classes C | Meaning |
+| --- | --- | --- | ---: | --- | --- | --- | --- |
+| OBSERVATION | Sample98 | `0x1640` | 23 | 16–290 | 2,3,4,5,6,7,8,9,10,11,20,51,78,79,80 | 0,1,4,9,25 | UNKNOWN |
+| OBSERVATION | Sample98 | `0x16C0` | 21 | 8–294 | 20,21,30,40,41,44,49,50,54,67,69,76,82 | 0,1,2,3,9,10,25,195 | UNKNOWN |
+| OBSERVATION | Sample98 | `0x16E0` | 5 | 14–192 | 31,55,56,57,71 | 0,1,3 | UNKNOWN |
+| OBSERVATION | Sample98 | `0x1740` | 5 | 128–128 | 8 | 9 | UNKNOWN |
+| OBSERVATION | mspub | `0x1640` | 15 | 40–150 | 1,2,3,4,5,6,7,8,9,10,11,20,65 | 0,1,4,9,25 | UNKNOWN |
+| OBSERVATION | mspub | `0x16C0` | 13 | 8–236 | 20,21,30,35,40,41,44,64,67,69,82 | 0,1,2,3,9,25,195 | UNKNOWN |
+| OBSERVATION | mspub | `0x16E0` | 11 | 14–192 | 31,49,50,55,57,71,76 | 0,1,2,3,10 | UNKNOWN |
+
+OBSERVATION: the aggregate counts are 38 at `0x1640`, 34 at `0x16C0`,
+16 at `0x16E0`, and five at `0x1740`. The first three values have multiple
+sizes and indices, and every one of all four values occurs on a span longer
+than its H boundary somewhere. None identifies a literal total length.
+The first three values occur with both F and non-F rules; `0x1740` occurs
+only with A here, without establishing a general variable-extent flag meaning.
+
+OBSERVATION: `0x1740` occurs only in Sample98, all five with index 8,
+C=9 and span 128. Yet Sample98 ID `0x139` and mspub ID `0x106` have that
+same index, class and span with attribute `0x1640`. The attribute therefore
+cannot be derived uniquely from that size/index combination. Similarly,
+mspub's index-20 IDs `0x11F` and `0x11D` both have span 40 and C=25 but
+attributes `0x16C0` and `0x1640`. Index 49/span 30 and index 50/span 26
+occur under both `0x16C0` and `0x16E0` across these files.
+
+UNKNOWN: semantic meanings of **all four attribute values**, and each bit
+that differs between them. For `0x1740`, exclusivity to one observed
+size/index does not establish a role because the same combination also
+occurs under another value. No names such as visible, deleted, allocated,
+compressed or master are assigned to any bit. The only explained negative
+result is that the whole word is not an unscaled record byte length.
+
+### Checkpoint and remaining limits
+
+OBSERVATION: the final bounded check covers all 93 entries, both original
+size/hash checks, directory bounds/uniqueness/parent candidates, H-to-descriptor
+agreement, all 70 class-selected predictions, the two known pre-payload gaps,
+both independently accounted final ends, and the complete flag census.
+Two initial diagnostic assertions had incorrect expected census/final-class
+assumptions; those assertions were corrected, without changing any sample or
+product code. The final checks pass; no failed extent comparison was suppressed.
+
+UNKNOWN: independent logical ends or padding in the 23 U records; a general
+descriptor algorithm; flag-bit semantics; count/capacity distinctions; exact
+product versions and broader input validity. Passing 70 arithmetic checks
+does not prove complete publication decoding or that all zero bytes are padding.
+
+INFERENCE: the next smallest byte-only step is the five class-2/index-49
+records named in the complete tables: explain their common 22-byte tail
+after H=8 using structural lengths/counts only. Keep all body meanings and
+the other unresolved indices outside that follow-up until its rule is checked.
+
+OBSERVATION: this is the first AP4 checkpoint. Only this appended section and
+the narrowed ranked-unknowns section change; no new SOURCES entry is needed.
+No full CI, importer edit, protected-reader edit, B work, Quill repair,
+geometry/text/formatting decoding, environment script/setting change,
+environment save/publication or pull request was performed. Raw evidence and
+the private attachment remain uncommitted, and no extra remote was added.
