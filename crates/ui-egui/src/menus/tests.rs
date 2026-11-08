@@ -2357,6 +2357,8 @@ fn the_table_menu_follows_indesigns_order() {
         "Convert Text to Table…",
         "Convert Table to Text…",
         "-",
+        "Calendar >",
+        "-",
         "Cell Options >",
         "-",
         "Insert >",

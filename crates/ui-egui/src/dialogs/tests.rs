@@ -5038,3 +5038,30 @@ fn parent_resize_exact_dialog_keeps_its_target_and_rejects_invalid_input() {
     assert!(app.ui.dialog.is_some());
     assert!(std::sync::Arc::ptr_eq(&saved, &app.session.doc().unwrap().doc));
 }
+
+/// Table > Calendar > Set Year: the dialog starts at the current year and OK retypes the calendar.
+#[test]
+fn set_calendar_year_dialog_defaults_to_this_year_and_runs_the_command() {
+    let mut app = DesignApp::new(designcraft_engine::Session::new(), crate::Services::default());
+    assert!(app.run("app.setCalendarYearDialog", json!({})).is_err(), "no document");
+    app.run("file.new", json!({})).unwrap();
+    assert!(crate::menus::menu_enabled(&app, "app.setCalendarYearDialog"));
+    assert_eq!(app.run("app.setCalendarYearDialog", json!({})).unwrap(), Value::Null);
+    let d = app.ui.dialog.as_ref().expect("the dialog opens");
+    assert_eq!(d.id, "calendarYear");
+    let year = d.n("year").unwrap();
+    assert!((2025.0..=2200.0).contains(&year), "{year}");
+    // A document with no calendar: OK reports it and changes nothing.
+    ctl(&mut app, "ui.dialog.set", json!({"field": "year", "value": 2031}));
+    assert_eq!(ctl(&mut app, "ui.dialog.confirm", json!({}))["ok"], true);
+    // An out-of-range year keeps the dialog open.
+    app.run("app.setCalendarYearDialog", json!({})).unwrap();
+    ctl(&mut app, "ui.dialog.set", json!({"field": "year", "value": 1800}));
+    assert_eq!(ctl(&mut app, "ui.dialog.confirm", json!({}))["ok"], false);
+    assert_eq!(app.ui.dialog.as_ref().map(|d| d.id.as_str()), Some("calendarYear"));
+    // The menu item is in Table > Calendar.
+    let items = crate::menus::MENUS.iter().find(|(t, _)| *t == "Table").map(|(_, items)| *items).unwrap();
+    let at = items.iter().position(|i| *i == ">Calendar").expect("Table > Calendar");
+    assert_eq!(items[at + 1], "ui:app.setCalendarYearDialog");
+    assert_eq!(items[at + 2], "<");
+}

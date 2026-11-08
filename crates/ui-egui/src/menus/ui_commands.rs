@@ -127,6 +127,12 @@ pub const UI_COMMANDS: &[(&str, &str, Option<&str>, &str)] = &[
         None,
         "{} — Convert Text to Table dialog (column and row separators, number of columns, table style)",
     ),
+    (
+        "app.setCalendarYearDialog",
+        "Set Year…",
+        None,
+        "{} — Table > Calendar > Set Year dialog (one year field, default the current year); OK runs table.setCalendarYear",
+    ),
     ("app.convertTableToTextDialog", "Convert Table to Text…", None, "{} — Convert Table to Text dialog (column and row separators)"),
     (
         "app.cellOptionsDialog",

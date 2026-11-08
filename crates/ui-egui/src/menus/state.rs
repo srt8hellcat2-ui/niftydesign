@@ -184,6 +184,9 @@ pub fn menu_enabled(app: &DesignApp, id: &str) -> bool {
         let selected = app.session.active().and_then(|d| d.selection.text).is_some_and(|t| t.cell.is_none() && !t.is_caret());
         return selected && enabled(app, "table.convertFromText");
     }
+    if id == "app.setCalendarYearDialog" {
+        return enabled(app, "table.setCalendarYear");
+    }
     if id == "app.convertTableToTextDialog" {
         return enabled(app, "table.convertToText");
     }

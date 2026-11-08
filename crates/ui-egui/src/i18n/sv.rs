@@ -2920,6 +2920,8 @@ pub(super) const TABLE: &[(&str, &str)] = &[
     ("Delete Point(s)", "Radera punkt(er)"),
     ("Convert Text to Table…", "Konvertera text till tabell…"),
     ("Convert Table to Text…", "Konvertera tabell till text…"),
+    ("Calendar", "Kalender"),
+    ("Set Year…", "Ange år…"),
     ("Column Separator", "Kolumnavgränsare"),
     ("Row Separator", "Radavgränsare"),
     ("Number of Columns", "Antal spalter"),

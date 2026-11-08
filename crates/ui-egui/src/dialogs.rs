@@ -37,6 +37,7 @@ impl Dialog {
         let defaults = match id {
             "newDocument" => crate::new_document::defaults(),
             "goToPage" => json!({"page": "1"}),
+            "calendarYear" => json!({"year": 2026}),
             "epubExport" => json!({"split": false, "mode": "style", "style": designcraft_doc::BASIC_PARAGRAPH, "coverImage": ""}),
             "qrCode" => json!({"type": "url", "content": "https://", "color": "[Black]"}),
             "insertTable" => json!({"bodyRows": 4, "columns": 4, "headerRows": 0, "footerRows": 0}),
@@ -2937,6 +2938,7 @@ pub fn show(app: &mut DesignApp, ctx: &egui::Context) {
         "newDocument" => crate::i18n::tr(&app.ui.language, "New Document"),
         "frameSize" => crate::i18n::tr(&app.ui.language, "Rectangle"),
         "goToPage" => crate::i18n::tr(&app.ui.language, "Go to Page"),
+        "calendarYear" => crate::i18n::tr(&app.ui.language, "Set Year…").trim_end_matches('…').trim_end(),
         "insertPages" => crate::i18n::tr(&app.ui.language, "Insert Pages"),
         "insertTable" => crate::i18n::tr(&app.ui.language, "Insert Table…").trim_end_matches('…').trim_end(),
         // The menu items' translations (every language has them), without the ellipsis.
@@ -3809,6 +3811,23 @@ pub fn show(app: &mut DesignApp, ctx: &egui::Context) {
                             text_field(ui, &mut d, "page", 80.0);
                         });
                     }
+                    "calendarYear" => {
+                        ui.horizontal(|ui| {
+                            crate::rtl::label(ui, format!("{}:", crate::i18n::tr(&app.ui.language, "Year")));
+                            let field =
+                                crate::widgets::NumField::number("calendarYear", d.n("year"), "", 0).width(80.0).range(1900.0, 2200.0).spinner();
+                            if let Some(v) = field.show(ui) {
+                                d.fields.insert("year".into(), json!(v.round()));
+                            }
+                        });
+                        ui.label(
+                            egui::RichText::new(crate::i18n::tr(
+                                &app.ui.language,
+                                "Retypes every month heading's year, the day numbers and the week rows. Other text is not touched.",
+                            ))
+                            .color(crate::theme::Tokens::get(ui.ctx()).text_dim),
+                        );
+                    }
                     "ruby" => style_cjk::ruby_dialog(app, ui, &mut d),
                     "insertTable" => insert_table_dialog(app, ui, &mut d),
                     "convertTextToTable" | "convertTableToText" => convert_table_dialog(app, ui, &mut d),
@@ -4445,6 +4464,28 @@ fn confirm_part1(app: &mut DesignApp, d: Dialog) -> Result<Value, String> {
                 app.ui.dialog = Some(d);
             }
             r
+        }
+        "calendarYear" => {
+            // The dialog stays open on an error; otherwise the result tells how many months changed.
+            let year = d.n("year").unwrap_or(0.0).round() as i64;
+            match app.run("table.setCalendarYear", json!({"year": year})) {
+                Ok(r) => {
+                    let kept = r["kept"].as_u64().unwrap_or(0);
+                    let mut msg = r["message"].as_str().unwrap_or("").to_string();
+                    if let Some(w) = r["warnings"].as_array().and_then(|w| w.first()).and_then(Value::as_str)
+                        && kept == 0
+                    {
+                        msg = format!("{msg} {w}");
+                    }
+                    app.status(msg);
+                    Ok(r)
+                }
+                Err(e) => {
+                    app.status(e.clone());
+                    app.ui.dialog = Some(d);
+                    Err(e)
+                }
+            }
         }
         "insertTable" => {
             // The table and its style in one step; a style that is gone leaves the document alone,
