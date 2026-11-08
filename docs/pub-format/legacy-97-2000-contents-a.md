@@ -336,6 +336,10 @@ decoded or B understood.
    through collections `0x10A`/`0x127` to root-like `0x100`. The two groups
    have first-/second-page wording, but no independent page-count field is
    decoded; the eight/seven direct class-25 collections are not proven pages.
+   OBSERVATION: AP13 links the single Sample98 TCD section uniquely to story
+   6 in record `0x12B` under `0x127`; its six boundaries subdivide that one
+   story, not the six text records or two collections. TCD supplies no
+   independently decoded page number or cross-collection grouping.
    UNKNOWN: reference roles and child-list rules for other classes or beyond
    these two samples; page identity/order and visual reading order remain
    unproved. File/list order is not independently established page order.
@@ -344,21 +348,25 @@ decoded or B understood.
    six Sample98 Quill associations at index-8 +0x58 and index-10 +0x66;
    ranges come from Quill SYID/STRS/TEXT, with no nearby literal range pair
    proven in Contents. mspub has no TEXT/STRS and zero SYID count, supplying
-   a negative control, not a second positive text-link example. Existing Quill
-   import failure
-   on kind `0x19` was not repaired or bypassed into a complete import.
+   a negative control, not a second positive text-link example.
+   OBSERVATION: AP13 independently verifies TCD directory slot 3 against
+   SYID's fourth ID, 6, and six CR-bounded local ranges totaling the 80-unit
+   story; all five alternative story associations fail. No legacy cell-grid
+   association is inferred. The existing import failure on kind `0x19` was
+   not repaired or bypassed into a complete import.
 5. UNKNOWN: independent saving versions and wider coverage, including any
    confirmed Publisher 97-specific sample. OBSERVATION: AP3 verifies the
    supplied mspub.pub size/hash and structural checks; its earlier unavailability
    is resolved. UNKNOWN: zmspub.pub and the claimed equality of the owner pair
    remain unverified; independent manufacture is owner-reported provenance.
 
-INFERENCE: after AP12, the next smallest available content-structure test is
-Sample98's already listed 36-byte Quill TCD section. Test numeric ID/range
-or order candidates against SYID/STRS and the six anchored records, with
-matched controls, without entering formatting or repairing kind 0x19.
-UNKNOWN: no TCD field is decoded here; independent page-count evidence and
-actual visual order remain missing. Out-of-bounds selectors stay parked.
+INFERENCE: after AP13, the smallest discriminating page test requires an
+independently saved variant-A example with a documented page count and a
+known text item on each page, ideally a controlled one-/two-page pair.
+Compare its root/collection links and story associations before assigning
+page roles or ordering. UNKNOWN: the current one-positive-TCD sample and
+text-free negative cannot distinguish page roles further; selectors remain
+parked and the kind-0x19 failure remains outside this research.
 
 ## What a reader must do before implementation
 
@@ -2350,3 +2358,169 @@ the narrowed ranked-unknowns section change. SOURCES.md is unchanged. No full
 CI, importer/protected-reader edit, B work, kind-0x19 repair, environment
 script/setting change, environment save/publication or pull request was
 performed. Sample and stream bytes remain uncommitted; no extra remote was added.
+
+## Quill TCD section and page evidence
+
+OBSERVATION: AP13 resumes from `7c01a6a9e170f4cf7a48127f01dacdeece0199a3`,
+titled Trace legacy text links and page candidates. The named-branch fetch
+succeeds. The restore verifies 317 pinned inputs, restores none and reports
+zero failures. Both originals match their existing sizes/hashes: Sample98.pub
+is 61440 bytes; mspub.pub remains present, 19968 bytes, SHA-256
+`0EFF0498172805BF1E52C74A6334ECC4CDC84FB2E531C0EA25734CFAC7923C7D`.
+Fresh root Contents and Quill CONTENTS extracts remain ignored and match the
+prior extractions exactly. No private sample bytes or content are reproduced.
+The attachment is available, so no single-sample fallback is needed; all
+positive TCD findings below are nevertheless Sample98-only observations.
+
+OBSERVATION: existing Quill and table notes supplied comparison layouts, not
+permission to assume older-format semantics. The own newer-format calendar
+note at commit `8e01c0bc6c841e7af5a3eecf53a8387cd3ca4a93`, tables.md section
+Cell text association (calendar sample), is consulted only as a comparison.
+No calendar bytes, new third-party format source or scoring data are used.
+Every older-format association below is checked from the older sample's own
+section directory, SYID/STRS/TEXT, Contents link and parent chains.
+
+### Location, bounds and actual entry shape
+
+OBSERVATION: offsets below are hexadecimal within the named stream, sizes
+and counts decimal, and ranges end-exclusive. Numeric probes are little-endian.
+Both Quill directories are freshly walked with bounded 24-byte entries,
+cycle detection and section-extent checks. Sample98 has 17 section entries
+and exactly one `TCD ` entry; mspub has six and no TCD entry of any size.
+
+| Basis | Field / position | Sample98 result / evidence | mspub control |
+| --- | --- | --- | --- |
+| OBSERVATION | Quill stream bounds | `[0,0x1800)`, 6144 bytes | `[0,0x400)`, 1024 bytes |
+| OBSERVATION | TCD directory entry E | `0x140`; tag at `0x142` | No matching tag in the complete directory. |
+| OBSERVATION | u16 directory field E+6 | `0x146`: 3 | No field or empty TCD header is synthesized. |
+| OBSERVATION | u32 section offset E+16 | `0x150`: `0xFA6` | Absent. |
+| OBSERVATION | u32 section length E+20 | `0x154`: 36 | Absent. |
+| OBSERVATION | TCD section extent | `[0xFA6,0xFCA)`; next listed TOKN data begins at `0xFCA` | No TCD extent. |
+| OBSERVATION | u32 at section+0 | `0xFA6`: 5, equals boundary count minus one | Not applicable. |
+| OBSERVATION | u32 at section+4 | `0xFAA`: 0; role UNKNOWN | Not applicable. |
+| OBSERVATION | u32 at section+8 | `0xFAE`: `0xFF00`; role UNKNOWN | Not applicable. |
+| OBSERVATION | Boundary array | Six four-byte slots at `[0xFB2,0xFCA)` | No array. |
+
+OBSERVATION: the framing is `12 + 4*(5+1) = 36`, with a twelve-byte header
+and six u32 boundary probes, no leftover bytes. There are not six separately
+identified story records, and no start/length/ID tuple repeated six times.
+Four bytes is the observed boundary-slot stride. UNKNOWN: narrower numerical
+storage plus zero padding cannot be separated here because all upper bytes
+are zero; the header's count maintenance rule is not tested on a second
+populated older sample. No TCD field is decoded as formatting or geometry.
+
+### Directory slot, story link and field-by-field controls
+
+OBSERVATION: SYID's six IDs are `1,3,4,6,7,8` at Quill `0xC08` onward.
+Directory value 3 selects the fourth entry at `0xC14`, value 6. STRS slot 3
+at `0x1216` gives length 80, and earlier lengths sum to global TEXT start
+246. Contents record `0x12B`, index 10/class 1, has the same ID 6 at its
+bounded +0x66 field, absolute Contents `0x1340`. Its verified chain is
+`0x12B -> 0x127 -> 0x100`. No other anchored text record carries this ID.
+
+| Basis | Candidate match | Positive check | False-positive control / limit |
+| --- | --- | --- | --- |
+| OBSERVATION | Directory E+6 is a zero-based SYID slot | Slot 3 -> ID 6 -> 80-unit story -> record `0x12B` | Treating 3 directly as an ID also finds an existing ID, but selects story 3 of length 98 and fails TCD range validation. |
+| OBSERVATION | TCD-body field is a story ID | None of the three header probes or six boundary probes equals a SYID ID | Zero body ID matches; six boundaries must not be zipped to the six story IDs merely because their counts coincide. |
+| OBSERVATION | Boundaries refer to one story's local UTF-16 units | Final 80 equals only story 6's STRS length; every intermediate boundary points at CR within that story | Trying all six stories gives one full match and five failures, including the direct-ID interpretation above. |
+| OBSERVATION | Boundaries are global story-range endpoints | No boundary equals any of the six global starts or ends | The header's zero happens to equal the first global start, but supplies no successful story/range association. |
+| OBSERVATION | Units are bytes rather than UTF-16 units | Actual story is 160 text bytes / 80 units | Interpreting terminal 80 as bytes gives only 40 units and fails exact extent. |
+| OBSERVATION | Position is a separator, not a nearby arbitrary number | Five intermediate positions are CR; terminal position equals story length including final CR | Shifting each intermediate position by +1 loses all five CR matches. |
+| OBSERVATION | The selected slot is correct | Slot 3 passes exact length and separators | Adjacent slots 2/4 select lengths 62/87 and fail. |
+
+INFERENCE: the old-file directory field at E+6 is strongly associated with
+the story-list slot in this example. The newer-format finding is consistent
+with that interpretation but is not evidence that makes it true here.
+UNKNOWN: general meaning across older files, a field width beyond these
+probes and behavior after story reordering remain unverified with one
+positive old-format TCD section. No universal tag-occurrence interpretation
+or importer change follows from this match.
+
+### Six bounded text subdivisions, not six frame ranges
+
+OBSERVATION: the six boundary values are 15,25,39,54,66,80. Begin the first
+range at zero and each subsequent range one unit after the preceding boundary.
+Exclude each intermediate CR; exclude the final CR at local position 79.
+All units are read only within the already established story-6 slice.
+
+| Basis | Boundary ordinal / Quill field | Stored local boundary | Assigned local payload range | Global TEXT payload range |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | 1 / `0xFB2` | 15 | [0,15) | [246,261) |
+| OBSERVATION | 2 / `0xFB6` | 25 | [16,25) | [262,271) |
+| OBSERVATION | 3 / `0xFBA` | 39 | [26,39) | [272,285) |
+| OBSERVATION | 4 / `0xFBE` | 54 | [40,54) | [286,300) |
+| OBSERVATION | 5 / `0xFC2` | 66 | [55,66) | [301,312) |
+| OBSERVATION | 6 / `0xFC6` | 80 | [67,79) | [313,325) |
+
+OBSERVATION: payload lengths are 15,9,13,14,11,12, totaling 74 units; the
+five intermediate and one final CR account for the remaining six units.
+The enclosing story remains [246,326), not any of the six full story ranges
+from AP12. In this story those are all six CRs, so the boundary partition
+also happens to separate its six CR-delimited text pieces. This coincidence
+does not establish that every paragraph is a cell in other files.
+
+INFERENCE: the six subdivisions have the same text-boundary shape as the
+existing table-text notes and are cell-like text ranges. UNKNOWN: older
+Contents cell-list/grid correspondence, rows/columns, merged-cell handling
+and cell order are not decoded here. Calling these six boundaries six pages,
+six text frames or six validated grid cells would exceed the evidence.
+The section is compatible with a table-associated text host under `0x127`,
+without establishing that host's complete structural meaning.
+
+### Collection and page hypotheses after the TCD check
+
+OBSERVATION: the TCD match independently reinforces the association of story
+6 with the 80-unit text host `0x12B` in collection `0x127`. It supplies no
+boundary group for story IDs 1/3 under `0x10A`, or IDs 4/7/8 elsewhere under
+`0x127`. There is one TCD section, not two collection-indexed sections or a
+six-record story catalogue. Its count-like 5 happens also to equal `0x127`'s
+five child-list entries, but its six boundaries validate only one child's
+story. Those child entries include a non-story child and four text-linked
+records; they cannot be paired one-for-one with the six boundaries.
+
+INFERENCE: `0x10A` and `0x127` remain **probable page-like collections** from
+AP12's reference grouping and authored first-/second-page wording. The TCD
+finding makes the text structure inside `0x127` firmer; it provides no new
+independent evidence that either collection is a page. UNKNOWN: actual page
+identity, total count and master/scratch roles remain unproven. No TCD field
+is independently identified as a page number; opaque header values are not
+assigned page semantics by coincidence.
+
+OBSERVATION: mspub has no TCD or TEXT or STRS section, and its SYID count is
+zero. It confirms that no association should be manufactured in this sample;
+it does not replicate the older positive TCD mapping or prove that a text-free
+publication has zero pages. No private text or TCD bytes are exposed.
+
+### Order and checkpoint limits
+
+OBSERVATION: the boundary values increase within story 6 and preserve the
+stored order of its six text subdivisions. They do not order the six anchored
+text records or group by their two parent collections. E+6=3 selects the
+fourth stored story, not a proven page number. The previously observed child
+lists still give IDs 1,3 under `0x10A` and 4,6,7,8 under `0x127`; only the
+second ID in the latter list participates in this TCD. There is no TCD
+entry sequence that can independently confirm cross-frame child-list order.
+
+UNKNOWN: page order and visual reading order remain unproven. Serialized
+story/child order agreeing is not an independent visible-order contract, and
+TCD only adds local text-subdivision order. No native render, geometry,
+colours, formatting, pictures, variant-B table or kind-0x19 repair is used.
+The existing 93/93 extent coverage and reference classifications are unchanged.
+
+INFERENCE: the next smallest discriminating page experiment is an independent
+variant-A sample with a documented page count and a known text item per page,
+ideally a controlled one-/two-page pair. Compare collection/root/story links
+without assigning page roles from names. The current single positive TCD and
+text-free negative do not provide another independent page discriminator.
+
+OBSERVATION: this is the first AP13 checkpoint. Both original identities,
+fresh stream/directory bounds, prior 93 extent and AP12 checks, all nine TCD
+body probes, six story controls, adjacent-slot/direct-ID/unit/shift controls
+and all six local/global text ranges pass their stated checks. An initial
+scratch extractor did not compile because its buffer was moved before its
+length was reported; borrowing the buffer corrected that diagnostic, without
+changing a sample or importer. Only this appended section, the narrowed ranked
+unknowns and one comparison-source line change. No full CI, importer edit,
+environment script/setting change, environment save/publication or pull request
+is performed. Sample bytes remain ignored and uncommitted; no extra remote
+is added.
