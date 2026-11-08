@@ -354,19 +354,27 @@ decoded or B understood.
    story; all five alternative story associations fail. No legacy cell-grid
    association is inferred. The existing import failure on kind `0x19` was
    not repaired or bypassed into a complete import.
+   OBSERVATION: AP14 finds root +0x14/+0x18 size candidates matching A4 and
+   Letter at one common scale, and a unique common signed32 window at
+   +0x06/+0x0A/+0x0E/+0x12 for all six positive text-linked records. A
+   half-page translation makes every candidate rectangle positive, distinct
+   and contained. UNKNOWN: the physical scale and origin are still inferred;
+   alternative contained translations and three background-field hits prevent
+   treating numerical plausibility as proof of geometry semantics. mspub's
+   index-8/index-10 fields are zero and provide no positive geometry replication.
 5. UNKNOWN: independent saving versions and wider coverage, including any
    confirmed Publisher 97-specific sample. OBSERVATION: AP3 verifies the
    supplied mspub.pub size/hash and structural checks; its earlier unavailability
    is resolved. UNKNOWN: zmspub.pub and the claimed equality of the owner pair
    remain unverified; independent manufacture is owner-reported provenance.
 
-INFERENCE: after AP13, the smallest discriminating page test requires an
-independently saved variant-A example with a documented page count and a
-known text item on each page, ideally a controlled one-/two-page pair.
-Compare its root/collection links and story associations before assigning
-page roles or ordering. UNKNOWN: the current one-positive-TCD sample and
-text-free negative cannot distinguish page roles further; selectors remain
-parked and the kind-0x19 failure remains outside this research.
+INFERENCE: after AP14, the smallest discriminating position test is an
+independently saved variant-A page of known physical size with one unrotated
+text frame at documented noncentral left/top/right/bottom positions. Test
+the candidate scale and half-page origin against that known rectangle before
+promoting them to builder rules. UNKNOWN: page roles/order, a second positive
+geometry example and actual visible placement remain unverified; selectors
+stay parked and the kind-0x19 failure remains outside this research.
 
 ## What a reader must do before implementation
 
@@ -2524,3 +2532,238 @@ unknowns and one comparison-source line change. No full CI, importer edit,
 environment script/setting change, environment save/publication or pull request
 is performed. Sample bytes remain ignored and uncommitted; no extra remote
 is added.
+
+## Page size and text frame rectangles
+
+OBSERVATION: AP14 starts from `7868f7bd703648d3349e166190b9b8f4e982726c`.
+The named-branch fetch succeeds. The restore verifies 317 pinned inputs,
+restores none and reports zero failures. Both originals match their recorded
+identities: Sample98.pub is 61440 bytes; mspub.pub remains present, 19968
+bytes with SHA-256
+`0EFF0498172805BF1E52C74A6334ECC4CDC84FB2E531C0EA25734CFAC7923C7D`.
+Fresh Contents extractions match the earlier streams exactly and remain
+ignored. No private bytes are reproduced. Evidence is limited to these
+files, their prior structural/text links and bounded numeric experiments;
+SOURCES.md already lists both inputs and is unchanged. No fallback is needed.
+
+OBSERVATION: this section separates raw field measurements from physical
+interpretation. Page sizes, endpoints and containment can be tested for
+plausibility without a native rendering, but numerical fit alone cannot
+uniquely prove a page-coordinate origin or physical scale. No importer,
+variant-B work or kind-0x19 repair is performed. Rotation, object anchors,
+margins, columns, fonts, colours and pictures are not decoded.
+
+### Root size candidates and exact standard-size controls
+
+OBSERVATION: positions are hexadecimal unless stated otherwise. Numeric field
+values and counts are decimal. All reads are little-endian and ranges are
+end-exclusive. Each root-like index-21 record has two positive 32-bit values
+at R+0x14 and R+0x18 (decimal +20/+24), inside its H=178 fixed prefix.
+
+| Basis | Sample / root ID / R | Width candidate field / value | Height candidate field / value | Standard-size plausibility at 36000 units/mm |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | Sample98 / `0x100` / `0x5E0` | `0x5F4` / 7560000 | `0x5F8` / 10692000 | Exactly 210 x 297 mm, A4 portrait. |
+| OBSERVATION | mspub / `0x127` / `0x540` | `0x554` / 7772400 | `0x558` / 10058400 | Exactly 215.9 x 279.4 mm, or 8.5 x 11 inches, Letter portrait. |
+
+OBSERVATION: the same dimension pairs recur at index-44 record `0x121`
+fields `0x108A,0x108E` in Sample98, and record `0x10F` fields `0xF62,0xF66`
+in mspub. These are that record's +4/+8 fields. Prior proven reference
+correspondences connect them through `0x107` / `0x11E` to their respective
+root: the collection is in the root's ordered tail and its +4 selector
+resolves to the size-pair record. Internal duplication corroborates a size
+association, but is not an independent physical measurement of a page.
+
+INFERENCE: root +0x14/+0x18 are strong document/page-width and height
+candidates at a scale of 36000 units/mm, equivalent to 914400 units/inch
+and 12700 units/point. This is an EMU-compatible scale. The same scale gives
+two exact, differently proportioned standards in independently supplied files
+and round millimetre positions for nearly all text-frame endpoints below.
+UNKNOWN: actual author-selected physical sizes, the native unit definition,
+page-size inheritance and any per-collection override are not independently
+verified; a different physical interpretation cannot be excluded by ratios
+and containment alone. The positive values do not separate signed from
+unsigned page-size storage semantics.
+
+OBSERVATION: a search control finds other exact Letter-looking pairs in
+Sample98 at `0x71A,0x782`, both inside class-195 record `0x11F`, despite
+the root's A4-looking pair. In mspub, Letter pairs occur at root `0x554`,
+class-195 positions `0x678,0x6DC`, and index-44 position `0xF62`.
+Their other meanings are not decoded. Thus locating any standard-looking
+pair anywhere would not identify the page size. The consistent root offsets
+and reference-backed duplicate distinguish the candidate; there is still no
+native page-size oracle in this evidence.
+
+### Endpoint candidates for the two text-record families
+
+OBSERVATION: all six positive text-linked records have a common four-field
+window inside their fixed prefixes. The probe layout is the same for
+index 8/class 9 and index 10/class 1:
+
+| Basis | Record-relative byte offset | Probe width / candidate meaning |
+| --- | --- | --- |
+| OBSERVATION | +0x06, decimal +6 | Four-byte signed integer, candidate left endpoint. |
+| OBSERVATION | +0x0A, decimal +10 | Four-byte signed integer, candidate top endpoint. |
+| OBSERVATION | +0x0E, decimal +14 | Four-byte signed integer, candidate right endpoint. |
+| OBSERVATION | +0x12, decimal +18 | Four-byte signed integer, candidate bottom endpoint. |
+
+OBSERVATION: candidate physical placement uses the inferred root W/H and
+translation `(W/2,H/2)`: left/right each add W/2 and top/bottom each add H/2.
+Before translation all six left values are negative, and several top/bottom
+values are negative. The following table records exact signed probes and
+exact translated values; translation is a hypothesis being tested, not a
+stored top-left coordinate field.
+
+| Basis | Sample98 ID / index / R | Raw candidate left,top,right,bottom | Translated left,top,right,bottom in candidate units |
+| --- | --- | --- | --- |
+| OBSERVATION | `0x125` / 8 / `0x1112` | -2700000,-4446000,2376000,-3474000 | 1080000,900000,6156000,1872000 |
+| OBSERVATION | `0x126` / 8 / `0x1192` | -2700000,-3294000,2484000,-2214000 | 1080000,2052000,6264000,3132000 |
+| OBSERVATION | `0x12A` / 8 / `0x125A` | -2952000,-4410000,2412000,-2862000 | 828000,936000,6192000,2484000 |
+| OBSERVATION | `0x12B` / 10 / `0x12DA` | -2412000,-2538000,1152000,-1880436 | 1368000,2808000,4932000,3465564 |
+| OBSERVATION | `0x12F` / 8 / `0x1570` | -2376000,-90000,2016000,594000 | 1404000,5256000,5796000,5940000 |
+| OBSERVATION | `0x130` / 8 / `0x15F0` | -2340000,882000,2196000,2610000 | 1440000,6228000,5976000,7956000 |
+
+OBSERVATION: dividing translated coordinates by 36000 gives millimetre
+candidates `(30,25,171,52)`, `(30,57,174,87)`, `(23,26,172,69)`,
+`(38,78,137,3465564/36000)`, `(39,146,161,165)` and
+`(40,173,166,221)`. The index-10 bottom is about 96.265667 mm; it is not
+rounded to a whole millimetre. Every right exceeds left and every bottom
+exceeds top; all six boxes lie inside the inferred A4 bounds. The two boxes
+under `0x10A` differ, and all four under `0x127` differ; all six are distinct.
+No positive text-linked candidate is outside that inferred page.
+
+OBSERVATION: record `0x12B` has a further numeric control: its u32 at +0x5C
+is 3564000, exactly candidate right minus left. The next u32 at +0x60 is
+648000, whereas candidate bottom minus top is 657564. This is a retained
+mismatch, not discarded noise or evidence for rounding. UNKNOWN: the second
+quantity's role and the reason for the difference are not decoded. No claim
+that it is an alternative frame-height field is adopted.
+
+### Window, width, sign and other-record controls
+
+OBSERVATION: every byte-aligned candidate window of four signed32 integers
+from record offsets 0 through 100 is tested on all six positive text records:
+101 common windows. Requiring positive dimensions, inferred page containment
+and distinct boxes leaves only the window beginning at +6. Four-byte probes
+are unaligned relative to the record; alignment padding must not be inserted.
+
+| Basis | Interpretation/control at the candidate positions | Positive/contained result across six text records |
+| --- | --- | --- |
+| OBSERVATION | Signed 32-bit left/top/right/bottom plus half-page translation | 6/6; only common valid window among 101 tested starts. |
+| OBSERVATION | Unsigned whole-32-bit endpoints | 0/6; negative encoded endpoints become large positive values. |
+| OBSERVATION | Signed or unsigned 16-bit values at those same four positions | 2/6 for each; neither preserves the common rectangle test. |
+| OBSERVATION | Signed or unsigned 64-bit values at those positions | 0/6 for each. |
+| OBSERVATION | Raw left/top/right/bottom with origin at page top-left | 0/6 contained; all six left values are negative. |
+| OBSERVATION | Third/fourth values are positive width/height instead of endpoints | Only 2/6 even have both positive; not a shared interpretation. |
+
+OBSERVATION: the same offsets exist in Sample98's zero-link index-8 record
+`0x139` and index-10 record `0x13B`, and mspub's zero-link index-8 record
+`0x106` and index-10 record `0x104`. All four give `(0,0,0,0)`, a degenerate
+box before or after translation. They are negative controls, not established
+live empty frames. mspub therefore supplies no positive frame-position
+replication. A builder must not create a page-center frame from those zeros
+or infer visible text merely from index/class membership.
+
+OBSERVATION: the background control tests the same four offsets on all other
+record classes, requiring the window to fit the fixed prefix before treating
+it as a comparable fixed-field probe. These are not certified non-geometry
+records; a passing numeric test alone is not a false-positive-free frame label.
+
+| Basis | Numeric descriptor class, excluding indices 8/10 | Sample98 prefix-eligible / positive-contained hits | mspub prefix-eligible / positive-contained hits |
+| --- | --- | --- | --- |
+| OBSERVATION | 0 | 7 / 1 | 6 / 0 |
+| OBSERVATION | 1 | 4 / 0 | 5 / 0 |
+| OBSERVATION | 2 | 0 / 0 | 0 / 0 |
+| OBSERVATION | 3 | 1 / 1 | 1 / 1 |
+| OBSERVATION | 4 | 2 / 0 | 2 / 0 |
+| OBSERVATION | 9 | 0 / 0 | 0 / 0 |
+| OBSERVATION | 10 | 0 / 0 | 0 / 0 |
+| OBSERVATION | 25 | 9 / 0 | 8 / 0 |
+| OBSERVATION | 195 | 1 / 0 | 1 / 0 |
+
+OBSERVATION: totals are 2/24 and 1/23. Passing backgrounds are Sample98
+`0x123` (index 40/class 3), `0x12E` (index 5/class 0), and mspub `0x102`
+(index 40/class 3). Their meanings are not assigned from this result.
+Allowing probes into tails instead increases eligible other-record counts
+to 42/34 and hits to 3/1; Sample98 index-78 record `0x141` adds a passing
+window outside its fixed prefix. This demonstrates why blind rectangle
+scanning or applying a class-1 rule to every class-1 record is unsafe.
+Out-of-span reads are never performed, and out-of-bounds selectors stay parked.
+
+### What is still inferred, including the origin control
+
+INFERENCE: a centered, signed32 endpoint representation at the shared offsets
+and an EMU-compatible scale is the strongest common candidate tested for the
+six known text hosts. The exact standard-size pairs, unique common window,
+round positions, positive/nonidentical boxes and width duplication support
+it. UNKNOWN: true physical placement, whether these are outer bounds or
+another rectangle, and any native coordinate-origin contract remain unverified.
+
+OBSERVATION: containment does not uniquely prove the half-page origin.
+All six boxes still fit after adding another 36000 units to both translated
+axes. Across the six raw boxes, feasible translations span X from 2952000
+to 5076000 and Y from 4446000 to 8082000. Many origins therefore satisfy the
+same inequalities. Even substituting the alternative Letter-looking page
+pair for Sample98 still contains all six boxes. Those are explicit controls
+against claiming that containment proves either the size or origin uniquely.
+
+UNKNOWN: no identified positive text candidate lies outside the inferred
+page, but that is not a census of every actual frame in either publication.
+Other record classes, non-text frames and the zero-link records do not have
+independently established live-frame roles. Their passing/failing numeric
+windows must not be reported as real inside/outside frames. In particular,
+there is no evidence here to claim that every frame in mspub is inside, outside
+or absent. Page roles of `0x10A`/`0x127` and inherited page sizes also remain
+probable or unknown as previously documented.
+
+### Bounded builder requirements and checkpoint
+
+INFERENCE: for an experimental placement of one of the six text-host candidates,
+a builder needs the following exact data and checks; these are not promoted
+to a universally proven format rule without an independent position control.
+
+- INFERENCE: open the bounded Contents stream, use its verified directory and
+  extent rules, and resolve the selected index-8 or index-10 record. Require
+  `[R,R+0x16)` to fit its fixed prefix and stream before reading four values.
+  Do not generalize by numeric class alone or by a random passing window.
+- INFERENCE: resolve its already checked Quill story and collection/root chain.
+  Read the root-like index-21 width/height candidates at +0x14/+0x18 only
+  when `[root,root+0x1C)` fits its fixed prefix. Require positive, bounded
+  dimensions and checked conversion arithmetic; do not substitute unrelated
+  standard-looking pairs from another record.
+- INFERENCE: read signed32 endpoints at +0x06,+0x0A,+0x0E,+0x12. Reject
+  nonpositive width/height; treat all-zero inactive controls as unplaced.
+  With the proposed origin, use checked wide arithmetic such as
+  `L2=2*left+W`, `R2=2*right+W`, `T2=2*top+H`, `B2=2*bottom+H`.
+  Require `0<=L2<R2<=2*W` and `0<=T2<B2<=2*H` for the contained case;
+  do not clip silently or pretend these checks identify every legal off-page
+  object. Divide by two only after preserving any half-unit precision.
+- INFERENCE: under the candidate scale, divide by 36000 for millimetres or
+  12700 for points. Place only after a page-assignment decision supported
+  separately from these geometry candidates. Preserve explicit uncertainty
+  about the origin/physical scale until known-position evidence confirms it.
+- INFERENCE: attach the verified story range from SYID/STRS/TEXT; do not invent
+  a new range from geometry or infer rotation, object anchors, margins, columns,
+  fonts, colours or pictures. The kind-0x19 failure is not repaired here.
+
+UNKNOWN: ranked remaining position questions are the absolute origin and
+native physical unit, actual page-size inheritance and page roles, a second
+positive geometry example, the rectangle's exact role and the index-10
+height discrepancy. Wider frame classes and independent visible placement
+remain unverified. These limits materially prevent claiming a fully proven
+variant-A page renderer from this checkpoint alone.
+
+INFERENCE: the next smallest discriminating experiment is an independently
+saved variant-A page with known physical size and one unrotated text frame
+at documented noncentral left/top/right/bottom coordinates. It would separate
+the half-page candidate from the equally contained shifted-origin controls;
+a second all-zero file or merely another plausible rectangle would not.
+
+OBSERVATION: this is the first AP14 checkpoint. Both original identities,
+prior structural/text checks, root and referenced size pairs, 101 common
+windows, all six positive boxes, four zero controls, all eligible other-class
+probes, width/sign/origin controls and the height mismatch pass their stated
+checks or are retained as explicit limitations. Only this appended section
+and the narrowed ranked-unknowns section change. SOURCES.md is unchanged.
+No full CI, importer edit, environment script/setting change, environment
+save/publication, variant-B work or pull request is performed. Sample and
+extracted bytes remain ignored and uncommitted; no extra remote is added.
