@@ -413,3 +413,19 @@ render. Only this appended section and one source-ledger line change. No full
 CI, importer edit, environment script/setting change, environment save/publication,
 pull request or extra remote is involved. Sample and extracted bytes remain
 ignored and uncommitted.
+
+## Cell text association: implementation status
+
+IMPLEMENTATION (checked by synthetic byte-built files in `crates/pub/tests/table_cell_text.rs`; no Publisher-made multi-table file is used by the tests): a table's cell text is placed when all of these hold.
+
+- The Quill directory is walked across every block with cycle, depth (64 blocks) and entry (100000) limits, and each `TCD ` entry's E+6 field and bounded section are read.
+- The SYID and STRS arrays are bounded, have the same count, hold no repeated story id, and their lengths tile TEXT exactly with no clamping.
+- The table's story (Contents key 0x27) is used by that table only, appears once in SYID, and its zero-based SYID slot equals the E+6 field of exactly one `TCD ` entry.
+- The cells are complete, unmerged and in row-major order, and the grid size equals the cell count.
+- The `TCD ` entry has the exact size `12+4*N`, the header `N-1`, 0, `0xFF00`, and N equal to the cell count; the last boundary equals the story length; the story ends with CR; every earlier boundary lands on CR; ranges are checked and never clamped.
+
+The cell stories are then cut from the verified slices (empty cells kept, separators left out), and only the table anchor stays in the host frame. The month-heading stories are untouched. With one table and one `TCD ` entry the earlier rule is kept (the Contents link plus boundary fit, no E+6 check).
+
+FALLBACK: a table that fails any check keeps today's behaviour (empty cells, the story text after the table, the "unconfirmed or missing" warning) and gets one warning naming the reason; at most 8 such warnings are written, then one count line. The older "multiple stories/TCD sections" warning is removed only when every table and every `TCD ` entry was placed. Other tables in the same file are still placed.
+
+UNKNOWN (unchanged): whether E+6 is a SYID slot in files other than the one calendar sample; merged or non-row-major cells, and threaded or shared table stories (all fall back); the visual fit after the change (not rendered here).
