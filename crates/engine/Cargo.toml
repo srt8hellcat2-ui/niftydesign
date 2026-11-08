@@ -9,6 +9,7 @@ description = "DesignCraft engine: session, documents, history, selection, comma
 workspace = true
 
 [dependencies]
+chrono = { workspace = true }
 craft-print = { workspace = true }
 craft-docpath = { workspace = true }
 designcraft-images = { workspace = true }
@@ -50,6 +51,8 @@ hayro-syntax = "0.7.2"
 hayro-interpret = { version = "0.7.0", default-features = false, features = ["embed-fonts"] }
 hayro-cmap = "0.1"
 kurbo = { workspace = true }
+cfb = { workspace = true }
+miniz_oxide = "0.8"
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3"

@@ -1408,6 +1408,8 @@ name = "designcraft-engine"
 version = "0.18.0-nifty-alpha.5"
 dependencies = [
  "caseless",
+ "cfb",
+ "chrono",
  "craft-atomic",
  "craft-docpath",
  "craft-prepress",
@@ -1433,6 +1435,7 @@ dependencies = [
  "indd",
  "kurbo",
  "log",
+ "miniz_oxide 0.8.9",
  "quick-xml 0.41.0",
  "same-file",
  "serde",
