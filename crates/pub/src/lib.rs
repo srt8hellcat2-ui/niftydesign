@@ -199,7 +199,7 @@ pub fn read_publication(bytes: &[u8]) -> Result<Publication> {
 
     let c = contents::parse(&contents)?;
     let mut q = quill::parse(&quill)?;
-    tables::recover_single_table_text(&c, &mut q, &quill)?;
+    tables::recover_table_text(&c, &mut q, &quill)?;
     let dr = escher::parse(&escher, &delay)?;
     Ok(Publication { contents: c, quill: q, drawing: dr })
 }
@@ -490,6 +490,9 @@ impl<'a> Builder<'a> {
         }
         if wordart.is_none() {
             self.shadow(id, sh);
+        }
+        if info.table.is_some() && !follower {
+            self.fit_frame_to_table(id);
         }
         Ok(())
     }

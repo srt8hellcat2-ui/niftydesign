@@ -1,3 +1,4 @@
+use super::calendar::{enabled as calendar_enabled, set_calendar_year};
 use super::cell::{get_cell_stroke, set_cell};
 use super::content::{drop_cells, place_graphic, sort_rows};
 use super::options::{get, options};
@@ -78,6 +79,15 @@ fn style_specs() -> Vec<CommandSpec> {
 
 fn table_specs() -> Vec<CommandSpec> {
     vec![
+        cmd!(
+            "table.setCalendarYear",
+            "Set Year…",
+            ["Table", "Calendar"],
+            None,
+            "{year: 1900..2200, story?, table? (only this calendar table)} → {months, changed: [{month, year, page, story, table, rows, cellsChanged, frameGrewBy}], warnings: [...], kept: n, message}. Retypes every calendar month (a frame holding only \"Month YYYY\" next to a 7-column table whose first row is Sun..Sat or Mon..Sun): the heading year, each day cell (empty where the month has no day), and the number of week rows; cells holding other text are kept and reported",
+            calendar_enabled,
+            set_calendar_year
+        ),
         cmd!(
             "table.insert",
             "Create Table",

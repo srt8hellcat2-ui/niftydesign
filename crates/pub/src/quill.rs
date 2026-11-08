@@ -86,6 +86,10 @@ pub(crate) struct QStory {
 #[derive(Default)]
 pub(crate) struct Quill {
     pub stories: HashMap<u32, QStory>,
+    /// Story ids in SYID slot order, kept only to resolve table-text associations.
+    pub slots: Vec<u32>,
+    /// True when SYID and STRS agree in count, no id repeats and the lengths exactly tile TEXT.
+    pub slots_exact: bool,
     pub fonts: Vec<String>,
     pub colors: Vec<u32>,
     pub default_char: CharStyle,
@@ -336,15 +340,20 @@ pub(crate) fn parse(b: &[u8]) -> Result<Quill> {
         slice(ids.data, 8, ni * 4)?;
         slice(lengths.data, lengths_at, nl * 4)?;
         let mut start = 0usize;
+        let mut exact = ni == nl;
+        let mut seen_ids = HashSet::new();
         for i in 0..ni.min(nl) {
             let id = u32_at(ids.data, 8 + 4 * i)?;
             let len = u32_at(lengths.data, lengths_at + 4 * i)? as usize;
             let end = start.saturating_add(len).min(text.data.len() / 2);
+            exact &= end - start == len && seen_ids.insert(id);
+            q.slots.push(id);
             let range = start..end;
             let units = slice(text.data, start * 2, (end - start) * 2)?.as_chunks::<2>().0.iter().map(|p| u16::from_le_bytes([p[0], p[1]])).collect();
             q.stories.insert(id, QStory { units, chars: cut(&chars, &range), paras: cut(&paras, &range), ..Default::default() });
             start = end;
         }
+        q.slots_exact = exact && start == text.data.len() / 2;
     }
     let mut used = false;
     let mut char_fields = UnsupportedFields::default();

@@ -218,83 +218,37 @@ fn cell_story(source: &Story, range: Range<usize>, work: &mut usize) -> Result<S
     }
     Ok(out)
 }
-/// Recover only the verified one-table/one-TCD case in a multi-story publication.
-/// The Contents link selects the table story; the documented TCD boundaries must
-/// independently match only that story, and the cell records must be row-major.
-/// Do not assign a meaning to the directory occurrence field or infer a story by order.
-pub(crate) fn recover_single_table_text(c: &crate::contents::Contents, q: &mut crate::quill::Quill, bytes: &[u8]) -> Result<()> {
-    if q.stories.len() <= 1 {
-        return Ok(());
-    }
-    let mut tables = c.shapes.values().filter(|s| s.is_table);
-    let Some(shape) = tables.next() else { return Ok(()) };
-    if tables.next().is_some() {
-        return Ok(());
-    }
-    let (Some(id), Some(info)) = (shape.text_id, shape.table.as_ref()) else { return Ok(()) };
-    if info.cells.is_empty()
-        || info.cells.len() != info.rows.len() * info.columns.len()
-        || !info.cells.iter().enumerate().all(|(i, cell)| {
-            cell.row == i / info.columns.len() && cell.col == i % info.columns.len() && cell.last_row == cell.row && cell.last_col == cell.col
-        })
-    {
-        return Ok(());
-    }
-    let Some(data) = single_tcd(bytes)? else { return Ok(()) };
-    if data.len() != 12 + 4 * info.cells.len()
-        || u32_at(data, 4)? != 0
-        || u32_at(data, 8)? != 0xff00
-        || usize::try_from(u32_at(data, 0)?).ok().and_then(|n| n.checked_add(1)) != Some(info.cells.len())
-    {
-        return Ok(());
-    }
-    let Some(last) = info.cells.len().checked_sub(1).and_then(|i| i.checked_mul(4)).and_then(|n| n.checked_add(12)) else { return Ok(()) };
-    let Ok(end) = u32_at(data, last) else { return Ok(()) };
-    let mut matched = None;
-    let mut work = 0usize;
-    for (&story_id, story) in &q.stories {
-        if story.units.len() != end as usize || story.units.last() != Some(&13) {
-            continue;
-        }
-        work = work.saturating_add(info.cells.len());
-        if work > 1_000_000 {
-            return Ok(());
-        }
-        if let Ok(ranges) = text_ranges(data, &story.units) {
-            if matched.is_some() {
-                return Ok(());
-            }
-            matched = Some((story_id, ranges));
-        }
-    }
-    if let Some((story_id, ranges)) = matched
-        && story_id == id
-        && let Some(story) = q.stories.get_mut(&id)
-    {
-        story.cell_ranges = Some(ranges);
-        q.warnings.retain(|w| w != "Publisher table text across multiple stories/TCD sections is not decoded.");
-    }
-    Ok(())
+const LOSS_WARNING: &str = "Publisher table text across multiple stories/TCD sections is not decoded.";
+const MAX_TCD_ENTRIES: usize = 100_000;
+const MAX_PLACEMENT_WARNINGS: usize = 8;
+
+struct TcdEntry<'a> {
+    slot: u16,
+    data: &'a [u8],
 }
 
-fn single_tcd(bytes: &[u8]) -> Result<Option<&[u8]>> {
+/// Every `TCD ` directory entry: the u16 at entry+6 and its bounded section data.
+fn tcd_entries(bytes: &[u8]) -> Result<Vec<TcdEntry<'_>>> {
     use crate::read::u16_at;
     let mut seen = std::collections::HashSet::new();
     let mut at = 0x18usize;
-    let mut found = None;
+    let mut found = Vec::new();
+    let mut entries = 0usize;
     while at != u32::MAX as usize {
         if seen.len() >= 64 || !seen.insert(at) {
             return Err(bad("Quill section directory cycle or depth limit"));
         }
         let header = slice(bytes, at, 8)?;
         let n = usize::from(u16_at(header, 2)?);
+        entries += n;
+        if entries > MAX_TCD_ENTRIES {
+            return Err(bad("too many Quill sections"));
+        }
         let start = at.checked_add(8).ok_or_else(|| bad("section directory overflow"))?;
         for entry in slice(bytes, start, n * 24)?.as_chunks::<24>().0 {
             if entry.get(2..6) == Some(b"TCD ") {
-                if found.is_some() {
-                    return Ok(None);
-                }
-                found = Some(slice(bytes, u32_at(entry, 16)? as usize, u32_at(entry, 20)? as usize)?);
+                let data = slice(bytes, u32_at(entry, 16)? as usize, u32_at(entry, 20)? as usize)?;
+                found.push(TcdEntry { slot: u16_at(entry, 6)?, data });
             }
         }
         at = u32_at(header, 4)? as usize;
@@ -302,7 +256,214 @@ fn single_tcd(bytes: &[u8]) -> Result<Option<&[u8]>> {
     Ok(found)
 }
 
+/// The documented unmerged row-major correspondence between cell records and TCD ordinals.
+fn row_major_unmerged(info: &TableInfo) -> bool {
+    let columns = info.columns.len();
+    !info.cells.is_empty()
+        && columns > 0
+        && info.rows.len().checked_mul(columns) == Some(info.cells.len())
+        && info.cells.iter().enumerate().all(|(i, c)| c.row == i / columns && c.col == i % columns && c.last_row == c.row && c.last_col == c.col)
+}
+
+/// The documented TCD header and exact size for `cells` cells.
+fn tcd_header(data: &[u8], cells: usize) -> std::result::Result<(), &'static str> {
+    if cells.checked_mul(4).and_then(|n| n.checked_add(12)) != Some(data.len()) {
+        return Err("the TCD entry has the wrong size for the table");
+    }
+    if u32_at(data, 4).ok() != Some(0) || u32_at(data, 8).ok() != Some(0xff00) {
+        return Err("the TCD entry does not have the documented header");
+    }
+    if u32_at(data, 0).ok().and_then(|n| usize::try_from(n).ok()).and_then(|n| n.checked_add(1)) != Some(cells) {
+        return Err("the TCD cell count differs from the table's cell count");
+    }
+    Ok(())
+}
+
+/// Place cell text for the tables whose association passes every documented check.
+/// A table that fails any check keeps its text after the table and gets one bounded warning.
+/// With one table and one TCD the Contents link and the boundaries alone decide; otherwise the
+/// TCD entry's slot field must also equal the story's position in the SYID list.
+pub(crate) fn recover_table_text(c: &crate::contents::Contents, q: &mut crate::quill::Quill, bytes: &[u8]) -> Result<()> {
+    if q.stories.len() <= 1 {
+        return Ok(());
+    }
+    let all_tables = c.shapes.iter().filter(|(_, s)| s.is_table).count();
+    if all_tables == 0 {
+        return Ok(());
+    }
+    let tcds = tcd_entries(bytes)?;
+    if tcds.is_empty() {
+        return Ok(());
+    }
+    let mut candidates: Vec<(u32, u32, &TableInfo)> =
+        c.shapes.iter().filter(|(_, s)| s.is_table).filter_map(|(seq, s)| Some((*seq, s.text_id?, s.table.as_ref()?))).collect();
+    candidates.sort_by_key(|(seq, ..)| *seq);
+    let mut uses = std::collections::HashMap::<u32, usize>::new();
+    for (_, id, _) in &candidates {
+        *uses.entry(*id).or_default() += 1;
+    }
+    let single = all_tables == 1 && tcds.len() == 1;
+    let mut placed = Vec::new();
+    let mut failures = Vec::new();
+    let mut work = 0usize;
+    for (_, id, info) in &candidates {
+        let result = if single {
+            tcds.first().map_or(Err("no TCD entry"), |t| single_association(q, *id, info, t.data, &mut work))
+        } else {
+            slot_association(q, *id, info, &tcds, uses.get(id).copied().unwrap_or(0), &mut work)
+        };
+        match result {
+            Ok(ranges) => placed.push((*id, ranges)),
+            Err(reason) => failures.push((*id, reason)),
+        }
+    }
+    let all_placed = failures.is_empty() && placed.len() == tcds.len() && candidates.len() == all_tables;
+    for (id, ranges) in placed {
+        if let Some(story) = q.stories.get_mut(&id) {
+            story.cell_ranges = Some(ranges);
+        }
+    }
+    if all_placed {
+        q.warnings.retain(|w| w != LOSS_WARNING);
+    }
+    for (id, reason) in failures.iter().take(MAX_PLACEMENT_WARNINGS) {
+        q.warnings
+            .push(format!("Publisher table text for story {id} was not placed in its cells ({reason}); the original text was kept after the table."));
+    }
+    if failures.len() > MAX_PLACEMENT_WARNINGS {
+        q.warnings.push(format!("{} more Publisher tables kept their original text after the table.", failures.len() - MAX_PLACEMENT_WARNINGS));
+    }
+    Ok(())
+}
+
+/// One table and one TCD: the Contents link selects the story and the boundaries must fit only it.
+fn single_association(
+    q: &crate::quill::Quill,
+    id: u32,
+    info: &TableInfo,
+    data: &[u8],
+    work: &mut usize,
+) -> std::result::Result<Vec<Range<usize>>, &'static str> {
+    if !row_major_unmerged(info) {
+        return Err("the cells are merged or not in row-major order");
+    }
+    tcd_header(data, info.cells.len())?;
+    let end = info.cells.len().checked_sub(1).and_then(|i| i.checked_mul(4)).and_then(|n| n.checked_add(12)).and_then(|at| u32_at(data, at).ok());
+    let mut matched = None;
+    for (&story_id, story) in &q.stories {
+        if Some(story.units.len()) != end.map(|e| e as usize) || story.units.last() != Some(&13) {
+            continue;
+        }
+        *work = work.saturating_add(info.cells.len());
+        if *work > 1_000_000 {
+            return Err("the association needs too much work");
+        }
+        if let Ok(ranges) = text_ranges(data, &story.units) {
+            if matched.is_some() {
+                return Err("more than one story fits the cell boundaries");
+            }
+            matched = Some((story_id, ranges));
+        }
+    }
+    match matched {
+        Some((story_id, ranges)) if story_id == id => Ok(ranges),
+        Some(_) => Err("the cell boundaries fit a different story than the table's link"),
+        None => Err("the cell boundaries do not fit the linked story"),
+    }
+}
+
+/// Several tables or TCD entries: the story id, its SYID slot and the TCD slot field must agree.
+fn slot_association(
+    q: &crate::quill::Quill,
+    id: u32,
+    info: &TableInfo,
+    tcds: &[TcdEntry<'_>],
+    uses: usize,
+    work: &mut usize,
+) -> std::result::Result<Vec<Range<usize>>, &'static str> {
+    if uses != 1 {
+        return Err("the story is shared by more than one table");
+    }
+    if !q.slots_exact {
+        return Err("the story list (SYID/STRS) is missing, repeats an id or does not match the text");
+    }
+    let mut slots = q.slots.iter().enumerate().filter(|(_, s)| **s == id).map(|(i, _)| i);
+    let (Some(slot), None) = (slots.next(), slots.next()) else { return Err("the story id is missing from the story list or appears twice") };
+    let Ok(slot) = u16::try_from(slot) else { return Err("the story list position does not fit the TCD slot field") };
+    let mut chosen = tcds.iter().filter(|t| t.slot == slot);
+    let (Some(entry), None) = (chosen.next(), chosen.next()) else { return Err("the story does not have exactly one TCD entry") };
+    if !row_major_unmerged(info) {
+        return Err("the cells are merged or not in row-major order");
+    }
+    tcd_header(entry.data, info.cells.len())?;
+    let story = q.stories.get(&id).ok_or("the linked story is missing")?;
+    *work = work.saturating_add(info.cells.len());
+    if *work > 1_000_000 {
+        return Err("the association needs too much work");
+    }
+    if story.units.last() != Some(&13) {
+        return Err("the story does not end with a paragraph separator");
+    }
+    text_ranges(entry.data, &story.units).map_err(|_| "the cell boundaries or separators do not fit the story text")
+}
+
 impl Builder<'_> {
+    /// Publisher's table frame is the table itself, but the stored frame can be shorter than the
+    /// rows once they grow to fit their text; the rows that do not fit would be dropped as overset.
+    /// Grow the frame downward to the composed table, within a bound, and say so once.
+    pub(crate) fn fit_frame_to_table(&mut self, id: ItemId) {
+        const MAX_GROWTH: f64 = 4000.0;
+        let Some((sid, inset)) = self.doc.item(id).and_then(|i| i.text_frame()).map(|t| (t.story, t.options.inset[0] + t.options.inset[2])) else {
+            return;
+        };
+        // Only a host that holds just the table anchor: text kept after the table is real overflow.
+        let anchor_only =
+            self.doc.story(sid).is_some_and(|s| !s.tables.is_empty() && s.text.chars().all(|c| c == '\n' || ('\u{e000}'..='\u{f8ff}').contains(&c)));
+        if !anchor_only {
+            return;
+        }
+        let overset = |doc: &designcraft_doc::Document| designcraft_compose::compose_story(doc, sid, &Default::default());
+        if !overset(&self.doc).is_overset() {
+            return;
+        }
+        // Composition works in the frame's own space, so a flipped or rotated frame grows the same way.
+        let Some(local) = self.doc.item(id).and_then(|i| i.path.bounds()) else { return };
+        let stored: f64 = self.doc.story(sid).and_then(|s| s.tables.values().next()).map_or(0.0, |t| t.rows.iter().map(|r| r.height).sum());
+        let set_height = |doc: &mut designcraft_doc::Document, h: f64| {
+            if let Some(item) = doc.item_mut(id) {
+                item.path = designcraft_geom::shapes::rectangle(Rect::new(local.x0, local.y0, local.x1, local.y0 + h));
+            }
+        };
+        set_height(&mut self.doc, local.height() + MAX_GROWTH);
+        let tall = overset(&self.doc);
+        // The height the text needs includes the paragraph after the table.
+        let content = tall.frames.iter().map(|f| f.content_height).fold(0.0, f64::max);
+        let needed = (content + inset + 0.5).max(local.height());
+        let mut refusal = None;
+        if tall.is_overset() || !needed.is_finite() || needed > local.height() + MAX_GROWTH {
+            refusal = Some("the table is still overset with 4000 pt more room");
+        } else {
+            set_height(&mut self.doc, needed);
+            if overset(&self.doc).is_overset() {
+                refusal = Some("the table is still overset at the height the layout asked for");
+            }
+        }
+        if let Some(why) = refusal {
+            set_height(&mut self.doc, local.height());
+            self.warnings.push(format!(
+                "Publisher table frame ({:.1} pt tall, stored rows {:.1} pt) is shorter than its table and could not be enlarged: {why}; its last rows may be hidden.",
+                local.height(),
+                stored
+            ));
+            return;
+        }
+        self.warnings.push(format!(
+            "Publisher table frame was made taller from {:.1} pt to {:.1} pt (stored rows add up to {:.1} pt) so its last rows are not hidden; rows also grow to fit their text.",
+            local.height(),
+            needed,
+            stored
+        ));
+    }
     pub(crate) fn table_frame(&mut self, r: SpreadRef, rect: Rect, tid: u32, info: &TableInfo) -> Result<ItemId> {
         self.table_cells = self.table_cells.saturating_add(info.rows.len() * info.columns.len());
         self.table_units = self.table_units.saturating_add(self.q.stories.get(&tid).map_or(0, |s| s.units.len()));
@@ -410,17 +571,26 @@ mod tests {
         .concat()
     }
     fn import(info: TableInfo, text: &str, ranges: Option<Vec<Range<usize>>>) -> crate::Imported {
+        import_sized(info, text, ranges, 0.0)
+    }
+    fn import_sized(info: TableInfo, text: &str, ranges: Option<Vec<Range<usize>>>, size: f64) -> crate::Imported {
+        import_framed(info, text, ranges, size, 72.0)
+    }
+    fn import_framed(info: TableInfo, text: &str, ranges: Option<Vec<Range<usize>>>, size: f64, frame_pt: f64) -> crate::Imported {
         let mut c = Contents { width_emu: 7_772_400, height_emu: 10_058_400, ..Default::default() };
         c.pages.push(PageInfo { seq: 257, shapes: vec![258], ..Default::default() });
         c.shapes.insert(258, ShapeInfo { text_id: Some(3), is_table: true, table: Some(info), ..Default::default() });
         let mut q = Quill::default();
         q.default_char.bold = Some(true);
+        if size > 0.0 {
+            q.default_char.size_pt = Some(size);
+        }
         q.stories.insert(3, QStory { units: text.encode_utf16().collect(), cell_ranges: ranges, ..Default::default() });
         let dr = Drawing {
             shapes: vec![EShape {
                 seq: Some(258),
                 kind: 202,
-                anchor: Emu { l: -2_000_000.0, t: -2_000_000.0, r: 1_657_600.0, b: -1_085_600.0 },
+                anchor: Emu { l: -2_000_000.0, t: -2_000_000.0, r: 1_657_600.0, b: -2_000_000.0 + frame_pt * 12_700.0 },
                 ..Default::default()
             }],
             ..Default::default()
@@ -548,6 +718,78 @@ mod tests {
         assert!(imp.warnings.iter().any(|w| w.contains("cell fills, borders")));
     }
     #[test]
+    fn a_table_taller_than_its_frame_grows_the_frame_instead_of_dropping_the_last_row() {
+        // A month that ends mid-row: four rows of two cells, the last row holds "7" and an empty cell.
+        // The rows are 18 pt but the 20 pt text needs more, so the table is taller than the 72 pt frame.
+        let rows = 4;
+        let info = TableInfo {
+            rows: vec![228_600; rows],
+            columns: vec![1_828_800; 2],
+            cells: (0..rows * 2).map(|i| CellInfo { row: i / 2, last_row: i / 2, col: i % 2, last_col: i % 2 }).collect(),
+            cell_record: 0,
+            row_ending_difference: 0,
+            approximations: Vec::new(),
+        };
+        let text = format!("{}\r", "1\r".repeat(rows * 2 - 2) + "7\r");
+        let units: Vec<_> = text.encode_utf16().collect();
+        let ends: Vec<u32> = (0..rows as u32 * 2).map(|i| 2 * i + 1).collect();
+        let ranges = text_ranges(&table_data(&ends), &units).unwrap();
+        let imp = import_sized(info, &text, Some(ranges), 20.0);
+        let host = imp.document.stories.values().next().unwrap();
+        let table = host.tables.values().next().unwrap();
+        assert_eq!(table.cells[rows * 2 - 2].text.text, "7");
+        assert!(table.cells[rows * 2 - 1].text.text.is_empty());
+        let composed = designcraft_compose::compose_story(&imp.document, host.id, &Default::default());
+        assert!(!composed.is_overset(), "the last row must not be dropped");
+        let placed: usize = composed.frames.iter().flat_map(|f| &f.tables).map(|t| t.cells.len()).sum();
+        assert_eq!(placed, rows * 2);
+        let frame = imp.document.item(host.frames[0]).unwrap().bounds();
+        let table_bottom = composed.frames.iter().flat_map(|f| &f.tables).map(|t| t.rect.y1).fold(0.0, f64::max);
+        assert!(frame.y1 >= table_bottom - 0.01, "frame {frame:?} table bottom {table_bottom}");
+        assert!(imp.warnings.iter().any(|w| w.contains("frame was made taller")), "{:?}", imp.warnings);
+    }
+    #[test]
+    fn a_six_row_month_in_a_frame_one_row_short_keeps_its_last_week() {
+        // Six 18 pt rows (108 pt) in a frame 90 pt tall, as with a month that needs 5 week rows plus the
+        // weekday row; the text is small, so the rows do not grow and only the stored sizes disagree.
+        let rows = 6;
+        let info = TableInfo {
+            rows: vec![228_600; rows],
+            columns: vec![1_828_800; 2],
+            cells: (0..rows * 2).map(|i| CellInfo { row: i / 2, last_row: i / 2, col: i % 2, last_col: i % 2 }).collect(),
+            cell_record: 0,
+            row_ending_difference: 0,
+            approximations: Vec::new(),
+        };
+        let text = format!("{}\r", "1\r".repeat(rows * 2 - 2) + "31\r");
+        let units: Vec<_> = text.encode_utf16().collect();
+        let mut ends = Vec::new();
+        let mut at = 0u32;
+        for i in 0..rows * 2 {
+            at += if i == rows * 2 - 2 {
+                2
+            } else if i == rows * 2 - 1 {
+                0
+            } else {
+                1
+            };
+            ends.push(at);
+            at += 1;
+        }
+        *ends.last_mut().unwrap() = units.len() as u32;
+        let ranges = text_ranges(&table_data(&ends), &units).unwrap();
+        let imp = import_framed(info, &text, ranges.into(), 8.0, 90.0);
+        let host = imp.document.stories.values().next().unwrap();
+        let table = host.tables.values().next().unwrap();
+        assert_eq!(table.cells[rows * 2 - 2].text.text, "31");
+        let composed = designcraft_compose::compose_story(&imp.document, host.id, &Default::default());
+        assert!(!composed.is_overset(), "{:?}", imp.warnings);
+        let placed: usize = composed.frames.iter().flat_map(|f| &f.tables).map(|t| t.cells.len()).sum();
+        assert_eq!(placed, rows * 2);
+        let w = imp.warnings.iter().find(|w| w.contains("frame was made taller")).unwrap();
+        assert!(w.contains("from 90.0 pt") && w.contains("stored rows add up to 108.0 pt"), "{w}");
+    }
+    #[test]
     fn merged_regions_use_coordinates_and_keep_covered_cells_empty() {
         let mut info = grid();
         info.cells = vec![info.cells[2].clone(), info.cells[3].clone(), CellInfo { row: 0, last_row: 0, col: 0, last_col: 1 }];
@@ -638,7 +880,7 @@ mod multi_story_text_tests {
     #[test]
     fn explicit_table_link_and_unique_boundaries_recover_cell_ranges() {
         let (c, mut q, bytes) = example();
-        recover_single_table_text(&c, &mut q, &bytes).unwrap();
+        recover_table_text(&c, &mut q, &bytes).unwrap();
         assert_eq!(q.stories[&6].cell_ranges, Some(vec![0..2, 3..5]));
         assert!(q.stories[&1].cell_ranges.is_none());
         assert_eq!(q.warnings, ["another real loss"]);
@@ -660,18 +902,21 @@ mod multi_story_text_tests {
                 _ => bytes[112..116].copy_from_slice(&5u32.to_le_bytes()),
             }
             let original: Vec<_> = q.stories.iter().map(|(id, s)| (*id, s.units.clone())).collect();
-            recover_single_table_text(&c, &mut q, &bytes).unwrap();
+            recover_table_text(&c, &mut q, &bytes).unwrap();
             assert!(q.stories.values().all(|s| s.cell_ranges.is_none()), "case {case}");
             for (id, units) in original {
                 assert_eq!(q.stories[&id].units, units);
             }
-            assert_eq!(q.warnings.len(), 2, "case {case}");
+            // The two earlier warnings stay; the table adds one bounded reason.
+            assert_eq!(q.warnings.len(), 3, "case {case}");
+            assert_eq!(q.warnings[..2], [LOSS_WARNING, "another real loss"], "case {case}");
+            assert!(q.warnings[2].contains("was not placed"), "case {case}");
         }
     }
     #[test]
     fn repeated_directory_offsets_are_rejected() {
         let (_, _, mut bytes) = example();
         bytes[28..32].copy_from_slice(&24u32.to_le_bytes());
-        assert!(single_tcd(&bytes).is_err());
+        assert!(tcd_entries(&bytes).is_err());
     }
 }

@@ -389,6 +389,15 @@ fn run_ui_part2(app: &mut DesignApp, id: &str, p: &Value) -> Option<Result<Value
             app.ui.dialog = Some(crate::dialogs::Dialog::new("convertTableToText", p.clone()));
             Ok(Value::Null)
         }
+        "app.setCalendarYearDialog" => {
+            if !menu_enabled(app, id) {
+                return Some(Err("open a document to set its calendar year".into()));
+            }
+            let now = web_time::SystemTime::now().duration_since(web_time::UNIX_EPOCH).map_or(0, |d| d.as_secs() as i64);
+            let year = designcraft_engine::cmd::table::year_of_unix_secs(now);
+            app.ui.dialog = Some(crate::dialogs::Dialog::new("calendarYear", json!({"year": year})));
+            Ok(Value::Null)
+        }
         "app.insertTableDialog" => {
             if app.session.active().is_none_or(|d| d.selection.text.is_none()) {
                 return Some(Err("place the insertion point in a text frame to create a table".into()));
