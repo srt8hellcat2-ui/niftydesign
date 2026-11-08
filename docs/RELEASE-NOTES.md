@@ -1,14 +1,18 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # NiftyDesign unsigned alpha: release notes
 
-NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer, lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.12.0 by the ArtCraft team, with a Publisher importer added. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
+NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer, lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.18.0 by the ArtCraft team, with a Publisher importer added. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
 
 ## What changed since 0.12.0-nifty-alpha.4
 
-- Rebased on DesignCraft 0.18.0, with the Publisher importer taken from the reviewed importer branch.
-- A table whose stored column or row dimensions do not add up no longer makes the whole file fail with "inconsistent cumulative dimension" (issue 44, a calendar with one table per month). The rest of the file opens, the table is drawn from its stored sizes, and a warning names the table and what was approximated.
-- On our checks the controlled sample results are unchanged (142 of 142 files import, 152 of 152 objects found, all 111 scored objects within 1 point, 52 of 52 texts, 111 of 111 styles) and the 24-file real batch is unchanged (9 converted without warnings, 10 with warnings, 2 refused, 3 damaged).
-- Not changed: table fills, borders and padding; numbered lists and tab stops; other WordArt shapes; page numbers and dates; Publisher 97, 98 and 2000 files. Not yet tested by hand on Windows.
+- Rebased on DesignCraft 0.18.0.
+- A table with inconsistent stored dimensions no longer fails the whole file (issue 44, a calendar with one table per month). The table is drawn from its stored sizes and a warning names what was approximated.
+- Files with several tables get each table's text in its cells. When a check fails, the old behaviour is kept (the text stays after the table) and a warning names the reason.
+- A table frame shorter than its stored rows is made taller, so the last rows are not cut off.
+- NEW: Table > Calendar > Set Year retypes month headings, day numbers and week rows for a year from 1900 to 2200, in one undo step. It keeps typed notes. It understands English full month headings and a Sun-Sat or Mon-Sun weekday row only. A calendar edited here saves as `.designcraft`, not `.pub`.
+- Checks on the issue 44 calendar: all four pages are complete; Set Year was right for every year 2027 to 2040, for jumps such as 2026 to 2031, and for 1900 and 2200, compared with an independent calendar; the menu, dialog, undo and redo were tried by hand in the app.
+- The controlled-sample and real-batch numbers were unchanged when the cell-text change was checked (142 of 142 files import, 152 of 152 objects, 111 of 111 scored objects within 1 point, 52 of 52 texts, 111 of 111 styles; real batch 9 / 10 / 2 / 3). They were NOT re-run for the later table-height change or for Set Year.
+- Not changed: table fills, borders and padding; numbered lists and tab stops; other WordArt shapes; page numbers and dates; Publisher 97, 98 and 2000 files.
 
 ## This is a test build, and we need your help
 
@@ -43,7 +47,7 @@ The sidecar verifies the finished zip before extraction. `SHA256SUMS` inside the
 
 ## Verified and unverified
 
-This version (alpha.5): built and smoke-tested automatically on Windows. Not yet tried by hand on a Windows PC.
+This version (alpha.5): built and smoke-tested automatically on Windows, and opened by hand on one Windows 11 PC with the issue 44 calendar (Set Year, undo, picture moving). Typing into table cells by hand and printing were not tried.
 
 An earlier alpha worked on the maintainer's one Windows 11 PC: launching, opening a .pub, editing, saving and reopening, PDF export, printing on one inkjet printer, and Arial and Times New Roman found as installed fonts.
 

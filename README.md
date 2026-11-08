@@ -9,7 +9,7 @@
   <img alt="status: unofficial alpha" src="https://img.shields.io/badge/status-unofficial%20alpha-d9822b">
   <img alt="runs on: Windows x64" src="https://img.shields.io/badge/runs%20on-Windows%20x64-1f6feb">
   <img alt="license: MIT or Apache-2.0" src="https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-1f6feb">
-  <img alt="built on DesignCraft 0.12" src="https://img.shields.io/badge/built%20on-DesignCraft%200.12-2da44e">
+  <img alt="built on DesignCraft 0.18" src="https://img.shields.io/badge/built%20on-DesignCraft%200.18-2da44e">
   <img alt="build: unsigned" src="https://img.shields.io/badge/build-unsigned-6e7781">
 </p>
 
@@ -33,7 +33,7 @@ NiftyDesign now shows a notice on every converted .pub: 'This is a converted cop
 
 This is an alpha, and it is honest about that:
 
-- **It has been run by the maintainer on one Windows 11 PC.** There, the app launched, opened a Publisher test file, a flyer and a business card were built in it, saved, reopened after a restart, exported to PDF, and printed on one inkjet printer. Windows system fonts were found. Other PCs and printers are untested, so you may find problems we have not.
+- **It has been run by the maintainer on one Windows 11 PC.** Alpha.5 was opened by hand there with a real calendar file (issue 44): the four pages, Table > Calendar > Set Year with undo and redo, and picture moving. Typing into table cells by hand and printing were not tried on that calendar. With an earlier alpha, the app launched, opened a Publisher test file, a flyer and a business card were built in it, saved, reopened after a restart, exported to PDF, and printed on one inkjet printer. Windows system fonts were found. Other PCs and printers are untested, so you may find problems we have not.
 - **Our real-file testing is small.** We have tested with public sample files from the Apache POI project and with files we generated for testing. We do not have a collection of real people's Publisher files. That is why we are asking for yours.
 - **Real files often open with warnings.** Of 24 real Apache test files: 9 opened with only notes about formatting settings we do not understand and skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. The 9 are not a claim that they match Publisher; we have not compared them with Publisher. Earlier counts called these 9 'warnings'; only the labelling changed, not the importer's fidelity. A warning means something was not converted fully. No warning does not prove the copy is perfect, because not every loss produces a warning. Always check the result against your original.
 
@@ -61,7 +61,8 @@ These are results from our own checks. Only nine test files have been compared s
 | Fonts | Partly | Installed fonts are used (Arial and Times New Roman were found on the test PC). Microsoft fonts that are not installed are replaced by a similar available font, so spacing and line breaks can change. |
 | Shapes, lines, fills, shadows | Partly | Common shapes, lines, fills and shadows work. Curves and polylines are editable paths and the heart draws as a heart. Other shape types can still come in as rectangles, with a warning. |
 | Pictures | Mostly works | PNG, JPEG, BMP. PICT and some clip art may look wrong. |
-| Tables | Partly | In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. |
+| Tables | Partly | Cell text is drawn (checked on the eight Apache test tables and on a calendar with one table per month). Files with several tables get each table's text in its cells only when every check passes; otherwise the old behaviour is kept and a warning says why. A table frame shorter than its stored rows is made taller so the last rows are not cut off. Cell fills, borders, padding and merged-cell text are still not decoded, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. |
+| Calendar year (Table > Calendar > Set Year) | Works on the issue 44 calendar | Retypes headings, day numbers and week rows for any year 1900 to 2200 in one undo step. English full month names and a Sun-Sat or Mon-Sun weekday row only. See [docs/calendar-year.md](docs/calendar-year.md). |
 | WordArt | Partly | Default upward arch uses editable paths fitted from measured font advances. Circle and other warps stay straight. |
 | Numbered lists, custom tab stops | Not yet | Lost on import. |
 | Save as `.designcraft` and reopen | Works | Tested after a full restart. |
@@ -72,18 +73,18 @@ Microsoft fonts may be substituted with available fonts when they are not instal
 
 The full list is in [Known limitations](docs/KNOWN-LIMITATIONS.md).
 
-## See it in alpha.4
+## Screenshots from the alpha.4 build
 
-These are screenshots of the NiftyDesign window itself, opening Publisher test files with the alpha.4 build.
+These are screenshots of the NiftyDesign window itself, opening Publisher test files with the alpha.4 build. They are kept as they were and have not been retaken. Screenshots of the alpha.5 calendar and Set Year are in [issue 44](https://github.com/srt8hellcat2-ui/niftydesign/issues/44).
 
 <table>
 <tr>
-<td><img src="docs/demo/alpha4/app-heart.png" width="420" alt="NiftyDesign window showing a heart shape opened from a Publisher file"><br><sub>A heart shape from a Publisher file (new in alpha.4)</sub></td>
-<td><img src="docs/demo/alpha4/app-curve.png" width="420" alt="NiftyDesign window showing a curve opened from a Publisher file"><br><sub>A curve, now an editable path (new in alpha.4)</sub></td>
+<td><img src="docs/demo/alpha4/app-heart.png" width="420" alt="NiftyDesign window showing a heart shape opened from a Publisher file"><br><sub>A heart shape from a Publisher file (shown in the alpha.4 build)</sub></td>
+<td><img src="docs/demo/alpha4/app-curve.png" width="420" alt="NiftyDesign window showing a curve opened from a Publisher file"><br><sub>A curve, now an editable path (shown in the alpha.4 build)</sub></td>
 </tr>
 <tr>
-<td><img src="docs/demo/alpha4/app-polyline.png" width="420" alt="NiftyDesign window showing a polyline opened from a Publisher file"><br><sub>A polyline, now an editable path (new in alpha.4)</sub></td>
-<td><img src="docs/demo/alpha4/app-arch-wordart.png" width="420" alt="NiftyDesign window showing arched WordArt opened from a Publisher file"><br><sub>Arched WordArt as editable curved text (new in alpha.4)</sub></td>
+<td><img src="docs/demo/alpha4/app-polyline.png" width="420" alt="NiftyDesign window showing a polyline opened from a Publisher file"><br><sub>A polyline, now an editable path (shown in the alpha.4 build)</sub></td>
+<td><img src="docs/demo/alpha4/app-arch-wordart.png" width="420" alt="NiftyDesign window showing arched WordArt opened from a Publisher file"><br><sub>Arched WordArt as editable curved text (shown in the alpha.4 build)</sub></td>
 </tr>
 <tr>
 <td><img src="docs/demo/alpha4/app-sample2.png" width="420" alt="NiftyDesign window showing Apache's public Sample2.pub test file"><br><sub>A real Publisher file (Apache's public Sample2.pub test file)</sub></td>
@@ -93,7 +94,7 @@ These are screenshots of the NiftyDesign window itself, opening Publisher test f
 
 The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PNG](docs/demo/alpha4/alpha4-flyer.png) and an [editable `.designcraft` file](docs/demo/alpha4/alpha4-flyer.designcraft). The saved copy of the Sample2 file is [here](docs/demo/alpha4/alpha4-sample2-copy.designcraft); the original `.pub` is never changed. The earlier coffee-shop flyer and business card are still in `docs/demo/coffee-shop`.
 
-## Where NiftyDesign stands (alpha.4)
+## Where NiftyDesign stands (alpha.5)
 
 **Done**
 
@@ -101,11 +102,15 @@ The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PN
 - ✅ Text, colours and bullets
 - ✅ Pictures (PNG, JPEG, BMP)
 - ✅ Lines, fills, shadows and common shapes
-- ✅ Curves and polylines as editable paths (new in alpha.4)
-- ✅ The heart shape (new in alpha.4)
-- ✅ Upward-arch WordArt as editable curved text (new in alpha.4)
-- ✅ Missing fonts replaced by the closest available font (new in alpha.4)
-- ✅ No font pop-up window when you open a file (new in alpha.4)
+- ✅ Curves and polylines as editable paths (since alpha.4)
+- ✅ The heart shape (since alpha.4)
+- ✅ Upward-arch WordArt as editable curved text (since alpha.4)
+- ✅ Missing fonts replaced by the closest available font (since alpha.4)
+- ✅ No font pop-up window when you open a file (since alpha.4)
+- ✅ Calendar-style files with one table per month open complete: cell text of multi-table files is placed in its cells, and a table frame shorter than its stored rows is made taller so the last rows are not cut off (checked on the issue 44 calendar)
+- ✅ Table > Calendar > Set Year retypes headings, day numbers and week rows for any year 1900 to 2200 in one undo step ([docs/calendar-year.md](docs/calendar-year.md))
+- ✅ Pictures can be selected, moved, resized and replaced (File > Place)
+- ✅ Based on DesignCraft 0.18.0
 - ✅ Table text
 - ✅ Save as `.designcraft` and reopen
 - ✅ Export to PDF, and printing (tested on one printer)
@@ -114,16 +119,20 @@ The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PN
 **Partly**
 
 - 🟡 Fonts: missing Microsoft fonts are substituted; line breaks can change
-- 🟡 Tables: fills, borders, padding and merged cells not decoded yet
+- 🟡 Tables: fills, borders, padding and merged cells are not decoded; cell text for multi-table files is placed only when every check passes, otherwise the old behaviour plus a warning
+- 🟡 Set Year: English full month names and a Sun-Sat or Mon-Sun weekday row only; a calendar edited here saves as `.designcraft`, not `.pub`
 - 🟡 Other shape types can still come in as rectangles, with a warning
 - 🟡 WordArt: circle and other warps stay straight text
 - 🟡 Real files: most open with warnings; check them against the original
 
 **Not yet**
 
+- ⬜ Saving back to `.pub`
+- ⬜ Typing into table cells by hand and printing were not tried on the issue 44 calendar
 - ⬜ Page numbers and dates
+- ⬜ Numbered lists and custom tab stops
 - ⬜ A signed download (Windows shows a warning for now)
-- ⬜ Testing on more than one Windows PC and printer
+- ⬜ Testing on a second Windows PC, and on more printers
 
 **Still needs research** (we do not yet know how Publisher stores or does these)
 
@@ -131,13 +140,13 @@ The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PN
 - 🔬 Table cell fills, borders, padding and the small row-position drift
 - 🔬 How Publisher bends letters in circle, wave and other WordArt
 - 🔬 Numbered lists and custom tab stops (we need sample files)
-- 🔬 Publisher 97, 98 and 2000 files (refused today)
+- 🔬 Publisher 97, 98 and 2000 files (refused today; clean-room notes exist, see the [roadmap](ROADMAP.md))
 
-Real-file check: of 24 real Apache test files, 9 opened with only notes about formatting settings we skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. We have compared only nine test files with Publisher's own images, so none of this is a claim that files match Publisher. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
+Real-file check (run before the table-height change and Set Year; not re-run since): of 24 real Apache test files, 9 opened with only notes about formatting settings we skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. We have compared only nine test files with Publisher's own images, so none of this is a claim that files match Publisher. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
 
 ## Install
 
-1. Download the zip from the [latest release](https://github.com/srt8hellcat2-ui/niftydesign/releases).
+1. Download the zip from the [latest release](https://github.com/srt8hellcat2-ui/niftydesign/releases) (currently `v0.18.0-nifty-alpha.5`).
 2. Right-click the zip and choose **Extract All**.
 3. Open the new folder and double-click `designcraft.exe`.
 4. Windows may warn you because the alpha is not signed. Choose **More info**, then **Run anyway**. If Windows instead says "An Application Control policy has blocked this file", Smart App Control has blocked it and offers no Run anyway option. Trying again later sometimes helps. See [Known limitations](docs/KNOWN-LIMITATIONS.md#windows-smart-app-control-can-block-this-app).

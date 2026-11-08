@@ -12,6 +12,21 @@
 
 DesignCraft aims at full Adobe InDesign parity — and to be better: faster, open (documented JSON format + IDML), scriptable by agents (MCP), and available on the web.
 
+## NiftyDesign status (fork of DesignCraft)
+
+- **2026-11-08** · NiftyDesign alpha.5 (`v0.18.0-nifty-alpha.5`) shipped, based on DesignCraft 0.18.0: the issue 44 calendar opens complete (cell text of multi-table files in its cells, table frames made taller than their stored size when the rows need it) and Table > Calendar > Set Year retypes a calendar for any year 1900 to 2200 in one undo step ([docs/calendar-year.md](docs/calendar-year.md)). Checked by hand on one Windows 11 PC with the issue 44 calendar; typing into cells and printing were not tried on it. Only fmt, clippy and unit tests were run for the table-height change and Set Year.
+  Next, in this order:
+  1. Re-run the full corpus, `cargo xtask ci` and the wasm check on the merged branch.
+  2. Test typing into table cells and printing by hand on the issue 44 calendar, and fix what breaks.
+  3. Decide how to save a calendar back to `.pub` (not supported), or document `.designcraft` as the working format.
+  4. Set Year for abbreviated and other-language headings, other weekday orders, and threaded frames.
+  5. Table fills, borders, padding and merged cells.
+  6. Publisher 97, 98 and 2000 support. The branch `codex/legacy-contents-a` holds clean-room notes. Variant A (the 97/98 layout): container, directory, 93 of 93 record extents, text records linked to Quill story IDs, page sizes 7560000 x 10692000 and 7772400 x 10058400 units at 36000 units per mm (A4 and Letter), frame rectangles as candidates only. Variant B (the 2000 layout, one sample): directory and bounds 54 of 54, the same text links, A4 page size, rectangles 6 of 6 as candidates. Still unknown: page identity and order, descriptor meanings, and the origin and scale of frame coordinates. Every finding rests on one or two samples, so the next step is more independently saved 97/98/2000 files with known page sizes and frame positions. The reader would be a separate crate, labelled experimental, never inside the 2002+ importer.
+  7. Upstream: the importer pull request (storytold/designcraft 2126) is waiting on the maintainers.
+  8. A signed download and a second Windows PC.
+  9. Note: the fork's default branch `main` has an unrelated history to `nifty-update-0.18.0`, so the front-page README comes from `main` until the default branch is changed (the owner decides).
+
+
 - **2026-10-30** · Document Fonts lookup treats a bare document filename's empty parent as the current directory (#2014), preserving case-insensitive discovery and automation read-root checks. No readiness percentage change.
 - **2026-11-01** · Microsoft Publisher 2002–2021 files (`.pub`) open as an unsaved converted copy
   through `file.open` / `file.openBytes`, the Open dialog and the web picker: pages, masters,

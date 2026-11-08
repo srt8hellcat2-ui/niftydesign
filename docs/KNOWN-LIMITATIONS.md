@@ -63,6 +63,17 @@ File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on m
 - Objects with shadows are exported to PDF as images (look the same, softer when enlarged). The editable copy keeps the shadow.
 - Saving back to `.pub` is not offered; save as `.designcraft` or export PDF.
 
+## Set Year (Table > Calendar > Set Year)
+
+What it does is described in [calendar-year.md](calendar-year.md). Its limits:
+
+- A month heading must be a text frame holding only an English full month name and a four-digit year. Abbreviated and non-English headings are skipped with a warning.
+- The table's first row must be Sun to Sat or Mon to Sun, with 7 columns and no merged cells; other tables are skipped with a warning.
+- A day cell holding anything that is not a day number is kept and reported; a cell with more than one paragraph counts as such a note.
+- A table split across threaded frames, tables inside groups, and rotated or flipped table frames were not tested.
+- A calendar edited here saves as `.designcraft`, not `.pub`.
+- Tested on the issue 44 calendar and on documents built in code. Typing into table cells by hand and printing were not tried on that calendar.
+
 ## Checked only by automated tests, never by a person
 
 - Round trip (save `.designcraft`, reopen) and PDF export for the 142 samples: automated only. One manual round trip was done on Windows (see the top of this page).
