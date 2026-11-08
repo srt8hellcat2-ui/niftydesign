@@ -1737,3 +1737,19 @@ OBSERVATION: Repository fixture sample wmf-picture.pub, 7168 bytes, SHA-256 7606
 OBSERVATION: Sample2000.pub, 61440 bytes, SHA-256 40701ca47b26d04771cdd58467764e9ab39d3da69b59fbc529afd16d263d2f86; pinned Apache binary already listed above, data only, not committed. Root Contents, Quill CONTENTS and container metadata supply the single-sample B directory, extent and story-link evidence in legacy-97-2000-contents-b.md; no scoring exports, external reader or external specification consulted.
 
 OBSERVATION: Sample98.pub, 61440 bytes, SHA-256 8912f295ff0cd1f55b873b3b98a182218f33c420877e025d2f0fd795f12dd0c0; existing pinned binary and own legacy-97-2000-contents-a.md/text-store.md notes reused for the A-index equation hypothesis and bounded structural/text comparison only, data only, not committed. A class labels are not presented as independently decoded B descriptors.
+
+## Nine-file legacy replication attachments
+
+OBSERVATION: owner-supplied attachment CATALOG.PUB, 79360 bytes, SHA-256 bc95ef2569e8d2384ecafcc3449516076902148ac08259fde408c39543486c0a; data only, not committed or redistributed; only container metadata and own bounded stream experiments supply derived facts in legacy-97-2000-replication.md.
+
+OBSERVATION: owner-supplied attachment JAZZY.PUB, 530944 bytes, SHA-256 49933de05204e9f67696a47ee570fbd6041889a92865665f5488fd2e2606b8b1; data only, not committed or redistributed; only container metadata and own bounded stream experiments supply derived facts in legacy-97-2000-replication.md.
+
+OBSERVATION: owner-supplied attachment MODERN.PUB, 337408 bytes, SHA-256 aa446e31e352677a87c01db22d664fd969b8ea3d7bc081b881a89dbee7afa24d; data only, not committed or redistributed; only container metadata and own bounded stream experiments supply derived facts in legacy-97-2000-replication.md.
+
+OBSERVATION: owner-supplied attachment PLAIN.PUB, 343552 bytes, SHA-256 48384326430f61ecd6b924d0010631eb72838b0ad09dc33e0e53f3998ff642fe; data only, not committed or redistributed; only container metadata and own bounded stream experiments supply derived facts in legacy-97-2000-replication.md.
+
+OBSERVATION: owner-supplied attachment SCHOOL.PUB, 88064 bytes, SHA-256 e859a1a272e0e37d25249ea2807dd858d2b12bb1023c6023182c3ea2f4abad41; data only, not committed or redistributed; only container metadata and own bounded stream experiments supply derived facts in legacy-97-2000-replication.md.
+
+OBSERVATION: owner-supplied attachment zmspub.pub, 17920 bytes, SHA-256 8a7962fc897a717b0057c5cf1ef8acd481201106ffeb82c4f89c069f103daa97; data only, not committed or redistributed; only container metadata and own bounded stream experiments supply derived facts in legacy-97-2000-replication.md.
+
+OBSERVATION: the reattached mspub.pub matches its already listed 19968-byte identity and SHA-256; Sample98.pub and Sample2000.pub are the previously listed pinned binary comparisons. No scoring export or external format source was used, no sample text is reproduced, and no new evidence source beyond these supplied binaries is added.

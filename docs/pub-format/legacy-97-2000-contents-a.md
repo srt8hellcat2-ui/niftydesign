@@ -323,6 +323,10 @@ decoded or B understood.
    internal padding, general framing outside these files and flag-bit
    meanings remain unproved. No single tested field layout covers every
    class; the fixed-width rule is not universal.
+   OBSERVATION: the nine-file replication adds zmspub as a third A file;
+   unchanged class-selected checks pass 132/132 A records across 3/9 files.
+   Five newly supplied files instead have a distinct zero-based 64-entry
+   layout and fail complete transfer; they are not additional A instances.
 3. UNKNOWN: root/page ordering and master/scratch classification. OBSERVATION:
    AP2 accounts for all 24 direct directory children of the eight index-20
    records: 17 tail IDs and seven fixed-field IDs. OBSERVATION: AP3 accounts
@@ -365,13 +369,20 @@ decoded or B understood.
 5. UNKNOWN: independent saving versions and wider coverage, including any
    confirmed Publisher 97-specific sample. OBSERVATION: AP3 verifies the
    supplied mspub.pub size/hash and structural checks; its earlier unavailability
-   is resolved. UNKNOWN: zmspub.pub and the claimed equality of the owner pair
-   remain unverified; independent manufacture is owner-reported provenance.
+   is resolved. OBSERVATION: the nine-file replication verifies zmspub.pub
+   and classifies it as A, with 39/39 agreeing extents and an empty Quill
+   store. Its Contents differs from mspub at 49 byte positions, including
+   A4 versus Letter size candidates; the claimed Contents equality is
+   refuted for these hashes. UNKNOWN: independent manufacture remains
+   owner-reported provenance; no new positive A text/frame example is added.
    OBSERVATION: AP15 inventories 170 resolved publication files in the searched
    workspace/restored-data locations; only Sample98 and mspub qualify as A.
    One matches B, 164 match the newer-family discriminator, and three fail
    container validation and remain unclassified. No additional positive
    replication is possible from these available files.
+   OBSERVATION: that AP15 availability statement is superseded by the seven
+   verified attachments: the nine named files now comprise A 3/9, B 1/9,
+   and neither 5/9. New size probes do not supply known physical positions.
 
 INFERENCE: after AP14, the smallest discriminating position test is an
 independently saved variant-A page of known physical size with one unrotated
