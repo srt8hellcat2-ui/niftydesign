@@ -163,10 +163,10 @@ INFERENCE: these six B records carry Quill story links in the same positions as 
 
 ## Ranked UNKNOWNs and next smallest step
 
-1. UNKNOWN: B's exact terminator/tag encoding and leading-prefix/index-1 convention. OBSERVATION: AP17 bounds 92 ordinary entries exactly to 0x3BA and corroborates 54/54 instantiated H/class lookups, but low-eight and low-nine termination cannot be separated in this sample; the word at 0x24 remains special. INFERENCE: the next smallest step is to test the low-bit projections of the raw tail words in descriptors 8 and 10 against bounded record fields, directory IDs and false-positive controls. Keep high-bit/tag meanings and uninstantiated slot 1 UNKNOWN unless the bytes discriminate them.
+1. UNKNOWN: B's exact terminator/tag encoding, selector payload width and leading-prefix/index-1 convention. OBSERVATION: AP17 bounds 92 ordinary entries and corroborates 54/54 instantiated H/class lookups; AP18's descriptor-8/10 low-seven/eight/nine projections coincide and are bounded in 14/14 probes. No exact mask or tag meaning is established. INFERENCE: the next smallest existing-data test is to apply the competing low-eight/low-nine projections to descriptor 2/3's word 0x0772 (offset 114 versus 370), checking fixed-prefix and span bounds, candidate field values and directory-parent controls. Keep an out-of-bounds alternative explicit rather than silently choosing a mask; a zero-only alternative cannot prove a reference.
 2. UNKNOWN: nonempty class-67 framing, the correct interpretation of the four ambiguous empty tails, count-versus-capacity roles, internal padding and general extent semantics. OBSERVATION: AP17 identifies index 92's sampled class word as 67; its empty tail fits the O equation but cannot discriminate alternatives. No global single rule or cross-file B replication is established.
-3. UNKNOWN: B selector references beyond the 17 corroborated index-20 tail IDs, complete reference graph, parent semantics and attribute-bit meanings. The directory-parent tree alone does not decode all references.
-4. UNKNOWN: authoritative Contents-side story-ID width, stored text ranges, page identity/order and visual reading order. OBSERVATION: AP17 finds the same A4 root-size pair and six distinct contained signed32 rectangle candidates at the A offsets. UNKNOWN: physical scale/origin and actual placement; alternative origins/sizes also contain all six, and two other-class fixed-prefix controls pass. Numerical plausibility does not prove geometry semantics.
+3. UNKNOWN: general B selector references, complete reference graph, parent semantics and attribute-bit meanings. OBSERVATION: AP18 adds three parent-corroborated projected descriptor-10 child links from 0x12B at +106/+108/+110 to the 17 index-20 tail IDs. Each family has only one positive instance; +32 remains zero-only. Control pools give 3/432 directory-ID coincidences and 0/432 source-parent matches.
+4. UNKNOWN: authoritative Contents-side story-ID width, stored text ranges, page identity/order and visual reading order. OBSERVATION: AP18 joins all six story links to distinct candidate rectangles in the same records and verifies their collection-tail memberships, with no positive failures and two inactive controls. UNKNOWN: physical scale/origin and actual displayed placement; a known physical page and unrotated frame rectangle is needed to separate scale from translation. Alternative origins/sizes and other-class numerical positives prevent promotion to faithful geometry semantics.
 5. UNKNOWN: saving version and wider coverage. Sample2000 is the sole B file currently available; A geometry inferences and other untested class semantics are not generalized to B.
 
 INFERENCE: a bounded experimental walker can enumerate the 54 directory spans and preserve unknown records. A production reader still needs the B descriptor checkpoint before treating the transferred class mapping as a decoded format rule. OBSERVATION: this is the first checkpoint with a complete directory census, 54/54 arithmetic fits and six controlled text links; research stops here.
@@ -346,3 +346,96 @@ INFERENCE: a second B file should first meet the independently bounded header/di
 INFERENCE: positive geometry replication needs a second B file with an independently known physical page size and one unrotated text frame at documented, noncentral positions, ideally a different size and layout. The exact root size, signed rectangle probes and translation must predict that known placement before scale/origin semantics are promoted. Matching Sample2000's copied numerical values or merely obtaining contained boxes is insufficient.
 
 OBSERVATION: this checkpoint proves a reproducible whole-region framing candidate for 92 ordinary entries, 54/54 instantiated H correlations, sampled class codes including 67, and the unchanged geometry probes' numerical results. UNKNOWN: the prefix/unused slot, exact termination mask and tail tags, selector interpretation, general class-67 framing and physical geometry meaning. Research stops here; no importer change or full CI is made.
+
+## Selector projections, story-to-rectangle joins and placement limits
+
+OBSERVATION: AP18 reuses Sample2000.pub and the own A/B notes already listed in SOURCES.md; its pinned identity and the preceding bounded checks were rerun. All B findings and table rows in this section are single-sample. No new source, specification, scoring export or other format reader is used. Only derived facts are committed. No importer, environment setting or existing script is changed and no full CI is run.
+
+### Descriptor-8/10 projection tests
+
+OBSERVATION: descriptor 8 has raw tail word 0x0620; descriptor 10 has 0x066A, 0x006C, 0x066E, 0xA620. Low-byte projection yields record-relative offsets 32 and 106/108/110/32 respectively. Low-seven and low-nine projections give exactly the same values here, so this test does not identify a universal payload width or tag mask. For each projected field, require offset+2 <= H and R+H <= directory-derived end before a LE u16 read. All 14/14 instantiated projected reads satisfy both bounds.
+
+OBSERVATION: using the literal full raw word or low-ten-bit projection instead leaves only 2/14 reads bounded (descriptor 10's unchanged 0x006C in two records); twelve are outside the fixed prefix. For the three positive projected matches below, moving the base to R+H or R+H+10 puts all three reads outside their source record. These controls support record-start-relative small offsets for those matches, not an unconditional relocation rule for every descriptor.
+
+| Basis | Descriptor / raw word | Source record | Projected relative / absolute offset | u16 value | Directory target / parent check |
+| --- | --- | --- | --- | --- | --- |
+| OBSERVATION | 8 / 0x620 | 0x139 | +0x20 / 0xBDD | 0x0 | not a directory ID; role UNKNOWN |
+| OBSERVATION | 8 / 0x620 | 0x125 | +0x20 / 0x119A | 0x0 | not a directory ID; role UNKNOWN |
+| OBSERVATION | 8 / 0x620 | 0x126 | +0x20 / 0x121A | 0x0 | not a directory ID; role UNKNOWN |
+| OBSERVATION | 8 / 0x620 | 0x12A | +0x20 / 0x12E4 | 0x0 | not a directory ID; role UNKNOWN |
+| OBSERVATION | 8 / 0x620 | 0x12F | +0x20 / 0x15FA | 0x0 | not a directory ID; role UNKNOWN |
+| OBSERVATION | 8 / 0x620 | 0x130 | +0x20 / 0x167A | 0x0 | not a directory ID; role UNKNOWN |
+| OBSERVATION | 10 / 0x66A | 0x13B | +0x6A / 0xCE4 | 0x0 | not a directory ID; role UNKNOWN |
+| OBSERVATION | 10 / 0x66A | 0x12B | +0x6A / 0x13AE | 0x141 | index 78; parent = source |
+| OBSERVATION | 10 / 0x6C | 0x13B | +0x6C / 0xCE6 | 0x0 | not a directory ID; role UNKNOWN |
+| OBSERVATION | 10 / 0x6C | 0x12B | +0x6C / 0x13B0 | 0x140 | index 79; parent = source |
+| OBSERVATION | 10 / 0x66E | 0x13B | +0x6E / 0xCE8 | 0x0 | not a directory ID; role UNKNOWN |
+| OBSERVATION | 10 / 0x66E | 0x12B | +0x6E / 0x13B2 | 0x13F | index 80; parent = source |
+| OBSERVATION | 10 / 0xA620 | 0x13B | +0x20 / 0xC9A | 0x0 | not a directory ID; role UNKNOWN |
+| OBSERVATION | 10 / 0xA620 | 0x12B | +0x20 / 0x1364 | 0x0 | not a directory ID; role UNKNOWN |
+
+OBSERVATION: there are three nonzero ID hits, all in 0x12B: +0x6A -> 0x141/index 78, +0x6C -> 0x140/index 79, +0x6E -> 0x13F/index 80. Each target has the source as its independent directory-parent candidate (3/3), and each selector family has one positive instance plus a zero in 0x13B. The corresponding A selectors use these same offsets and child targets. The new B word at +0x20 is zero in all eight index-8/index-10 records; its role stays UNKNOWN, rather than being called a reference or conclusively not a reference.
+
+OBSERVATION: each match has the following explicit false-positive controls. Control pools contain every other aligned u16 fixed-prefix field from +4 through H-2, excluding all projected offsets and the story anchor (+0x58 or +0x66). A pool is counted once per record, not once per selector. The 0x12B pool has 51 fields, zero directory-ID hits, zero parent-corroborated hits and no other occurrence of any of its three targets. Thus each of the three target matches has a zero-hit local control, while its paired 0x13B selector is zero. Reading the positive fields as u8 gives 65/64/63, none directory IDs; reading as u32 gives 20971841/20906304/65855, none directory IDs. Only the tested u16 width resolves all three targets.
+
+| Basis | Source record | Nonselector control fields | Directory-ID hits | Parent-corroborated hits | Zero control fields |
+| --- | --- | ---: | ---: | ---: | ---: |
+| OBSERVATION | 0x139 | 55 | 0 | 0 | 38 |
+| OBSERVATION | 0x125 | 55 | 0 | 0 | 31 |
+| OBSERVATION | 0x126 | 55 | 1 | 0 | 31 |
+| OBSERVATION | 0x12A | 55 | 1 | 0 | 31 |
+| OBSERVATION | 0x12F | 55 | 0 | 0 | 31 |
+| OBSERVATION | 0x130 | 55 | 1 | 0 | 31 |
+| OBSERVATION | 0x13B | 51 | 0 | 0 | 35 |
+| OBSERVATION | 0x12B | 51 | 0 | 0 | 22 |
+
+OBSERVATION: across the eight unique control pools, 3/432 fields hit a directory ID and 0/432 corroborate source-parent relationships. Zeros occur in 250/432 controls, so the eight zero +0x20 fields and three zero child-selector controls do not positively establish reference semantics. The three exact positive target values do not occur elsewhere in their source's control pool. The controls are empirical fields, not independent random draws, so these counts are not p-values.
+
+INFERENCE: descriptor-10 projected +0x6A/+0x6C/+0x6E are sample-corroborated child references, probable as general selector families because each has only one nonzero source instance. The projections preserve A's three tested child links. UNKNOWN: general tag meanings, selector payload width, conditions of applicability and the zero-only +0x20 field; no full B reference graph follows from these five families.
+
+### What scale and origin the evidence supports
+
+OBSERVATION: the root size values are 7560000/10692000; their ratio equals 210/297. Dividing by the candidate 36000 units/mm gives A4 exactly. Signed32 probes at +0x06/+0x0A/+0x0E/+0x12 give the same six raw rectangles as Sample98. A half-root-size translation makes six distinct, positive, contained boxes, while interpreting raw coordinates directly as top-left-page coordinates contains none under the inside-page requirement. Two of 24 other-index fixed-prefix controls also pass the translated test.
+
+INFERENCE: B is numerically consistent with A's candidate units and centered-page origin. It does not independently prove either. The standard-size match supports a 36000-units/mm hypothesis, and containment supports one possible origin; neither supplies a physical measurement. Alternative translations over [2952000,5076000] horizontally and [4446000,8082000] vertically work, including a further 36000-unit shift. Even substituting Letter dimensions still contains all six. Other-class numerical positives do not establish rectangle semantics, and failure of raw containment alone does not rule out intentionally off-page objects.
+
+INFERENCE: one additional discriminating observation is an independently documented creation measurement for one unrotated B text frame: its physical left/top/right/bottom in millimetres on a page of known physical size, tied to a known story/record. From raw endpoints l,t,r,b and measured endpoints L,T,R,B, compute s_x=(r-l)/(R-L), s_y=(b-t)/(B-T), and translations t_x=s_x*L-l, t_y=s_y*T-t. Equality of s_x/s_y tests a shared scale; s=36000 and t_x=W/2, t_y=H/2 would test the proposed unit and origin, and the known physical page dimensions independently test root W/H. Different results reject or narrow the candidate. A single measured point without an independently known extent cannot separate scale from translation. UNKNOWN: this joint page/frame observation is unavailable here; no physical unit/origin conclusion is promoted to PROVEN.
+
+### Text-to-rectangle join
+
+OBSERVATION: a story link and the four rectangle probes are co-located in the same Contents record. No traversal through descriptor 10's three child records is required to join them. Index 8 reads its story candidate at +0x58, index 10 at +0x66; geometry reads +0x06/+0x0A/+0x0E/+0x12 in that same bounded fixed prefix. Quill SYID/STRS/TEXT supplies the story range, not the projected descriptor tails. Joining by record ID produces the following complete positive census.
+
+| Basis | Record / index | Story link absolute offset / ID | UTF-16 range | Collection -> root | Collection child-tail ID position | Candidate translated rectangle |
+| --- | --- | --- | --- | --- | --- | --- |
+| OBSERVATION | 0x125 / 8 | 0x11D2 / 1 | [0,86) | 0x10A -> 0x100 | 0x1166 | 1080000, 900000, 6156000, 1872000 |
+| OBSERVATION | 0x126 / 8 | 0x1252 / 3 | [86,184) | 0x10A -> 0x100 | 0x1168 | 1080000, 2052000, 6264000, 3132000 |
+| OBSERVATION | 0x12A / 8 | 0x131C / 4 | [184,246) | 0x127 -> 0x100 | 0x12A4 | 828000, 936000, 6192000, 2484000 |
+| OBSERVATION | 0x12B / 10 | 0x13AA / 6 | [246,326) | 0x127 -> 0x100 | 0x12A6 | 1368000, 2808000, 4932000, 3465564 |
+| OBSERVATION | 0x12F / 8 | 0x1632 / 7 | [326,413) | 0x127 -> 0x100 | 0x12AA | 1404000, 5256000, 5796000, 5940000 |
+| OBSERVATION | 0x130 / 8 | 0x16B2 / 8 | [413,488) | 0x127 -> 0x100 | 0x12AC | 1440000, 6228000, 5976000, 7956000 |
+
+OBSERVATION: all six positive story links have a distinct nondegenerate candidate rectangle in the same record (6/6); every story ID resolves to the already bounded Quill partition (6/6), and every text record appears in its directory parent's index-20 tail (6/6). There are no failing positive records. Index-8 0x139 and index-10 0x13B have zero story links and all-zero rectangles: these are the two excluded inactive controls, not silently placed text frames. All eight index-8/index-10 records are accounted for. The parent chains and same-record join reproduce A's pattern, with B index-20 H=32 rather than A's 30.
+
+OBSERVATION: the story-ID controls remain five distinct IDs at the sole common +0x58 cohort offset, one positive +0x66 field, and two zero controls, as tested in AP16. The other-class geometry hits 0x123 and 0x12E do not qualify through these tested index-8/index-10 story anchors; their numerical rectangles do not create extra text records. These are controls on selecting candidates, not proof that other classes can never contain frames. UNKNOWN: actual displayed frame identity, physical placement, pages/order and any multi-frame/story sharing beyond this sample. The measured same-record association is stronger than geometry plausibility alone, but still cannot prove visual semantics.
+
+### Bounds-checked builder checklist and A differences
+
+OBSERVATION: the requested PROVEN status below means checked byte relationships in this single sample; it never means a universal B encoding. INFERENCE labels describe implementation requirements or candidate semantic interpretation; UNKNOWN labels prohibit silently presenting an unverified placement as faithful. The Basis column retains the research evidence labels separately from the requested builder status.
+
+| Basis | Builder status | Data and bounds checks for one candidate text frame | Difference from A |
+| --- | --- | --- | --- |
+| OBSERVATION | PROVEN (sampled bytes) | Validate actual Contents length at +0x08, bounded pointers +0x12/+0x16/+0x1A, directory count at D, and 10-byte entries D+4+10*i. Require distinct IDs and bounded ascending starts; E is next start or stream end. | Same directory fields; B control/directory at 0x3BA/0x3E8 in this sample. |
+| INFERENCE | INFERRED (safe reader policy) | Use checked wide arithmetic for counts, offsets and multiplications; cap counts by remaining bytes, reject overlaps/overflow, bound traversal with visited IDs, preserve unsupported cases. Do not use a numerical match to bypass a failed bound. | Same safety policy as A. |
+| OBSERVATION | PROVEN (sampled bytes) | Resolve index 8 or 10; verify H from record byte +3, fixed prefix inside E, and matching descriptor H. Require +0x16 <= H for four signed32 reads, and anchor+4 <= H before the sampled story read. | Same offsets/H=118 or116; B table has its separate candidate scan, not A's literal-zero walk. Leading slot/tag semantics remain UNKNOWN. |
+| OBSERVATION | PROVEN (sampled join) | Read sampled story candidate at +0x58 or +0x66 and require exact membership in Quill SYID. Bound Quill section directory, count arrays and UTF-16 ranges; paired SYID/STRS counts and cumulative lengths must fit TEXT. All six sampled u32 reads equal their low u16 values. | Same story offsets and Quill partition method. Authoritative Contents-side story-ID width still UNKNOWN. |
+| OBSERVATION | PROVEN (sampled containment relationships) | Resolve the record's directory-parent candidate and verify its ID in the index-20 child tail: T=R+H, ten-byte array header, checked n*w span, w=2 here. Continue a bounded parent chain to root-like 0x100. | B H=32, tail IDs at record+42; A H=30, IDs at +40. Do not hard-code the A value. This chain does not prove page assignment. |
+| INFERENCE | INFERRED (geometry candidate) | Read root index-21 positive u32 W/H at +0x14/+0x18 only if +0x1C <= fixed prefix; read signed32 l/t/r/b at the four frame offsets. Require r>l and b>t; treat all-zero controls as unplaced. | Same numerical fields and candidate meanings as A. |
+| INFERENCE | INFERRED (experimental placement only) | Compute L2=2*l+W, R2=2*r+W, T2=2*t+H, B2=2*b+H in checked wide integers. For an inside-page candidate require 0<=L2<R2<=2*W and 0<=T2<B2<=2*H; preserve half-unit precision and report failure instead of silent clipping. Convert by candidate 36000 units/mm or 12700 units/point. | Same unconfirmed half-page origin/scale as A; B provides matching numerical data, not known-position validation. |
+| UNKNOWN | UNKNOWN | Faithful physical origin/scale, whether the candidate rectangle is the actual displayed frame, which collection is an actual page, page/reading order and other frame classes. Obtain the independent physical page/frame observation before claiming faithful placement. | Same essential limit as A. |
+| UNKNOWN | UNKNOWN / out of scope | Rotation, anchors, margins, columns, fonts, colours, pictures and the existing Quill import failure; no derived repair or default is claimed. | Same excluded work as A. |
+
+INFERENCE: the Quill bounds in that checklist mean: start directory blocks at 0x18; bound u16 entry count at block+2, u32 next-block pointer at +4, and 24-byte entries at +8; bound each entry's section offset/length u32 at +16/+20. For SYID, bound count u32 at section+4 and IDs from +8. For STRS, bound count at +0, displacement at +4 and lengths from section+4+displacement. Convert cumulative UTF-16 ranges to TEXT bytes with checked multiplication by two; reject unsupported count mismatches or ranges beyond TEXT rather than trimming them into a false match. For the sampled Contents-side u32 story read, a future nonzero upper half is unsupported by this cohort; do not silently truncate it to a known ID. These are conservative experimental-reader checks, not newly decoded semantics.
+
+INFERENCE: an experimental builder can attach each of the six verified story ranges to its same-record candidate box while surfacing the geometry/page assumptions. The evidence does not yet justify a universally faithful B page renderer. A descriptor child reference is not needed to connect text to these candidate boxes, and should not be confused with the story link.
+
+OBSERVATION: this first AP18 checkpoint contains 14 bounded projected reads, three controlled child-ID matches, eleven zero controls and six complete story-to-candidate-rectangle joins with no positive failures. UNKNOWN: physical placement and general selector semantics remain open; no new source entry is needed because all evidence was already listed. Research stops here.
