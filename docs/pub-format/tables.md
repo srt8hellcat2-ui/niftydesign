@@ -156,3 +156,260 @@ choice (sizes for columns, sizes for rows when endings are unusable) is an
 approximation. Tests build the bytes in code; no Publisher file is committed.
 Pinned counts before and after: 142/142 imports, 152/152 objects, 111/111
 positions, 52/52 texts, 111/111 styles; real batch 9 / 10 / 2 / 3 unchanged.
+
+## Cell text association (calendar sample)
+
+OBSERVATION: this describer checkpoint starts from
+`04795e6568ad89ad780691f568b279b38c817fa1` on the task's named base branch.
+The user-supplied may-aug-2026.pub is exactly 1610752 bytes, SHA-256
+`AD730D7AEBC2EB1BF93F04C537CC6F31C2B8F76504070A19D44147872C0CBF3A`,
+verified before inspection. It is data only, not committed or redistributed.
+Only root Contents (34224 bytes) and Quill CONTENTS (51200 bytes) are extracted
+in an ignored research directory. No full text, raw bytes, pictures or private
+metadata are reproduced here. Generic month/weekday labels are used only to
+check associations. No external Publisher reader, specification, reference
+output or scoring export supplies an encoding inference.
+
+OBSERVATION: evidence is the attachment, the existing Contents/property-list,
+Quill and table notes, bounded experiments, and read-only inspection of this
+repository's current parsing/building paths. No importer, environment script
+or setting changes are made. Fonts, colours, borders and cell fills are not
+decoded. The section records a sampled association rule, not a finished fix
+or a claim of native visual fidelity.
+
+### Four tables, eight stories, four text partitions
+
+OBSERVATION: offsets throughout this section are decimal absolute byte
+positions in the named stream, unless prefixed `0x`. Record sequence numbers
+and story IDs are decimal. Ranges are end-exclusive. All numeric probes are
+little-endian. The existing directory and page-list rules yield four ordinary
+pages with page records 266,310,317,324; each directly lists one type-0x10
+table. There are also two labelled master records and four empty placeholders.
+No drawing or appearance decoding is needed to establish these memberships.
+
+| Basis | Page / month heading | Table sequence / Contents record offset | Grid / actual cells | Linked Quill story / UTF-16 length / global TEXT range | Cell-list sequence / Contents offset |
+| --- | --- | --- | --- | --- | --- |
+| OBSERVATION | 1 / May | 341 / 19178 | 7 rows x 7 columns / 49 | 41 / 123 / [41,164) | 342 / 19512 |
+| OBSERVATION | 2 / June | 344 / 22298 | 6 rows x 7 columns / 42 | 42 / 114 / [164,278) | 345 / 22614 |
+| OBSERVATION | 3 / July | 347 / 24992 | 6 rows x 7 columns / 42 | 43 / 116 / [278,394) | 349 / 25360 |
+| OBSERVATION | 4 / August | 351 / 27738 | 7 rows x 7 columns / 49 | 44 / 123 / [394,517) | 352 / 28072 |
+
+OBSERVATION: Quill's directory has two blocks: at 24, 19 entries and next
+pointer 50688; at 50688, six entries and terminal pointer `0xFFFFFFFF`.
+All 25 entries fit in the 51200-byte stream. TEXT is at 512, length 1034
+bytes, exactly 517 UTF-16 units. SYID is at 22016, length 40, with count 8
+at +4 and eight u32 IDs beginning at 22024. STRS is at 26012, length 86,
+with count 8, length-array displacement 8 at +4, and lengths beginning at
+26024 (= STRS+4+8). Their paired entries are:
+
+| Basis | SYID zero-based slot | Story ID | STRS length / global TEXT unit range | Role supported by the association |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | 0 | 21 | 9 / [0,9) | First month heading. |
+| OBSERVATION | 1 | 23 | 10 / [9,19) | Second month heading. |
+| OBSERVATION | 2 | 25 | 10 / [19,29) | Third month heading. |
+| OBSERVATION | 3 | 27 | 12 / [29,41) | Fourth month heading. |
+| OBSERVATION | 4 | 41 | 123 / [41,164) | First table's text. |
+| OBSERVATION | 5 | 42 | 114 / [164,278) | Second table's text. |
+| OBSERVATION | 6 | 43 | 116 / [278,394) | Third table's text. |
+| OBSERVATION | 7 | 44 | 123 / [394,517) | Fourth table's text. |
+
+OBSERVATION: all lengths sum to 517 without clamping. Each table story has
+one TCD partition; the heading stories have none. The directory also names
+TOKN entries with slots 4,5,6,7, and STSH, FDPP, FDPC, SGP, INK, BTEP, BTEC,
+FONT, MCLD and PL sections. Their bodies are not needed or decoded for this
+association. In particular, no cell-style or colour interpretation is derived
+from MCLD, FONT or PL.
+
+### Exact fields and the association chain
+
+OBSERVATION: the table-object fields below are property-header positions in
+Contents, meaning key at P, kind at P+1, numeric value at P+2. Key 0x27 is
+kind 0x20 and selects the Quill story ID. Keys 0x66/0x67 give row/column
+counts; key 0x6B is the cell-list sequence link. The existing notes establish
+these keys; the attachment independently supplies the following values and
+cross-stream joins.
+
+| Basis | Table sequence | Key 0x27 header / value | Key 0x66 header / rows | Key 0x67 header / columns | Key 0x6B header / linked sequence |
+| --- | --- | --- | --- | --- | --- |
+| OBSERVATION | 341 | 19204 / 41 | 19212 / 7 | 19218 / 7 | 19236 / 342 |
+| OBSERVATION | 344 | 22324 / 42 | 22332 / 6 | 22338 / 7 | 22356 / 345 |
+| OBSERVATION | 347 | 25018 / 43 | 25026 / 6 | 25032 / 7 | 25050 / 349 |
+| OBSERVATION | 351 | 27764 / 44 | 27772 / 7 | 27778 / 7 | 27796 / 352 |
+
+OBSERVATION: a Quill section entry at E has tag at E+2, a u16 field at E+6,
+section offset at E+16 and section length at E+20. For TCD, the E+6 values
+are 4,5,6,7. Each equals the zero-based SYID/STRS slot of the table story
+selected by Contents key 0x27. They are neither the actual story IDs
+41,42,43,44 nor TCD-local occurrence ordinals 0,1,2,3. The earlier description
+of E+6 as a same-tag occurrence number must not be applied universally to
+these TCD entries without this new evidence and its checks.
+
+| Basis | TCD directory entry E / E+6 field position | Stored slot / selected story | Section offset / size | Cell-boundary array / final value |
+| --- | --- | --- | --- | --- |
+| OBSERVATION | 464 / 470 | 4 / 41 | 23664 / 208 | [23676,23872) / 123 |
+| OBSERVATION | 50696 / 50702 | 5 / 42 | 24388 / 180 | [24400,24568) / 114 |
+| OBSERVATION | 50720 / 50726 | 6 / 43 | 25096 / 180 | [25108,25276) / 116 |
+| OBSERVATION | 50744 / 50750 | 7 / 44 | 25804 / 208 | [25816,26012) / 123 |
+
+OBSERVATION: each TCD has u32 (actual-cell-count minus one) at +0, zero at
++4, `0xFF00` at +8, then one u32 boundary per actual cell at +12+4*i.
+The respective first values are 48,41,41,48. Exact section size is
+`12+4*actual_cell_count`, with no ignored boundary or trailing bytes.
+All boundaries refer to units within the selected story, not global TEXT
+positions, section offsets or individual cell story IDs.
+
+OBSERVATION: the type-0x63 cell-list record begins with the usual self-counting
+record length. Its key-1/kind-0x18 count header is at record+4 (u16 value at
++6); key-2/kind-0xA0 array header is at +8, followed by the nested length
+at +10 and first child entry at +14. The first child positions are
+19526,22628,25374,28086. Parse each child's own key-0/kind-0x88 self-counting
+list rather than assuming a fixed stride. Cell keys 1,2,3,4 give inclusive
+first/last row and first/last column, with absent zero values as in the
+existing notes. All 182 cells are unmerged, complete, non-overlapping and
+serialized row-major. Thus child ordinal i agrees with row=i/7,col=i%7
+and with TCD boundary ordinal i in this sample. No new per-cell text key is
+needed to recover these ranges; unknown cell properties remain opaque.
+
+INFERENCE: the supported calendar association chain is
+Contents table key 0x27 -> SYID slot and STRS range -> TCD directory E+6
+matching that slot -> TCD cell ordinal -> linked cell-list child ordinal
+and its stored grid coordinates. This is a sample-supported rule, with
+independent boundary/content checks below. It is not evidence that every
+Quill tag's E+6 field has this meaning or that merged/non-row-major tables
+can be assigned by ordinal without further evidence.
+
+### Ranges, labels and false-positive controls
+
+OBSERVATION: let b[i] be boundary i and N the actual cell count. Set a[0]=0;
+for i>0, a[i]=b[i-1]+1. For nonfinal cells require story[b[i]]=CR and assign
+[a[i],b[i]). For the final cell require b[N-1]=story length and remove its
+terminal CR from the assigned range. Empty ranges are valid. Every boundary
+is monotonic with respect to that next start, every separator is CR, and all
+182 resulting ranges stay inside their story. Global TEXT byte positions
+are `TEXT_offset + 2*(story_start + local_unit_position)`.
+
+| Basis | Story | Weekday payload units | Day payload units / numbered cells | Empty cells | Total cell payload + separator units = story units |
+| --- | --- | --- | --- | --- | --- |
+| OBSERVATION | 41 | 21 | 53 / 31 | 11 | 74 + 49 = 123 |
+| OBSERVATION | 42 | 21 | 51 / 30 | 5 | 72 + 42 = 114 |
+| OBSERVATION | 43 | 21 | 53 / 31 | 4 | 74 + 42 = 116 |
+| OBSERVATION | 44 | 21 | 53 / 31 | 11 | 74 + 49 = 123 |
+
+OBSERVATION: each first row consists of seven generic three-character weekday
+labels in Sunday-first order. Numbered cells form the consecutive day sequence
+for the associated month, and their first/last slots match the independently
+calculated month weekday and day count. No other payload category appears.
+The first numbered-cell ordinals are 12,8,10,13 and the last are 42,37,40,43;
+these are derived grid positions, not reproduced sample text. Month headings
+are separate stories and must not be inserted into calendar cells. Complete
+cell ranges are checked privately; only derived examples are recorded here:
+
+| Basis | Story / cell ordinal / row,column | Story-local range | Check |
+| --- | --- | --- | --- |
+| OBSERVATION | All four / 0 / 0,0 | [0,3) | First weekday label, followed by its CR. |
+| OBSERVATION | All four / 6 / 0,6 | [24,27) | Last weekday label in the heading row. |
+| OBSERVATION | 41 / 12 / 1,5 | [33,34) | First numbered cell. |
+| OBSERVATION | 42 / 8 / 1,1 | [29,30) | First numbered cell. |
+| OBSERVATION | 43 / 10 / 1,3 | [31,32) | First numbered cell. |
+| OBSERVATION | 44 / 13 / 1,6 | [34,35) | First numbered cell. |
+| OBSERVATION | 41 and 44 / 48 / 6,6 | [122,122) | Final empty cell; terminal CR excluded. |
+
+OBSERVATION: the complete false-positive matrix tries every TCD against all
+eight stories, using exact final length, all separator positions and bounded
+ranges. Exactly four of 32 combinations pass, the intended slot-selected
+ones; 28 fail. The heading stories all fail. In particular, stories 41 and
+44 both have length 123 and grid size 7x7, but swapping their TCD sections
+fails separator checks in both directions. Merely matching length/count
+would incorrectly accept those alternatives. Of all 24 permutations of the
+four table-story associations, only the intended one passes every check.
+Treating E+6 directly as a story ID matches none; shifting the proposed SYID
+slot by one produces three length mismatches and one out-of-range slot,
+so it also fails. No generic field-value density or significance claim is used.
+
+INFERENCE: exact range validation, existing Contents story links and independent
+calendar label/day-position checks support assigning all 182 unmerged cells
+in this file. The equal-length negative control is stronger than choosing a
+story because it is next in directory order. UNKNOWN: a second independent
+multi-table file with identical boundary patterns is still needed to test
+whether E+6 is generally a SYID ordinal rather than some correlated index.
+When independent checks cannot disambiguate, retain text and warn.
+
+### Why the existing importer retains an overset story
+
+OBSERVATION: the current Quill path assigns cell ranges directly only for
+one TCD and one story. Otherwise it emits the reported multiple-stories/TCD
+warning. The later single-table recovery returns without assigning ranges
+when there is more than one table. This sample has four, so neither recovery
+path supplies cell ranges. The table builder consequently creates the grid
+with empty cell stories, inserts its anchor into the original frame story,
+and retains the original text after the table with the reported warning.
+That code-path explanation requires no guessed cell association or appearance.
+
+OBSERVATION: the frame-text conversion removes the final CR and normalizes
+remaining CRs to newlines. Here every unit is ASCII, so the four retained
+texts have 122,113,115,122 characters. Inserting the table at the beginning
+adds one table anchor and one newline, giving host totals 124,115,117,124.
+These calculated totals align with the user-reported 115-to-124 range.
+The four stories contain 294 cell-payload units and 182 separators in total;
+their characters belong to the 182 cell ranges above, not to an extra free
+text paragraph following an empty calendar. The four month-heading stories
+are separate and are not that overflow.
+
+INFERENCE: populating the verified cell stories and removing the retained
+duplicate source text from the host would address the identified association
+failure. UNKNOWN: exact composed hidden counts and visual fit were not rerun
+or proved here. No font metrics or layout explanation is inferred, and a text
+association fix alone does not prove every remaining layout issue disappears.
+No sample render, native save or importer modification is performed.
+
+### Builder requirements and limits
+
+INFERENCE: a builder can use this sample-bounded association when all checks
+below succeed; otherwise preserve the source text with a bounded warning.
+
+- INFERENCE: bound the Contents trailer/directory, self-counting property
+  lengths and cell-list links; require type-0x10 table and type-0x63 cell list,
+  positive bounded row/column counts and exact cell-count agreement.
+- INFERENCE: traverse every Quill directory block, with cycle/depth and total
+  entry limits; bound E+6/E+16/E+20 and every section. This sample crosses a
+  directory-block boundary between its first and remaining TCD entries.
+- INFERENCE: bound SYID/STRS counts and arrays; reject duplicate/ambiguous story
+  IDs or range overruns rather than relying on clamping. Require key 0x27 to
+  resolve to the same SYID slot selected by the candidate TCD E+6 value.
+- INFERENCE: require exactly one independently valid TCD association per table
+  story, no conflicting reuse, exact `12+4*N` size, the observed header, and
+  N matching actual cells. Require the terminal boundary to equal story length
+  and every intermediate separator to be CR, including empty cells.
+- INFERENCE: require the unmerged row-major cell correspondence verified here;
+  validate stored rectangles, occupancy and all local/global range arithmetic.
+  Do not silently reuse ordinal mapping for merged or non-row-major cases.
+- INFERENCE: convert UTF-16 ranges to the normalized story representation with
+  checked character boundaries, preserving empty cells and excluding separators.
+  Invalid surrogate handling or normalization must not shift later ranges.
+- INFERENCE: create each cell story from its verified slice, then keep only the
+  table anchor in the host instead of retaining the duplicate source text.
+  Preserve the separate heading stories. Maintain the existing aggregate limits:
+  100000 grid cells, 16000000 table-text units and bounded range/copy work.
+
+UNKNOWN: ranked questions are (1) general E+6 association outside this one multi-table file,
+especially identical boundary patterns and reordered story lists;
+(2) merged/non-row-major cells and threaded/shared table stories, absent in
+this sample; (3) exact visual overset after a builder change; (4) malformed
+or ambiguous inputs beyond these checks. Fonts, colours, borders, fills and
+other appearance remain outside this research, not inferred from text fields.
+
+INFERENCE: the next smallest discriminating step is an independently authored
+two-table sample with equal story lengths and identical separator patterns,
+so boundary validation alone cannot choose a story; vary story-directory order
+to test whether E+6 still selects the SYID slot. Until then, retain independent
+Contents/range checks rather than treating section order as authoritative.
+
+OBSERVATION: this is the first calendar-sample checkpoint. Original identity,
+bounded directory/property parsing, all four joins, all 182 cell ranges and
+rectangles, the 32-way association matrix and 24 permutations pass their stated
+checks; wrong equal-length pairings are explicitly rejected. The calculated
+fallback host totals are checked against the read-only source paths, not a
+render. Only this appended section and one source-ledger line change. No full
+CI, importer edit, environment script/setting change, environment save/publication,
+pull request or extra remote is involved. Sample and extracted bytes remain
+ignored and uncommitted.

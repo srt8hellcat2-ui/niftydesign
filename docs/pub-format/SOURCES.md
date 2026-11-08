@@ -1381,3 +1381,5 @@ OBSERVATION: the final unchanged controlled and real-file gates pass again with 
 ## AE preset fallback census — 2026-10-31
 
 OBSERVATION: reused all 142 controlled and 24 real publication binaries, 142 scoring JSON files and nine scoring PNGs from the existing publisher-fixtures.csv manifest. The restore check verified all 317 recorded sizes and SHA-256 values. Existing compound-file, Escher and import code supplied the binary census in preset-geometry.md; no private files or other readers were used. Truth JSON and PNGs were used only by the unchanged scoring tools. Existing MS-ODRAW and ECMA geometry notes supplied terminology; no new external specification or geometry definition was fetched.
+
+OBSERVATION: AR1 uses user-supplied may-aug-2026.pub, 1610752 bytes, SHA-256 AD730D7AEBC2EB1BF93F04C537CC6F31C2B8F76504070A19D44147872C0CBF3A; data only, not committed or redistributed; evidence is its stream bytes, this repository's existing notes and read-only parser paths, with only derived facts recorded in tables.md, section Cell text association (calendar sample); no third-party reader, specification or truth export supplies encoding evidence.
