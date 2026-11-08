@@ -1731,3 +1731,9 @@ OBSERVATION: Controlled sample wordart__text.pub, 98304 bytes, SHA-256 f3d6d544b
 OBSERVATION: Repository fixture sample hello-nifty.pub, 7168 bytes, SHA-256 5e22460c8bcff08d39362f68177430ca953a136083dc35ffadb95c3375f92c1a; data only, existing repository fixture not added or changed by this task; container/header evidence only for AP15.
 
 OBSERVATION: Repository fixture sample wmf-picture.pub, 7168 bytes, SHA-256 7606a8fd9c4f9a5474a29642ec845e636ee2b22d9a7613c3ea5b2e85d435903f; data only, existing repository fixture not added or changed by this task; container/header evidence only for AP15.
+
+## AP16 variant-B first checkpoint
+
+OBSERVATION: Sample2000.pub, 61440 bytes, SHA-256 40701ca47b26d04771cdd58467764e9ab39d3da69b59fbc529afd16d263d2f86; pinned Apache binary already listed above, data only, not committed. Root Contents, Quill CONTENTS and container metadata supply the single-sample B directory, extent and story-link evidence in legacy-97-2000-contents-b.md; no scoring exports, external reader or external specification consulted.
+
+OBSERVATION: Sample98.pub, 61440 bytes, SHA-256 8912f295ff0cd1f55b873b3b98a182218f33c420877e025d2f0fd795f12dd0c0; existing pinned binary and own legacy-97-2000-contents-a.md/text-store.md notes reused for the A-index equation hypothesis and bounded structural/text comparison only, data only, not committed. A class labels are not presented as independently decoded B descriptors.
