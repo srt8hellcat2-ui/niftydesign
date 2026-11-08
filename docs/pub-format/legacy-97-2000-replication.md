@@ -843,10 +843,119 @@ UNKNOWN (9/9): independently documented physical page/frame placement is still a
 
 ## Ranked unknowns and next smallest step
 
-1. UNKNOWN (5/9 C files): text storage, text-record linkage, total text units and encoding; there is no Quill stream to apply the A/B method to. INFERENCE: the smallest existing-data decoding step is to bound the unassigned [0x2AE,D) region in the smallest C file, CATALOG, using the control pointers and stored length/count candidates, before assigning any text encoding or record meaning. This is a new structural lane, not a change to the A/B importer.
+1. UNKNOWN (5/9 C files, all 5/5 third-family files): per-story/frame text ranges, unique code page and control-marker semantics. OBSERVATION: AP20 locates root Contents text candidates using control +0x0E/+0x12, counts 5264/6847/6770/7110/10564 single-byte units including the stated CR/LF trailer, and reproduces the bounds/encoding controls in 5/5 files. The earlier unknown root text location is narrowed; publication-wide visible-character totals and ownership are not established. INFERENCE: the next smallest step is to test CATALOG record fields against bounded byte ranges or indirection into this buffer with independent controls; do not assume Quill IDs or page delimiters.
 2. UNKNOWN (5/9 C files): the 190 failed/unmapped strict-transfer records, including 180 missing/mismatching extent rules and ten matching-length/invalid-offset-table records, plus 39 tail-parent disagreements in 2/9 files. No tail or padding interpretation is generalized to remove these counterexamples.
 3. UNKNOWN (9/9 physical evidence absent): page identity/order, root-size semantics and actual frame unit/origin. A jointly documented physical page/frame observation remains the smallest decisive placement test; new root-size plausibility alone does not close it.
 4. UNKNOWN (A 3/9, B 1/9): selector/tag applicability, unsupported offsets, full reference semantics, flags and authoritative story-field widths. Scoped A reference hits replicate in zmspub, but zero-only fields remain unproved and B gains no new positive instance.
 5. UNKNOWN (B still 1/9; positive A text still 1/9): saving-version generality, independent B manufacture and a second positive A text/geometry sample. zmspub is now verified and its purported Contents equality with mspub is refuted; that identity question is closed for these attachments, not for every file carrying those names.
 
 OBSERVATION (checkpoint): all seven requested identities pass; all nine containers, headers, directories, descriptor-region walks, field-driven extent candidates, available Quill partitions and root probes are accounted for, including explicit failures and untestable cases. The third layout, absent text store and incomplete C framing are the first checkpoint. No wider C text/geometry decoding, importer implementation, full CI, environment publication or pull request is attempted.
+
+## Third-family root text buffer
+
+OBSERVATION (5/5 third-family files; AP20): all seven supplied attachment sizes and SHA-256 values were reverified before use. The five third-family files were freshly opened with the existing container dependency; the 700 stream paths and advertised sizes exactly match the exhaustive inventories above. Fresh root Contents snapshots match the prior verified copies. Only these already listed binary inputs and the repository's own notes supply this step; no new source, external format specification, scoring export or third-party reader is consulted. No binary or private paragraph is committed; extracted bytes remain ignored. No importer or environment setting/script change, full CI or pull request is made.
+
+### Stream candidates and exhaustive inventories
+
+OBSERVATION (5/5): the complete stream-by-stream lists, including every embedded object stream and size, remain in the linked tables. Re-enumeration matched 700/700 entries; no Quill storage or Quill CONTENTS stream exists. Root Contents is the best publication-text candidate because its control fields select the bounded character-rich range below, which lies outside both the layout table and record directory. Embedded object streams were inventoried, not decoded or ruled out as additional text sources.
+
+| Basis / coverage | File | Exhaustive current inventory | Streams | Root Contents bytes | Best candidate range |
+| --- | --- | --- | ---: | ---: | --- |
+| OBSERVATION (1/5) | CATALOG.PUB | [all paths and sizes](#catalogpub) | 30 | 23990 | root Contents [0x2AE,0x173E) |
+| OBSERVATION (1/5) | JAZZY.PUB | [all paths and sizes](#jazzypub) | 311 | 121952 | root Contents [0x2AE,0x1D6D) |
+| OBSERVATION (1/5) | MODERN.PUB | [all paths and sizes](#modernpub) | 148 | 149719 | root Contents [0x2AE,0x1D20) |
+| OBSERVATION (1/5) | PLAIN.PUB | [all paths and sizes](#plainpub) | 166 | 94770 | root Contents [0x2AE,0x1E74) |
+| OBSERVATION (1/5) | SCHOOL.PUB | [all paths and sizes](#schoolpub) | 45 | 26606 | root Contents [0x2AE,0x2BF2) |
+
+### CATALOG bounds first
+
+OBSERVATION (single-file, 1/5): CATALOG's header u32 +0x12 gives control C=0x280 and +0x16 gives directory D=0x2C8A. The control's stored length 46 ends at 0x2AE, so the previously unassigned interval [0x2AE,0x2C8A) has exactly 10716 bytes. Control-relative +0x0E (absolute 0x28E) contains S=0x2AE; control-relative +0x12 (absolute 0x292) contains P=0x173C. These are bounded, unaligned LE u32 values. They partition the character-rich interval without scanning for a known paragraph or assuming Quill.
+
+OBSERVATION (single-file, 1/5): [S,P) contains 5262 non-NUL bytes; byte P-1 is form feed. At P there is an additional CR/LF pair, then 194 zero bytes to the next 512-byte boundary F=0x1800. The remaining [0x1800,D) has 5258 bytes and is not decoded. Thus 5262 + 2 + 194 + 5258 = 10716 exactly. The candidate text span [S,P+2) includes 5264 single-byte units, including the observed terminal CR/LF. Its ASCII evidence can be illustrated by the single short word "Your"; no paragraph is reproduced.
+
+UNKNOWN (5/5): P is observed to point at the final CR/LF pair, not proved to be an ordinary exclusive-end pointer. The logical role of that trailer, form feeds and other control markers remains undecoded. Counts below explicitly distinguish the core [S,P) from [S,P+2); they are raw decoded units, not a claimed count of visible characters or every text object in the publication.
+
+### The 64-entry table is a layout table, not a text directory
+
+OBSERVATION (5/5): root Contents [0x22,0x280) is 606 bytes: u16 64 at 0x22, u16 6 at 0x24, then 64 variable-width entries consuming exactly 602 bytes from 0x26. An entry reads three LE u16 words followed by u16 tail words through a literal zero. With k nonzero tail words its serialized width is 6+2*(k+1); it is not a fixed-width 64-row directory. Widths are 8 bytes for 52 entries, 10 for eight, 12 for two, 24 for one and 58 for one, in every file (64/64 bounded entries per file; 320/320 overall). No entry fails these bounds or width arithmetic.
+
+| Basis / coverage | Location within entry | What the samples establish | Limit |
+| --- | --- | --- | --- |
+| OBSERVATION (5/5) | Word 0 at +0 / u16 | Its high byte equals record H for every referencing directory record under zero-based entry indexing: 2545/2545. H locates the tested fixed-prefix boundary. | Low byte is not proved to be a length, and H is not total record extent. |
+| OBSERVATION (5/5) | Word 1 at +2 / u16 | A stable numeric class code groups the sampled extent tests. | Class semantics are not record meanings; prior framing still has the AP19 failures. |
+| OBSERVATION (5/5) | Word 2 at +4 / u16 | Equals the stored array width in 977/977 records where the prior classes 1/9/25 array equation and bounds pass. | Not a universal stride or a text-unit width for other classes. |
+| OBSERVATION (5/5) | Tail from +6, u16 through zero | Bounds each entry; 45 nonzero tail words per table. None is an absolute address inside [S,P+2): 0/45 per file. | Relative selectors/reference roles are not generally decoded; these are not a proven text-offset list. |
+| UNKNOWN (5/5) | Table-prefix u16 at 0x24 | Literal 6 in all five. | Exact semantic role remains UNKNOWN; it is not promoted to a text pointer. |
+
+OBSERVATION (5/5 geometry of the table, CATALOG numeric examples single-file 1/5): representative entries below use CATALOG's words. All offsets, widths, high bytes, classes, width hints and tails agree across five files; MODERN alone differs in word-0 low byte for indices 2 and 3 (164/166 become 156/158). It does not change entry framing, H, class or width hint. No raw text is in this table.
+
+| Basis / coverage | Zero-based index | Entry [start,end) | Width | Word-0 low / high | Class word | Width-hint word | Tail words before zero |
+| --- | ---: | --- | ---: | --- | ---: | ---: | ---: |
+| OBSERVATION (1/5 numeric example; bounds 5/5) | 0 | [0x26,0x2E) | 8 | 94 / 92 | 9 | 2 | 0 |
+| OBSERVATION (1/5 numeric example; bounds 5/5) | 1 | [0x2E,0x36) | 8 | 96 / 96 | 1 | 14 | 0 |
+| OBSERVATION (1/5 numeric example; bounds 5/5) | 2 | [0x36,0x40) | 10 | 164 / 116 | 1 | 8 | 1 |
+| OBSERVATION (1/5 numeric example; bounds 5/5) | 3 | [0x40,0x4A) | 10 | 166 / 116 | 1 | 8 | 1 |
+| OBSERVATION (1/5 numeric example; bounds 5/5) | 21 | [0xD8,0x112) | 58 | 158 / 136 | 25 | 2 | 25 |
+| OBSERVATION (1/5 numeric example; bounds 5/5) | 33 | [0x17A,0x182) | 8 | 0 / 8 | 0 | 0 | 0 |
+| OBSERVATION (1/5 numeric example; bounds 5/5) | 34 | [0x182,0x18A) | 8 | 0 / 8 | 0 | 0 | 0 |
+| OBSERVATION (1/5 numeric example; bounds 5/5) | 63 | [0x278,0x280) | 8 | 180 / 180 | 0 | 0 | 0 |
+
+OBSERVATION (5/5): the separate record directory is at header pointer D, has u16 count N and maximum ID, and N ten-byte entries at D+4: ID u16 +0, parent candidate u16 +2, absolute record start u32 +4, attribute u16 +8. Each addressed record begins with the zero-based layout-entry index. CATALOG has 101 directory entries, not 64; the five counts are 101/611/979/735/119.
+
+INFERENCE (5/5): the table describes record layout while the directory locates record instances. The ten-byte directory organization resembles A/B; the zero-based 64-entry layout cardinality, extra pre-directory region and lack of Quill distinguish this family. No direct mapping from a table row to a text story is proven.
+
+### One locating rule, tested on five files
+
+OBSERVATION (5/5): read bounded S=u32(C+0x0E), P=u32(C+0x12), and D=u32(header+0x16). Require C+46 <= S < P, P+2 <= D <= actual Contents size, and checked pointer arithmetic. In these samples S=C+46. Verify form feed at P-1, CR/LF at [P,P+2), and zero bytes from P+2 to F=ceil((P+2)/512)*512, with F<=D. These observed checks pass in 5/5 files, with no file or record exception. Treating P as a byte length instead of an absolute address adds 686 bytes past the observed marker and introduces NUL-filled/binary data in every file; the wrong-length control below reports the NUL count.
+
+| Basis / coverage | File | S / P / P+2 / D | Core [S,P) units | Candidate [S,P+2) units | Zero gap to F | Undecoded [F,D) bytes |
+| --- | --- | --- | ---: | ---: | --- | ---: |
+| OBSERVATION (1/5) | CATALOG.PUB | 0x2AE / 0x173C / 0x173E / 0x2C8A | 5262 | 5264 | 194 to 0x1800 | 5258 |
+| OBSERVATION (1/5) | JAZZY.PUB | 0x2AE / 0x1D6B / 0x1D6D / 0x3084 | 6845 | 6847 | 147 to 0x1E00 | 4740 |
+| OBSERVATION (1/5) | MODERN.PUB | 0x2AE / 0x1D1E / 0x1D20 / 0x2E7E | 6768 | 6770 | 224 to 0x1E00 | 4222 |
+| OBSERVATION (1/5) | PLAIN.PUB | 0x2AE / 0x1E72 / 0x1E74 / 0x3284 | 7108 | 7110 | 396 to 0x2000 | 4740 |
+| OBSERVATION (1/5) | SCHOOL.PUB | 0x2AE / 0x2BF0 / 0x2BF2 / 0x3872 | 10562 | 10564 | 14 to 0x2C00 | 3186 |
+
+### Encoding and false-positive controls
+
+OBSERVATION (5/5): strict Windows-1252 decoding yields one unit per byte without replacement, with no NUL in the candidate range. More than 96% of bytes are ASCII printable or tab/CR/LF. Every CR is followed by LF and all LF bytes belong to such pairs. The raw candidate count includes each CR and LF separately plus form feeds and other control markers. It is 36555 units over these five buffers, not a decoded story/page count.
+
+OBSERVATION (5/5): UTF-16LE is the competing experiment, not assumed from A/B. Four even-length buffers decode strictly but yield zero ASCII words of at least four letters and zero CR/LF characters. JAZZY's odd-length 6847-byte range fails strict UTF-16LE decoding as truncated data. Merely succeeding in a Unicode decoder is therefore a false-positive criterion. Byte-sized line breaks, ASCII words and one-byte boundaries support an ASCII-compatible single-byte text buffer, while the UTF-16 interpretation loses those structures. The short word "Lorem" in JAZZY is the second and final quoted content example in this section.
+
+| Basis / coverage | File | Candidate ASCII-compatible bytes / total | CR/LF pairs | Non-ASCII bytes | Strict UTF-16 result / line breaks / ASCII words | Single-byte ASCII words (4+ letters) |
+| --- | --- | --- | ---: | ---: | --- | ---: |
+| OBSERVATION (1/5) | CATALOG.PUB | 5120 / 5264 | 206 | 0 | accepts / 0 / 0 | 562 |
+| OBSERVATION (1/5) | JAZZY.PUB | 6696 / 6847 | 140 | 15 | rejects odd byte count | 804 |
+| OBSERVATION (1/5) | MODERN.PUB | 6603 / 6770 | 157 | 13 | accepts / 0 / 0 | 815 |
+| OBSERVATION (1/5) | PLAIN.PUB | 6929 / 7110 | 187 | 13 | accepts / 0 / 0 | 842 |
+| OBSERVATION (1/5) | SCHOOL.PUB | 10520 / 10564 | 77 | 3 | accepts / 0 / 0 | 1220 |
+
+OBSERVATION (5/5): nearby non-text controls were chosen by region, not by searching for a favorable string. The entire descriptor-table interval [0x22,0x280) has only 57/606 ASCII-compatible bytes in each file, rather than the candidate's >96%. The following-window control starts at P+2 and takes at most the candidate length without crossing D; it contains many NULs and few printable bytes. Its actual denominator is reported, since equal-length space is not available in every file. The wrong-length control reads [S,S+P), bounded in all five, and crosses the character/binary boundary. These controls refute the rule "any decodable slice is text" and the mistaken use of P as a length, not every conceivable non-text encoding.
+
+| Basis / coverage | File | Following window bytes | Following ASCII-compatible / NUL | Wrong-length-window NULs | Table ASCII-compatible / bytes |
+| --- | --- | ---: | --- | ---: | --- |
+| OBSERVATION (1/5) | CATALOG.PUB | 5264 | 394 / 3430 | 445 | 57 / 606 |
+| OBSERVATION (1/5) | JAZZY.PUB | 4887 | 388 / 2944 | 440 | 57 / 606 |
+| OBSERVATION (1/5) | MODERN.PUB | 4446 | 299 / 2794 | 479 | 57 / 606 |
+| OBSERVATION (1/5) | PLAIN.PUB | 5136 | 355 / 3175 | 540 | 57 / 606 |
+| OBSERVATION (1/5) | SCHOOL.PUB | 3200 | 231 / 2349 | 431 | 57 / 606 |
+
+INFERENCE (5/5): these are root publication-text buffers in an ASCII-compatible single-byte representation. Windows-1252 is a usable experimental decode for the observed bytes, not an established unique code page. CATALOG has no high bytes (single-file, 1/5), so its buffer cannot distinguish ASCII-compatible code pages at all. In the other four (4/5), bytes 0x92/0x93/0x94 map to typographic punctuation in Windows-1252, while a Latin-1 decode maps them to C1 controls (15/13/12/3 such controls for JAZZY/MODERN/PLAIN/SCHOOL). Other single-byte code pages can share those mappings. UNKNOWN (5/5): authoritative code-page metadata, semantics of nonprinting markers, logical visible-character totals and whether embedded objects add more publication text. No universal 8-bit code page or replacement policy is claimed.
+
+### Frame/page linkage and next checkpoint
+
+OBSERVATION (5/5): there is no Quill story-ID list and no index-8/index-10 record to reuse A's text-ID join. A diagnostic check on the numeric index-0/class-9 cohort reads u32 at the old +0x58 anchor only where bounded: 268/268 reads are bounded, 260 are zero and none addresses [S,P+2). This does not prove those records are text frames or disprove a small story-ID interpretation. The index-1/class-1 cohort has 34 records; the old +0x66 anchor does not fit any of their 96-byte fixed prefixes, so it is not read as a live fixed-prefix field. Those numeric class similarities cannot establish type equivalence with A.
+
+| Basis / coverage | File | Index-0 +0x58 bounded / cohort | Zeros / absolute-text-address hits | Index-1 +0x66 prefix-bounded / cohort |
+| --- | --- | --- | --- | --- |
+| OBSERVATION (1/5) | CATALOG.PUB | 26 / 26 | 25 / 0 | 0 / 4 |
+| OBSERVATION (1/5) | JAZZY.PUB | 65 / 65 | 65 / 0 | 0 / 9 |
+| OBSERVATION (1/5) | MODERN.PUB | 67 / 67 | 63 / 0 | 0 / 9 |
+| OBSERVATION (1/5) | PLAIN.PUB | 81 / 81 | 80 / 0 | 0 / 9 |
+| OBSERVATION (1/5) | SCHOOL.PUB | 29 / 29 | 27 / 0 | 0 / 3 |
+
+UNKNOWN (5/5): per-story starts/lengths, links from these buffers to frame records, page grouping and reading order. Form feeds and CR/LF counts are not promoted to page/story counts. Unlike the verified A story-ID-to-SYID/STRS association, no cross-structure field here yet corroborates ownership of a particular byte range by a particular frame. Finding root text does not decode that link or establish a faithful editable page.
+
+INFERENCE (next smallest step, 5/5 applicable data): use CATALOG's now-bounded byte buffer to test candidate record fields for starts/lengths or indirection into its control-delimited ranges, with matched-width fields from other index cohorts and separately corroborated zero-length/inactive controls. First require exact bounded ranges and independent record/parent corroboration; do not choose matches from common small numbers or assume a form feed is a page break. Exact code-page selection and trailer/control semantics remain separate unknowns.
+
+OBSERVATION (first AP20 checkpoint): the text locating rule and single-byte evidence replicate in 5/5 files, with zero locating-rule failures. Table framing has 64/64 entries per file and H correlation 2545/2545; candidate buffer units are bounded and counted exactly with their trailer convention stated. Frame/story/page linkage and unique code-page selection remain UNKNOWN. Research stops here; no importer or broader following-region decoding is attempted. SOURCES.md is unchanged because every binary evidence source was already listed.
