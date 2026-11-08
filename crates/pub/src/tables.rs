@@ -408,6 +408,50 @@ fn slot_association(
 }
 
 impl Builder<'_> {
+    /// Publisher's table frame is the table itself, but the stored frame can be shorter than the
+    /// rows once they grow to fit their text; the rows that do not fit would be dropped as overset.
+    /// Grow the frame downward to the composed table, within a bound, and say so once.
+    pub(crate) fn fit_frame_to_table(&mut self, id: ItemId) {
+        const MAX_GROWTH: f64 = 4000.0;
+        let Some((sid, inset)) = self.doc.item(id).and_then(|i| i.text_frame()).map(|t| (t.story, t.options.inset[0] + t.options.inset[2])) else {
+            return;
+        };
+        // Only a host that holds just the table anchor: text kept after the table is real overflow.
+        let anchor_only =
+            self.doc.story(sid).is_some_and(|s| !s.tables.is_empty() && s.text.chars().all(|c| c == '\n' || ('\u{e000}'..='\u{f8ff}').contains(&c)));
+        if !anchor_only {
+            return;
+        }
+        let overset = |doc: &designcraft_doc::Document| designcraft_compose::compose_story(doc, sid, &Default::default());
+        if !overset(&self.doc).is_overset() {
+            return;
+        }
+        let Some(local) = self.doc.item(id).filter(|i| i.xf == designcraft_geom::Affine::IDENTITY).and_then(|i| i.path.bounds()) else { return };
+        let set_height = |doc: &mut designcraft_doc::Document, h: f64| {
+            if let Some(item) = doc.item_mut(id) {
+                item.path = designcraft_geom::shapes::rectangle(Rect::new(local.x0, local.y0, local.x1, local.y0 + h));
+            }
+        };
+        set_height(&mut self.doc, local.height() + MAX_GROWTH);
+        let tall = overset(&self.doc);
+        // The height the text needs includes the paragraph after the table.
+        let content = tall.frames.iter().map(|f| f.content_height).fold(0.0, f64::max);
+        let needed = (content + inset + 0.5).max(local.height());
+        if tall.is_overset() || !needed.is_finite() || needed > local.height() + MAX_GROWTH {
+            set_height(&mut self.doc, local.height());
+            return;
+        }
+        set_height(&mut self.doc, needed);
+        let fin = overset(&self.doc);
+        if fin.is_overset() {
+            set_height(&mut self.doc, local.height());
+            return;
+        }
+        self.warnings.push(format!(
+            "Publisher table frame was made taller by {:.1} pt so its last rows are not hidden; its rows grew to fit their text.",
+            needed - local.height()
+        ));
+    }
     pub(crate) fn table_frame(&mut self, r: SpreadRef, rect: Rect, tid: u32, info: &TableInfo) -> Result<ItemId> {
         self.table_cells = self.table_cells.saturating_add(info.rows.len() * info.columns.len());
         self.table_units = self.table_units.saturating_add(self.q.stories.get(&tid).map_or(0, |s| s.units.len()));
@@ -515,11 +559,17 @@ mod tests {
         .concat()
     }
     fn import(info: TableInfo, text: &str, ranges: Option<Vec<Range<usize>>>) -> crate::Imported {
+        import_sized(info, text, ranges, 0.0)
+    }
+    fn import_sized(info: TableInfo, text: &str, ranges: Option<Vec<Range<usize>>>, size: f64) -> crate::Imported {
         let mut c = Contents { width_emu: 7_772_400, height_emu: 10_058_400, ..Default::default() };
         c.pages.push(PageInfo { seq: 257, shapes: vec![258], ..Default::default() });
         c.shapes.insert(258, ShapeInfo { text_id: Some(3), is_table: true, table: Some(info), ..Default::default() });
         let mut q = Quill::default();
         q.default_char.bold = Some(true);
+        if size > 0.0 {
+            q.default_char.size_pt = Some(size);
+        }
         q.stories.insert(3, QStory { units: text.encode_utf16().collect(), cell_ranges: ranges, ..Default::default() });
         let dr = Drawing {
             shapes: vec![EShape {
@@ -651,6 +701,37 @@ mod tests {
         }
         assert!(!t.options.border.is_visible());
         assert!(imp.warnings.iter().any(|w| w.contains("cell fills, borders")));
+    }
+    #[test]
+    fn a_table_taller_than_its_frame_grows_the_frame_instead_of_dropping_the_last_row() {
+        // A month that ends mid-row: four rows of two cells, the last row holds "7" and an empty cell.
+        // The rows are 18 pt but the 20 pt text needs more, so the table is taller than the 72 pt frame.
+        let rows = 4;
+        let info = TableInfo {
+            rows: vec![228_600; rows],
+            columns: vec![1_828_800; 2],
+            cells: (0..rows * 2).map(|i| CellInfo { row: i / 2, last_row: i / 2, col: i % 2, last_col: i % 2 }).collect(),
+            cell_record: 0,
+            row_ending_difference: 0,
+            approximations: Vec::new(),
+        };
+        let text = format!("{}\r", "1\r".repeat(rows * 2 - 2) + "7\r");
+        let units: Vec<_> = text.encode_utf16().collect();
+        let ends: Vec<u32> = (0..rows as u32 * 2).map(|i| 2 * i + 1).collect();
+        let ranges = text_ranges(&table_data(&ends), &units).unwrap();
+        let imp = import_sized(info, &text, Some(ranges), 20.0);
+        let host = imp.document.stories.values().next().unwrap();
+        let table = host.tables.values().next().unwrap();
+        assert_eq!(table.cells[rows * 2 - 2].text.text, "7");
+        assert!(table.cells[rows * 2 - 1].text.text.is_empty());
+        let composed = designcraft_compose::compose_story(&imp.document, host.id, &Default::default());
+        assert!(!composed.is_overset(), "the last row must not be dropped");
+        let placed: usize = composed.frames.iter().flat_map(|f| &f.tables).map(|t| t.cells.len()).sum();
+        assert_eq!(placed, rows * 2);
+        let frame = imp.document.item(host.frames[0]).unwrap().bounds();
+        let table_bottom = composed.frames.iter().flat_map(|f| &f.tables).map(|t| t.rect.y1).fold(0.0, f64::max);
+        assert!(frame.y1 >= table_bottom - 0.01, "frame {frame:?} table bottom {table_bottom}");
+        assert!(imp.warnings.iter().any(|w| w.contains("frame was made taller")), "{:?}", imp.warnings);
     }
     #[test]
     fn merged_regions_use_coordinates_and_keep_covered_cells_empty() {

@@ -21,6 +21,8 @@ struct Case {
     a_separator_replaced_at: Option<usize>,
     duplicate_id: bool,
     merge_first_two_cells_of_a: bool,
+    /// Height in points of the frame holding the 2x3 table (its rows add up to 60).
+    frame_a_height: i32,
 }
 
 impl Case {
@@ -34,6 +36,7 @@ impl Case {
             a_separator_replaced_at: None,
             duplicate_id: false,
             merge_first_two_cells_of_a: false,
+            frame_a_height: 60,
         }
     }
 }
@@ -174,7 +177,7 @@ fn file(case: &Case) -> Vec<u8> {
     let shapes = [
         shape(202, 1025, &[], [36, 36, 100, 20], 258),
         shape(202, 1026, &[], [200, 36, 100, 20], 259),
-        shape(202, 1027, &[], [36, 100, 300, 60], 260),
+        shape(202, 1027, &[], [36, 100, 300, case.frame_a_height], 260),
         shape(202, 1028, &[], [36, 300, 200, 60], 262),
     ];
     let mut q = quill(case);
@@ -194,11 +197,12 @@ struct Seen {
     b: Vec<String>,
     host_text: String,
     warnings: Vec<String>,
+    notes: Vec<String>,
 }
 
 fn import(case: &Case) -> Seen {
     let imported = import_pub(&file(case)).unwrap();
-    let mut seen = Seen { a: Vec::new(), b: Vec::new(), host_text: String::new(), warnings: imported.warnings };
+    let mut seen = Seen { a: Vec::new(), b: Vec::new(), host_text: String::new(), warnings: imported.warnings, notes: imported.notes };
     for story in imported.document.stories.values() {
         story.check().unwrap();
         seen.host_text.push_str(&story.text);
@@ -284,4 +288,17 @@ fn a_tcd_entry_of_the_wrong_size_is_not_placed() {
     let seen = import(&Case { tcd_a_extra_bytes: 4, ..Case::good() });
     assert_fallback_for_a(&seen, "wrong size");
     assert_eq!(seen.b[0], "A1");
+}
+
+#[test]
+fn a_month_ending_mid_row_keeps_its_last_row_when_the_frame_is_short() {
+    // The last row of the 2x3 table is "1", "22" and an empty cell. Its frame (40 pt) is shorter than
+    // the rows (60 pt), so the composed table used to lose that row and report hidden text.
+    let seen = import(&Case { frame_a_height: 40, ..Case::good() });
+    assert_eq!(seen.a, ["Sun", "", "Tue", "1", "22", ""]);
+    assert!(seen.notes.iter().all(|n| !n.contains("does not fit")), "{:?}", seen.notes);
+    assert!(warned(&seen, "frame was made taller"), "{:?}", seen.warnings);
+    // A frame that already fits is left alone.
+    let fits = import(&Case::good());
+    assert!(fits.notes.is_empty() && !warned(&fits, "frame was made taller"));
 }

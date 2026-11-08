@@ -491,6 +491,9 @@ impl<'a> Builder<'a> {
         if wordart.is_none() {
             self.shadow(id, sh);
         }
+        if info.table.is_some() && !follower {
+            self.fit_frame_to_table(id);
+        }
         Ok(())
     }
 
