@@ -843,9 +843,9 @@ UNKNOWN (9/9): independently documented physical page/frame placement is still a
 
 ## Ranked unknowns and next smallest step
 
-1. UNKNOWN (5/9 C files, all 5/5 third-family files): per-story/frame text ranges, unique code page and control-marker semantics. OBSERVATION: AP20 locates root Contents text candidates using control +0x0E/+0x12, counts 5264/6847/6770/7110/10564 single-byte units including the stated CR/LF trailer, and reproduces the bounds/encoding controls in 5/5 files. The earlier unknown root text location is narrowed; publication-wide visible-character totals and ownership are not established. INFERENCE: the next smallest step is to test CATALOG record fields against bounded byte ranges or indirection into this buffer with independent controls; do not assume Quill IDs or page delimiters.
+1. UNKNOWN (5/9 C files, all 5/5 third-family files): unique code page, control-marker rendering and displayed text/page semantics. OBSERVATION: AP21 finds a counted map in index 26/class 10 linking 28/72/74/88/30 byte spans to direct directory IDs. All 292 spans cover the AP20 core buffers contiguously and end in CR/LF plus form feed; the final two-byte CR/LF trailer is outside the map. Shifted/other-class controls reject competing rules. The byte-range-to-record link is no longer UNKNOWN for these samples; page ownership and visual reading order are not established.
 2. UNKNOWN (5/9 C files): the 190 failed/unmapped strict-transfer records, including 180 missing/mismatching extent rules and ten matching-length/invalid-offset-table records, plus 39 tail-parent disagreements in 2/9 files. No tail or padding interpretation is generalized to remove these counterexamples.
-3. UNKNOWN (9/9 physical evidence absent): page identity/order, root-size semantics and actual frame unit/origin. A jointly documented physical page/frame observation remains the smallest decisive placement test; new root-size plausibility alone does not close it.
+3. UNKNOWN (9/9 physical evidence absent): page identity/order, root-size semantics and actual frame unit/origin. A jointly documented physical page/frame observation remains the smallest decisive placement test; new root-size plausibility alone does not close it. OBSERVATION: AP21 joins 292 third-family ranges to positive co-located rectangle probes; the ten unlinked index-0/index-1 controls are all zero. Half-root containment fails for 58 linked records in CATALOG/SCHOOL (2/5 third-family files), while three files admit multiple origins. INFERENCE: the next smallest existing-data test is an ancestor-relative coordinate-base check on those parent chains, preserving the need for independent physical measurement.
 4. UNKNOWN (A 3/9, B 1/9): selector/tag applicability, unsupported offsets, full reference semantics, flags and authoritative story-field widths. Scoped A reference hits replicate in zmspub, but zero-only fields remain unproved and B gains no new positive instance.
 5. UNKNOWN (B still 1/9; positive A text still 1/9): saving-version generality, independent B manufacture and a second positive A text/geometry sample. zmspub is now verified and its purported Contents equality with mspub is refuted; that identity question is closed for these attachments, not for every file carrying those names.
 
@@ -959,3 +959,170 @@ UNKNOWN (5/5): per-story starts/lengths, links from these buffers to frame recor
 INFERENCE (next smallest step, 5/5 applicable data): use CATALOG's now-bounded byte buffer to test candidate record fields for starts/lengths or indirection into its control-delimited ranges, with matched-width fields from other index cohorts and separately corroborated zero-length/inactive controls. First require exact bounded ranges and independent record/parent corroboration; do not choose matches from common small numbers or assume a form feed is a page break. Exact code-page selection and trailer/control semantics remain separate unknowns.
 
 OBSERVATION (first AP20 checkpoint): the text locating rule and single-byte evidence replicate in 5/5 files, with zero locating-rule failures. Table framing has 64/64 entries per file and H correlation 2545/2545; candidate buffer units are bounded and counted exactly with their trailer convention stated. Frame/story/page linkage and unique code-page selection remain UNKNOWN. Research stops here; no importer or broader following-region decoding is attempted. SOURCES.md is unchanged because every binary evidence source was already listed.
+
+## Third-family counted text ranges and record links
+
+OBSERVATION (5/5 third-family files; AP21): all seven attachments again match the AP19 sizes and SHA-256 values before use. The evidence remains the same five third-family binaries and own preceding notes; no new source, scoring export, external specification or other reader is consulted. Only derived numbers and structure are recorded; no sample text or byte dump is quoted in this section. Needed stream bytes and experiment outputs remain ignored. No importer, environment setting/script, full CI or pull request changes are made.
+
+### CATALOG search scope and false positives
+
+OBSERVATION (single-file, 1/5): every byte offset that permits a complete u16 or u32 read was scanned within all 101 directory-addressed record spans, all 64 layout entries and all 101 ten-byte directory entries. Positive adjacent equal-width pairs were tested as start/end (SE) and start/length (SL), with 0 <= start < end <= N and N=5264, the AP20 candidate buffer length. Scalar hits use [0,N), including zero. Record prefixes and tails were both included; reads never cross their enclosing span. These scopes are explicit: this is not a claim to exhaust mixed-width, nonadjacent, compressed or arbitrary-indirection encodings.
+
+| Basis / coverage | Domain | u16 hits / fields; records with hits | u32 hits / fields; records with hits | SE16 positive pairs / tested; records | SL16 positive pairs / tested; records | SE32 positive pairs / tested; records | SL32 positive pairs / tested; records |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| OBSERVATION (1/5) | record (101 entries) | 8710/11463; 101 | 4539/11261; 99 | 1728/11261; 101 | 2404/11261; 101 | 578/10857; 75 | 695/10857; 79 |
+| OBSERVATION (1/5) | descriptor (64 entries) | 477/538; 64 | 198/410; 64 | 93/410; 27 | 138/410; 47 | 2/154; 2 | 3/154; 3 |
+| OBSERVATION (1/5) | directory (101 entries) | 509/909; 101 | 0/707; 0 | 74/707; 66 | 140/707; 101 | 0/303; 0 | 0/303; 0 |
+
+OBSERVATION (single-file, 1/5): small headers, record IDs, counts and zeros create thousands of numerical hits. A second scan tested 221180 seeds: every bounded starting byte in each record, width two/four, SE/SL interpretation, and strides 2*w,2*w+2,...,2*w+8. It found 213 ordered nonoverlapping runs of at least three positive spans, including overlapping suffix hypotheses. Exactly one run covered the independently bounded core [0,5262) contiguously from zero: 28 u32-SE pairs at record 0x203 relative +22, stride eight. The different AP20 full length, 5264, is not silently substituted; its final two-byte trailer remains outside this partition.
+
+OBSERVATION (single-file, 1/5): all eight simple across-record families that yielded two or more ordered, nonoverlapping positive pairs were given shifted-offset and other-class controls below. A ninth repeated-header example demonstrates that paragraph-boundary coincidence alone also fails. Counts in shifted cells are positive pairs / eligible fields at offsets -2,-1,+1,+2 bytes from the nominated offset; eligibility requires the whole pair inside its source record. Other-class controls apply the identical offset/width/mode to records whose numeric class differs, not just a different record ID. None of these simple families is selected as a text map: none covers the core and none has the independently corroborated counted-ID structure found below. Control positives show why merely fitting [0,N) or preserving order is insufficient; they do not prove that each field has no other role.
+
+| Basis / coverage | Index, offset, width, mode | Base positive / eligible | Sum of span lengths | Shift controls -2,-1,+1,+2 | Other-class positive / eligible | Rejection |
+| --- | --- | --- | ---: | --- | --- | --- |
+| OBSERVATION (1/5) | 15, +34, u16, SL | 2/2 | 1645 | -2: 2/2; -1: 0/2; 1: 0/0; 2: 0/0 | 1/67 | partial/subset cover; no counted partition or marker/ID corroboration |
+| OBSERVATION (1/5) | 20, +56, u16, SE | 2/2 | 79 | -2: 2/2; -1: 0/2; 1: 0/1; 2: 0/1 | 6/46 | partial/subset cover; no counted partition or marker/ID corroboration |
+| OBSERVATION (1/5) | 20, +54, u16, SE | 2/2 | 49 | -2: 1/2; -1: 0/2; 1: 0/2; 2: 2/2 | 16/55 | partial/subset cover; no counted partition or marker/ID corroboration |
+| OBSERVATION (1/5) | 15, +34, u16, SE | 2/2 | 11 | -2: 2/2; -1: 0/2; 1: 0/0; 2: 0/0 | 1/67 | partial/subset cover; no counted partition or marker/ID corroboration |
+| OBSERVATION (1/5) | 15, +22, u16, SL | 2/2 | 4 | -2: 2/2; -1: 0/2; 1: 2/2; 2: 2/2 | 12/78 | partial/subset cover; no counted partition or marker/ID corroboration |
+| OBSERVATION (1/5) | 20, +40, u16, SE | 2/5 | 3 | -2: 3/6; -1: 0/5; 1: 0/4; 2: 4/4 | 4/63 | partial/subset cover; no counted partition or marker/ID corroboration |
+| OBSERVATION (1/5) | 6, +31, u16, SL | 2/4 | 512 | -2: 3/4; -1: 3/4; 1: 4/4; 2: 1/4 | 2/66 | partial/subset cover; no counted partition or marker/ID corroboration |
+| OBSERVATION (1/5) | 1, +92, u16, SL | 2/4 | 29 | -2: 0/4; -1: 0/4; 1: 0/4; 2: 2/4 | 12/33 | partial/subset cover; no counted partition or marker/ID corroboration |
+| OBSERVATION (1/5) | 49, +8, u32, SE | 4/4 | 16 | -2: 0/4; -1: 4/4; 1: 0/4; 2: 0/4 | 11/94 | repeated [0,4) spans overlap; no core cover |
+
+### Surviving rule: counted pairs plus an ID array
+
+OBSERVATION (single-file discovery, replicated 5/5): the zero-based layout entry 26 has high-byte H=4, class code 10 and width hint 10. Each file has exactly one directory record of index 26. Its extent already fits H+22+n*(4+w), with n from u16 T, a duplicate at T+2, w=u16 T+4=10, and T=R+H. This independently bounds the n u32 slots and n ten-byte metadata elements before interpreting text. In all five n is positive and even. No count is inferred from a desired number of paragraphs or frames.
+
+| Basis / coverage | Field / formula | CATALOG evidence | Interpretation and limit |
+| --- | --- | --- | --- |
+| OBSERVATION (1/5 absolute example; rule 5/5) | Directory entry / source record | Entry 0x2D42 names ID 0x203 at R=0x3FD9; E=0x4303, span 810, index 26, H=4 | Same directory/extent method as before. |
+| OBSERVATION (5/5) | n=u16 T; duplicate=u16 T+2; w=u16 T+4 | At 0x3FDD/0x3FDF/0x3FE1: 56/56/10 | n counts slots and metadata elements; number of paired ranges is n/2. Duplicate authority/capacity semantics remain UNKNOWN. |
+| OBSERVATION (5/5) | A=T+18; slot i=u32(A+4*i), 0<=i<n | A=0x3FEF; 56 slots fit before 0x40CF | Pair slots 2*j/2*j+1 as relative byte start/end. |
+| OBSERVATION (5/5) | u32(A+4*n) | At 0x40CF equals 5262 | Extra boundary word equals control-derived M=P-S, the core length, and repeats final range end. |
+| OBSERVATION (5/5) | B=T+22+4*n; element i at B+10*i | B=0x40D3; 56 elements consume 560 bytes to E | Odd/even element phases are tested, not conflated. |
+| OBSERVATION (5/5) | u16(B+20*j) | Every even element's first field names one directory ID | The record target for range j; 292/292 hits and distinct per file. |
+| OBSERVATION (5/5) | u16(B+20*j+2) | Value 1 when target index is 0; value 0 when target index is 1 | Correlation checked 292/292; named flag meaning is INFERENCE, not decoded semantics. |
+| OBSERVATION (5/5) | u16(B+20*j+10) | Every odd element's first field is zero | Zero is not a second target ID. Other metadata bytes remain UNKNOWN. |
+
+INFERENCE (5/5): record index 26 is a central byte-range-to-record map. It does not use a Quill story-ID intermediary or store one range pair directly in every frame prefix. A bounds-checked experimental walker must validate S/P, R/E/H, n parity/duplicate, w, both array spans, the final boundary, each pair and each directory target before accepting a link; checked wide arithmetic must reject overflow. The matching length equation alone is not the reference proof.
+
+| Basis / coverage | File | Source ID / directory entry / R | n / pairs | Slot array / boundary / metadata array | Core end M / source end E | Range and ID checks |
+| --- | --- | --- | --- | --- | --- | --- |
+| OBSERVATION (1/5) | CATALOG.PUB | 0x203 / 0x2D42 / 0x3FD9 | 56 / 28 | 0x3FEF / 0x40CF / 0x40D3 | 5262 / 0x4303 | 28/28 |
+| OBSERVATION (1/5) | JAZZY.PUB | 0x110 / 0x313C / 0x563B | 144 / 72 | 0x5651 / 0x5891 / 0x5895 | 6845 / 0x5E35 | 72/72 |
+| OBSERVATION (1/5) | MODERN.PUB | 0x110 / 0x2F36 / 0x62C8 | 148 / 74 | 0x62DE / 0x652E / 0x6532 | 6768 / 0x6AFA | 74/74 |
+| OBSERVATION (1/5) | PLAIN.PUB | 0x110 / 0x333C / 0x647B | 176 / 88 | 0x6491 / 0x6751 / 0x6755 | 7108 / 0x6E35 | 88/88 |
+| OBSERVATION (1/5) | SCHOOL.PUB | 0x17F / 0x392A / 0x4330 | 60 / 30 | 0x4346 / 0x4436 / 0x443A | 10562 / 0x4692 | 30/30 |
+
+OBSERVATION (5/5): the locating rule frozen from CATALOG passes on all four other files without changing field offsets, widths, count handling, pairing or target lookup. There are zero source-record, range or target-ID exceptions: 292/292 positive spans and links overall. Each file's span IDs are unique; all linked targets are index 0/class 9 or index 1/class 1. Across five files, the distribution is 263 targets of index 0 and 29 of index 1, exactly matching the metadata kind correlation above.
+
+### Controls for the counted rule and metadata links
+
+OBSERVATION (5/5): moving A by -4,-3,-2,-1,+1,+2,+3,+4 bytes while retaining stored n gives 0/8 complete partitions per file, 0/40 overall. Several shifts preserve apparent adjacency while their numerical bounds fail; order alone is not enough. Re-reading as u16-SE, u16-SL or u32-SL also gives 0/3 complete partitions per file. These are the same fields, counts and source records, rather than arbitrary unrelated bytes.
+
+OBSERVATION (5/5): every record of another numeric class is also tested at its own T+18 with the same count-pair/parity/bounds predicate, deliberately relaxing the w=10 requirement. Twenty-one controls have eligible arrays; none forms a complete partition. The other 2519 fail header/count/slot bounds before payload interpretation. This gives 0/2540 other-class full-map matches, not a silent exclusion of unmatched records. The CATALOG eligible controls are IDs 0x197/index 28, 0x111/index 44 and 0x103/index 44; all fail the partition. Other files' eligible control IDs are listed below.
+
+| Basis / coverage | File | Shifted partition passes | Alternative width/mode partition passes | Other-class eligible / tested; partition passes | Eligible control IDs |
+| --- | --- | --- | --- | --- | --- |
+| OBSERVATION (1/5) | CATALOG.PUB | 0/8 | 0/3 | 3/100; 0 | 0x197, 0x111, 0x103 |
+| OBSERVATION (1/5) | JAZZY.PUB | 0/8 | 0/3 | 10/610; 0 | 0x115, 0x116, 0x2E3, 0x261, 0x184, 0x6C4, 0x148, 0x717, 0x6CD, 0x729 |
+| OBSERVATION (1/5) | MODERN.PUB | 0/8 | 0/3 | 2/978; 0 | 0x125, 0x116 |
+| OBSERVATION (1/5) | PLAIN.PUB | 0/8 | 0/3 | 3/734; 0 | 0x111, 0x103, 0x116 |
+| OBSERVATION (1/5) | SCHOOL.PUB | 0/8 | 0/3 | 3/118; 0 | 0x11B, 0x158, 0x191 |
+
+OBSERVATION (5/5): metadata reference controls shift the same even-element u16 field. All probes below remain within their source record; each file uses the same number of fields as its positive spans. Values shown are directory-ID hits / hits whose targets are index 0 or 1. Zero shift uniquely gives all distinct targets of the correct cohorts, whereas shifted ID coincidences can be numerous. For example JAZZY +1 hits 64 IDs but zero target-cohort IDs and only six distinct IDs. Reading the true field as u8 yields 0/292 directory IDs; u16 yields 292/292; reading the combined u32 ID/kind gives only 29/292 hits. No per-field match is accepted just because it resembles a small ID.
+
+| Basis / coverage | File | -2 | -1 | 0 (selected) | +1 | +2 | +4 | +6 | +8 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| OBSERVATION (1/5) | CATALOG.PUB | 0/0 | 0/0 | 28/28 | 2/0 | 0/0 | 0/0 | 0/0 | 0/0 |
+| OBSERVATION (1/5) | JAZZY.PUB | 0/0 | 1/0 | 72/72 | 64/0 | 0/0 | 12/2 | 0/0 | 0/0 |
+| OBSERVATION (1/5) | MODERN.PUB | 0/0 | 3/1 | 74/74 | 66/0 | 0/0 | 16/1 | 0/0 | 0/0 |
+| OBSERVATION (1/5) | PLAIN.PUB | 0/0 | 0/0 | 88/88 | 80/0 | 0/0 | 33/4 | 0/0 | 0/0 |
+| OBSERVATION (1/5) | SCHOOL.PUB | 0/0 | 0/0 | 30/30 | 28/0 | 0/0 | 0/0 | 0/0 | 0/0 |
+
+### Coverage, markers and paragraph boundaries
+
+OBSERVATION (5/5): the paired spans are already ascending and adjacent in serialized array order; no sorting or gap filling is performed. They cover [0,M) exactly, with positive lengths and no overlaps or gaps. They leave precisely the AP20 terminal CR/LF at [M,M+2) outside every mapped span. Doubling offsets as if they counted UTF-16 units overruns the core for many ranges and fails complete coverage in 5/5; observed one-byte units preserve every marker boundary.
+
+OBSERVATION (5/5): each mapped span contains exactly one form feed, its final byte at end-1; that form feed is immediately preceded by CR/LF at [end-3,end-1). Hence end itself is not a terminal CR/LF boundary: it is one byte later, after the form-feed marker. No boundary splits a CR/LF pair. CR/LF pairs after a boundary occur once per file except twice in SCHOOL. This distinguishes the mapped ranges from arbitrary paragraph runs. The role of form feed as a storage delimiter is corroborated; calling it a displayed page break is not proven.
+
+| Basis / coverage | File | Positive spans / adjacent joins | Core bytes covered / full candidate bytes | Spans with exactly one terminal FF / preceding CRLF | Core CRLF pairs / full-buffer CRLF pairs | End at CRLF boundary / CRLF immediately after end | Split CRLF pairs |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| OBSERVATION (1/5) | CATALOG.PUB | 28 / 27 | 5262 / 5264 | 28/28 / 28/28 | 205 / 206 | 0 / 1 | 0 |
+| OBSERVATION (1/5) | JAZZY.PUB | 72 / 71 | 6845 / 6847 | 72/72 / 72/72 | 139 / 140 | 0 / 1 | 0 |
+| OBSERVATION (1/5) | MODERN.PUB | 74 / 73 | 6768 / 6770 | 74/74 / 74/74 | 156 / 157 | 0 / 1 | 0 |
+| OBSERVATION (1/5) | PLAIN.PUB | 88 / 87 | 7108 / 7110 | 88/88 / 88/88 | 186 / 187 | 0 / 1 | 0 |
+| OBSERVATION (1/5) | SCHOOL.PUB | 30 / 29 | 10562 / 10564 | 30/30 / 30/30 | 76 / 77 | 0 / 2 | 0 |
+
+OBSERVATION (single-file, 1/5): the complete CATALOG span/target census below is the positive discovery evidence. It contains only offsets and IDs, not text. For range j, its pair fields are A+8*j and A+8*j+4 and its target field is B+20*j. The first range is not selected by quoting or searching a private phrase.
+
+| Basis / coverage | j | Byte range [start,end) | Target ID / index | Target-ID field | Immediate directory parent |
+| --- | ---: | --- | --- | --- | --- |
+| OBSERVATION (1/5) | 0 | [0,28) | 0x274 / 0 | 0x40D3 | 0x1AB |
+| OBSERVATION (1/5) | 1 | [28,344) | 0x152 / 0 | 0x40E7 | 0x10A |
+| OBSERVATION (1/5) | 2 | [344,364) | 0x12D / 0 | 0x40FB | 0x1AA |
+| OBSERVATION (1/5) | 3 | [364,374) | 0x14D / 0 | 0x410F | 0x1AA |
+| OBSERVATION (1/5) | 4 | [374,381) | 0x140 / 0 | 0x4123 | 0x10D |
+| OBSERVATION (1/5) | 5 | [381,391) | 0x13A / 0 | 0x4137 | 0x10B |
+| OBSERVATION (1/5) | 6 | [391,395) | 0x508 / 0 | 0x414B | 0x503 |
+| OBSERVATION (1/5) | 7 | [395,598) | 0x150 / 1 | 0x415F | 0x10A |
+| OBSERVATION (1/5) | 8 | [598,1363) | 0x19A / 0 | 0x4173 | 0x108 |
+| OBSERVATION (1/5) | 9 | [1363,2128) | 0x141 / 0 | 0x4187 | 0x1AA |
+| OBSERVATION (1/5) | 10 | [2128,2138) | 0x139 / 0 | 0x419B | 0x10D |
+| OBSERVATION (1/5) | 11 | [2138,2463) | 0x130 / 1 | 0x41AF | 0x10E |
+| OBSERVATION (1/5) | 12 | [2463,2732) | 0x120 / 0 | 0x41C3 | 0x108 |
+| OBSERVATION (1/5) | 13 | [2732,2752) | 0x19E / 0 | 0x41D7 | 0x108 |
+| OBSERVATION (1/5) | 14 | [2752,3021) | 0x178 / 0 | 0x41EB | 0x10D |
+| OBSERVATION (1/5) | 15 | [3021,3290) | 0x170 / 0 | 0x41FF | 0x10B |
+| OBSERVATION (1/5) | 16 | [3290,3310) | 0x1A7 / 0 | 0x4213 | 0x10D |
+| OBSERVATION (1/5) | 17 | [3310,3330) | 0x19D / 0 | 0x4227 | 0x10B |
+| OBSERVATION (1/5) | 18 | [3330,3351) | 0x13F / 0 | 0x423B | 0x10E |
+| OBSERVATION (1/5) | 19 | [3351,3364) | 0x115 / 0 | 0x424F | 0x1A3 |
+| OBSERVATION (1/5) | 20 | [3364,3405) | 0x16B / 1 | 0x4263 | 0x10E |
+| OBSERVATION (1/5) | 21 | [3405,3409) | 0x165 / 0 | 0x4277 | 0x11E |
+| OBSERVATION (1/5) | 22 | [3409,4174) | 0x179 / 0 | 0x428B | 0x10B |
+| OBSERVATION (1/5) | 23 | [4174,4939) | 0x17C / 0 | 0x429F | 0x10D |
+| OBSERVATION (1/5) | 24 | [4939,4966) | 0x187 / 0 | 0x42B3 | 0x10A |
+| OBSERVATION (1/5) | 25 | [4966,4983) | 0x116 / 0 | 0x42C7 | 0x1A3 |
+| OBSERVATION (1/5) | 26 | [4983,5252) | 0x11C / 0 | 0x42DB | 0x1AA |
+| OBSERVATION (1/5) | 27 | [5252,5262) | 0x13B / 0 | 0x42EF | 0x108 |
+
+### Frame rectangles and parent chains
+
+OBSERVATION (5/5): every target directory ID resolves once, and its acyclic parent chain reaches the same independently located root-like record as the rest of its file (292/292). Immediate parents are index 20 or 15, not necessarily the range-map source; the table below records those cohort counts. No decoded page-count or displayed page identity validates those collections as pages. Serialized range order is buffer order, not proven reading or page order.
+
+OBSERVATION (5/5): the target records carry signed32 probes at +0x06/+0x0A/+0x0E/+0x12, as in the earlier geometry experiment. All 292 have positive width and height. In each file exactly one unlinked index-0 record and one unlinked index-1 record remain; all ten have zero rectangles. They are explicit negative controls, not unmatched positive text spans. This co-location plus counted IDs and zero controls supports the interpretation of the targets as text hosts, while actual displayed geometry remains inferred.
+
+| Basis / coverage | File | Targets index 0 / 1 | Parent-index counts; distinct parents | Positive rectangles / targets | Half-root translated containment | Untranslated containment | Unlinked zero-rectangle IDs |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| OBSERVATION (1/5) | CATALOG.PUB | 25 / 3 | 20: 26; 15: 2; 10 | 28/28 | 0/28 | 0/28 | 0x1FD, 0x195 |
+| OBSERVATION (1/5) | JAZZY.PUB | 64 / 8 | 15: 72; 51 | 72/72 | 72/72 | 72/72 | 0x118, 0x119 |
+| OBSERVATION (1/5) | MODERN.PUB | 66 / 8 | 15: 74; 54 | 74/74 | 74/74 | 74/74 | 0x118, 0x119 |
+| OBSERVATION (1/5) | PLAIN.PUB | 80 / 8 | 15: 88; 69 | 88/88 | 88/88 | 87/88 | 0x118, 0x119 |
+| OBSERVATION (1/5) | SCHOOL.PUB | 28 / 2 | 20: 30; 6 | 30/30 | 0/30 | 0/30 | 0x17D, 0x160 |
+
+OBSERVATION (2/5 files): the inherited half-root translation fails containment for every linked CATALOG and SCHOOL target; all 58 affected record IDs are listed below. This is a geometry-assumption failure, not a failed byte-range/record link. The other three files pass translated containment for 234/234 targets (3/5). Raw-origin containment also passes 72/72,74/74 and87/88 there, so containment still does not establish the true origin.
+
+| Basis / coverage | File | Every half-root containment failure |
+| --- | --- | --- |
+| OBSERVATION (1/5) | CATALOG.PUB | 0x274, 0x152, 0x12D, 0x14D, 0x140, 0x13A, 0x508, 0x150, 0x19A, 0x141, 0x139, 0x130, 0x120, 0x19E, 0x178, 0x170, 0x1A7, 0x19D, 0x13F, 0x115, 0x16B, 0x165, 0x179, 0x17C, 0x187, 0x116, 0x11C, 0x13B |
+| OBSERVATION (1/5) | SCHOOL.PUB | 0x1DE, 0x16E, 0x19D, 0x1A5, 0x198, 0x19A, 0x1A6, 0x1A8, 0x204, 0x1C0, 0x1DF, 0x207, 0x172, 0x1B8, 0x171, 0x13E, 0x191, 0x158, 0x1CA, 0x1C2, 0x203, 0x197, 0x1CB, 0x1FA, 0x1E2, 0x130, 0x16F, 0x1CE, 0x34D, 0x20B |
+
+OBSERVATION (5/5): other-index, fixed-prefix-bounded rectangle probes supply a separate geometry false-positive control. Positive-size and translated-containment hits are reported rather than treated as new frames; three large-root files admit many such numerical hits. Geometry plausibility alone is therefore much weaker than the central map's count/partition/ID/marker corroboration.
+
+| Basis / coverage | File | Other-index eligible probes | Positive size | Half-root containment |
+| --- | --- | ---: | ---: | ---: |
+| OBSERVATION (1/5) | CATALOG.PUB | 44 | 16 | 1 |
+| OBSERVATION (1/5) | JAZZY.PUB | 442 | 415 | 415 |
+| OBSERVATION (1/5) | MODERN.PUB | 830 | 771 | 771 |
+| OBSERVATION (1/5) | PLAIN.PUB | 588 | 562 | 561 |
+| OBSERVATION (1/5) | SCHOOL.PUB | 57 | 35 | 1 |
+
+INFERENCE (5/5): a byte span can now be joined to a candidate text-host rectangle through its direct record ID, in contrast to A's Quill story-ID join. The encoded byte-range association is established; interpretation as actual displayed frame geometry and pages is not. UNKNOWN (5/5): collection/page semantics, coordinate origin/unit/ancestor transforms, range order versus visual reading order, uninterpreted metadata fields beyond the target-ID/kind observations and control-marker rendering. The ten unlinked zero records are not called hidden text, and mapped form feeds are not counted as pages.
+
+INFERENCE (single decisive observation): one independently documented creation observation tying a known CATALOG span/target to an actual page and physical unrotated frame rectangle would test whether these numeric probes describe that visible frame, and distinguish physical scale/origin assumptions. Such an observation is unavailable; a successful byte partition or a small directory-ID hit cannot replace it.
+
+INFERENCE (next smallest existing-data step, 5/5 available files): test whether the linked rectangles use an ancestor-relative coordinate base, beginning with CATALOG's index-20/index-15 parent chains and the 58 CATALOG/SCHOOL containment failures. Freeze the text-range map, test candidate parent transforms with shifted/other-class controls, and retain physical placement as UNKNOWN without an independent measurement. Do not decode unrelated metadata or invent a page assignment to make the boxes fit.
+
+OBSERVATION (first AP21 checkpoint): five source records give 292/292 ordered, contiguous core spans, 292/292 directory links and 292/292 positive co-located rectangle probes. No positive range/map record fails the frozen rule; the two-byte trailers, ten unlinked zero controls and 58 failed placement assumptions are accounted for explicitly. No private text is quoted and no new evidence source is added, so SOURCES.md remains unchanged. Research stops here.
