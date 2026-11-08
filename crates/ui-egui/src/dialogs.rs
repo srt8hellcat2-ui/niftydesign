@@ -3023,6 +3023,7 @@ pub fn show(app: &mut DesignApp, ctx: &egui::Context) {
             | "convertTableToText" => 380.0,
             "insertPages" => 440.0,
             "convertTextToTable" => 420.0,
+            "calendarYear" => 420.0,
             "newDocument" => 960.0,
             "hyphenation" => 560.0,
             "numberingSection" => 560.0,
@@ -3820,12 +3821,17 @@ pub fn show(app: &mut DesignApp, ctx: &egui::Context) {
                                 d.fields.insert("year".into(), json!(v.round()));
                             }
                         });
-                        ui.label(
-                            egui::RichText::new(crate::i18n::tr(
-                                &app.ui.language,
-                                "Retypes every month heading's year, the day numbers and the week rows. Other text is not touched.",
-                            ))
-                            .color(crate::theme::Tokens::get(ui.ctx()).text_dim),
+                        // Wrapped to the dialog's width: an unwrapped line would widen the dialog past the window.
+                        ui.set_max_width(width.min(400.0));
+                        ui.add(
+                            egui::Label::new(
+                                egui::RichText::new(crate::i18n::tr(
+                                    &app.ui.language,
+                                    "Retypes every month heading's year, the day numbers and the week rows. Other text is not touched.",
+                                ))
+                                .color(crate::theme::Tokens::get(ui.ctx()).text_dim),
+                            )
+                            .wrap_mode(egui::TextWrapMode::Wrap),
                         );
                     }
                     "ruby" => style_cjk::ruby_dialog(app, ui, &mut d),
