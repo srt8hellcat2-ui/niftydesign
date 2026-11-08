@@ -426,7 +426,9 @@ impl Builder<'_> {
         if !overset(&self.doc).is_overset() {
             return;
         }
-        let Some(local) = self.doc.item(id).filter(|i| i.xf == designcraft_geom::Affine::IDENTITY).and_then(|i| i.path.bounds()) else { return };
+        // Composition works in the frame's own space, so a flipped or rotated frame grows the same way.
+        let Some(local) = self.doc.item(id).and_then(|i| i.path.bounds()) else { return };
+        let stored: f64 = self.doc.story(sid).and_then(|s| s.tables.values().next()).map_or(0.0, |t| t.rows.iter().map(|r| r.height).sum());
         let set_height = |doc: &mut designcraft_doc::Document, h: f64| {
             if let Some(item) = doc.item_mut(id) {
                 item.path = designcraft_geom::shapes::rectangle(Rect::new(local.x0, local.y0, local.x1, local.y0 + h));
@@ -437,19 +439,29 @@ impl Builder<'_> {
         // The height the text needs includes the paragraph after the table.
         let content = tall.frames.iter().map(|f| f.content_height).fold(0.0, f64::max);
         let needed = (content + inset + 0.5).max(local.height());
+        let mut refusal = None;
         if tall.is_overset() || !needed.is_finite() || needed > local.height() + MAX_GROWTH {
-            set_height(&mut self.doc, local.height());
-            return;
+            refusal = Some("the table is still overset with 4000 pt more room");
+        } else {
+            set_height(&mut self.doc, needed);
+            if overset(&self.doc).is_overset() {
+                refusal = Some("the table is still overset at the height the layout asked for");
+            }
         }
-        set_height(&mut self.doc, needed);
-        let fin = overset(&self.doc);
-        if fin.is_overset() {
+        if let Some(why) = refusal {
             set_height(&mut self.doc, local.height());
+            self.warnings.push(format!(
+                "Publisher table frame ({:.1} pt tall, stored rows {:.1} pt) is shorter than its table and could not be enlarged: {why}; its last rows may be hidden.",
+                local.height(),
+                stored
+            ));
             return;
         }
         self.warnings.push(format!(
-            "Publisher table frame was made taller by {:.1} pt so its last rows are not hidden; its rows grew to fit their text.",
-            needed - local.height()
+            "Publisher table frame was made taller from {:.1} pt to {:.1} pt (stored rows add up to {:.1} pt) so its last rows are not hidden; rows also grow to fit their text.",
+            local.height(),
+            needed,
+            stored
         ));
     }
     pub(crate) fn table_frame(&mut self, r: SpreadRef, rect: Rect, tid: u32, info: &TableInfo) -> Result<ItemId> {
@@ -562,6 +574,9 @@ mod tests {
         import_sized(info, text, ranges, 0.0)
     }
     fn import_sized(info: TableInfo, text: &str, ranges: Option<Vec<Range<usize>>>, size: f64) -> crate::Imported {
+        import_framed(info, text, ranges, size, 72.0)
+    }
+    fn import_framed(info: TableInfo, text: &str, ranges: Option<Vec<Range<usize>>>, size: f64, frame_pt: f64) -> crate::Imported {
         let mut c = Contents { width_emu: 7_772_400, height_emu: 10_058_400, ..Default::default() };
         c.pages.push(PageInfo { seq: 257, shapes: vec![258], ..Default::default() });
         c.shapes.insert(258, ShapeInfo { text_id: Some(3), is_table: true, table: Some(info), ..Default::default() });
@@ -575,7 +590,7 @@ mod tests {
             shapes: vec![EShape {
                 seq: Some(258),
                 kind: 202,
-                anchor: Emu { l: -2_000_000.0, t: -2_000_000.0, r: 1_657_600.0, b: -1_085_600.0 },
+                anchor: Emu { l: -2_000_000.0, t: -2_000_000.0, r: 1_657_600.0, b: -2_000_000.0 + frame_pt * 12_700.0 },
                 ..Default::default()
             }],
             ..Default::default()
@@ -732,6 +747,47 @@ mod tests {
         let table_bottom = composed.frames.iter().flat_map(|f| &f.tables).map(|t| t.rect.y1).fold(0.0, f64::max);
         assert!(frame.y1 >= table_bottom - 0.01, "frame {frame:?} table bottom {table_bottom}");
         assert!(imp.warnings.iter().any(|w| w.contains("frame was made taller")), "{:?}", imp.warnings);
+    }
+    #[test]
+    fn a_six_row_month_in_a_frame_one_row_short_keeps_its_last_week() {
+        // Six 18 pt rows (108 pt) in a frame 90 pt tall, as with a month that needs 5 week rows plus the
+        // weekday row; the text is small, so the rows do not grow and only the stored sizes disagree.
+        let rows = 6;
+        let info = TableInfo {
+            rows: vec![228_600; rows],
+            columns: vec![1_828_800; 2],
+            cells: (0..rows * 2).map(|i| CellInfo { row: i / 2, last_row: i / 2, col: i % 2, last_col: i % 2 }).collect(),
+            cell_record: 0,
+            row_ending_difference: 0,
+            approximations: Vec::new(),
+        };
+        let text = format!("{}\r", "1\r".repeat(rows * 2 - 2) + "31\r");
+        let units: Vec<_> = text.encode_utf16().collect();
+        let mut ends = Vec::new();
+        let mut at = 0u32;
+        for i in 0..rows * 2 {
+            at += if i == rows * 2 - 2 {
+                2
+            } else if i == rows * 2 - 1 {
+                0
+            } else {
+                1
+            };
+            ends.push(at);
+            at += 1;
+        }
+        *ends.last_mut().unwrap() = units.len() as u32;
+        let ranges = text_ranges(&table_data(&ends), &units).unwrap();
+        let imp = import_framed(info, &text, ranges.into(), 8.0, 90.0);
+        let host = imp.document.stories.values().next().unwrap();
+        let table = host.tables.values().next().unwrap();
+        assert_eq!(table.cells[rows * 2 - 2].text.text, "31");
+        let composed = designcraft_compose::compose_story(&imp.document, host.id, &Default::default());
+        assert!(!composed.is_overset(), "{:?}", imp.warnings);
+        let placed: usize = composed.frames.iter().flat_map(|f| &f.tables).map(|t| t.cells.len()).sum();
+        assert_eq!(placed, rows * 2);
+        let w = imp.warnings.iter().find(|w| w.contains("frame was made taller")).unwrap();
+        assert!(w.contains("from 90.0 pt") && w.contains("stored rows add up to 108.0 pt"), "{w}");
     }
     #[test]
     fn merged_regions_use_coordinates_and_keep_covered_cells_empty() {
