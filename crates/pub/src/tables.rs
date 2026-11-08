@@ -218,88 +218,193 @@ fn cell_story(source: &Story, range: Range<usize>, work: &mut usize) -> Result<S
     }
     Ok(out)
 }
-/// Recover only the verified one-table/one-TCD case in a multi-story publication.
-/// The Contents link selects the table story; the documented TCD boundaries must
-/// independently match only that story, and the cell records must be row-major.
-/// Do not assign a meaning to the directory occurrence field or infer a story by order.
-pub(crate) fn recover_single_table_text(c: &crate::contents::Contents, q: &mut crate::quill::Quill, bytes: &[u8]) -> Result<()> {
-    if q.stories.len() <= 1 {
-        return Ok(());
-    }
-    let mut tables = c.shapes.values().filter(|s| s.is_table);
-    let Some(shape) = tables.next() else { return Ok(()) };
-    if tables.next().is_some() {
-        return Ok(());
-    }
-    let (Some(id), Some(info)) = (shape.text_id, shape.table.as_ref()) else { return Ok(()) };
-    if info.cells.is_empty()
-        || info.cells.len() != info.rows.len() * info.columns.len()
-        || !info.cells.iter().enumerate().all(|(i, cell)| {
-            cell.row == i / info.columns.len() && cell.col == i % info.columns.len() && cell.last_row == cell.row && cell.last_col == cell.col
-        })
-    {
-        return Ok(());
-    }
-    let Some(data) = single_tcd(bytes)? else { return Ok(()) };
-    if data.len() != 12 + 4 * info.cells.len()
-        || u32_at(data, 4)? != 0
-        || u32_at(data, 8)? != 0xff00
-        || usize::try_from(u32_at(data, 0)?).ok().and_then(|n| n.checked_add(1)) != Some(info.cells.len())
-    {
-        return Ok(());
-    }
-    let Some(last) = info.cells.len().checked_sub(1).and_then(|i| i.checked_mul(4)).and_then(|n| n.checked_add(12)) else { return Ok(()) };
-    let Ok(end) = u32_at(data, last) else { return Ok(()) };
-    let mut matched = None;
-    let mut work = 0usize;
-    for (&story_id, story) in &q.stories {
-        if story.units.len() != end as usize || story.units.last() != Some(&13) {
-            continue;
-        }
-        work = work.saturating_add(info.cells.len());
-        if work > 1_000_000 {
-            return Ok(());
-        }
-        if let Ok(ranges) = text_ranges(data, &story.units) {
-            if matched.is_some() {
-                return Ok(());
-            }
-            matched = Some((story_id, ranges));
-        }
-    }
-    if let Some((story_id, ranges)) = matched
-        && story_id == id
-        && let Some(story) = q.stories.get_mut(&id)
-    {
-        story.cell_ranges = Some(ranges);
-        q.warnings.retain(|w| w != "Publisher table text across multiple stories/TCD sections is not decoded.");
-    }
-    Ok(())
+const LOSS_WARNING: &str = "Publisher table text across multiple stories/TCD sections is not decoded.";
+const MAX_TCD_ENTRIES: usize = 100_000;
+const MAX_PLACEMENT_WARNINGS: usize = 8;
+
+struct TcdEntry<'a> {
+    slot: u16,
+    data: &'a [u8],
 }
 
-fn single_tcd(bytes: &[u8]) -> Result<Option<&[u8]>> {
+/// Every `TCD ` directory entry: the u16 at entry+6 and its bounded section data.
+fn tcd_entries(bytes: &[u8]) -> Result<Vec<TcdEntry<'_>>> {
     use crate::read::u16_at;
     let mut seen = std::collections::HashSet::new();
     let mut at = 0x18usize;
-    let mut found = None;
+    let mut found = Vec::new();
+    let mut entries = 0usize;
     while at != u32::MAX as usize {
         if seen.len() >= 64 || !seen.insert(at) {
             return Err(bad("Quill section directory cycle or depth limit"));
         }
         let header = slice(bytes, at, 8)?;
         let n = usize::from(u16_at(header, 2)?);
+        entries += n;
+        if entries > MAX_TCD_ENTRIES {
+            return Err(bad("too many Quill sections"));
+        }
         let start = at.checked_add(8).ok_or_else(|| bad("section directory overflow"))?;
         for entry in slice(bytes, start, n * 24)?.as_chunks::<24>().0 {
             if entry.get(2..6) == Some(b"TCD ") {
-                if found.is_some() {
-                    return Ok(None);
-                }
-                found = Some(slice(bytes, u32_at(entry, 16)? as usize, u32_at(entry, 20)? as usize)?);
+                let data = slice(bytes, u32_at(entry, 16)? as usize, u32_at(entry, 20)? as usize)?;
+                found.push(TcdEntry { slot: u16_at(entry, 6)?, data });
             }
         }
         at = u32_at(header, 4)? as usize;
     }
     Ok(found)
+}
+
+/// The documented unmerged row-major correspondence between cell records and TCD ordinals.
+fn row_major_unmerged(info: &TableInfo) -> bool {
+    let columns = info.columns.len();
+    !info.cells.is_empty()
+        && columns > 0
+        && info.rows.len().checked_mul(columns) == Some(info.cells.len())
+        && info.cells.iter().enumerate().all(|(i, c)| c.row == i / columns && c.col == i % columns && c.last_row == c.row && c.last_col == c.col)
+}
+
+/// The documented TCD header and exact size for `cells` cells.
+fn tcd_header(data: &[u8], cells: usize) -> std::result::Result<(), &'static str> {
+    if cells.checked_mul(4).and_then(|n| n.checked_add(12)) != Some(data.len()) {
+        return Err("the TCD entry has the wrong size for the table");
+    }
+    if u32_at(data, 4).ok() != Some(0) || u32_at(data, 8).ok() != Some(0xff00) {
+        return Err("the TCD entry does not have the documented header");
+    }
+    if u32_at(data, 0).ok().and_then(|n| usize::try_from(n).ok()).and_then(|n| n.checked_add(1)) != Some(cells) {
+        return Err("the TCD cell count differs from the table's cell count");
+    }
+    Ok(())
+}
+
+/// Place cell text for the tables whose association passes every documented check.
+/// A table that fails any check keeps its text after the table and gets one bounded warning.
+/// With one table and one TCD the Contents link and the boundaries alone decide; otherwise the
+/// TCD entry's slot field must also equal the story's position in the SYID list.
+pub(crate) fn recover_table_text(c: &crate::contents::Contents, q: &mut crate::quill::Quill, bytes: &[u8]) -> Result<()> {
+    if q.stories.len() <= 1 {
+        return Ok(());
+    }
+    let all_tables = c.shapes.iter().filter(|(_, s)| s.is_table).count();
+    if all_tables == 0 {
+        return Ok(());
+    }
+    let tcds = tcd_entries(bytes)?;
+    if tcds.is_empty() {
+        return Ok(());
+    }
+    let mut candidates: Vec<(u32, u32, &TableInfo)> =
+        c.shapes.iter().filter(|(_, s)| s.is_table).filter_map(|(seq, s)| Some((*seq, s.text_id?, s.table.as_ref()?))).collect();
+    candidates.sort_by_key(|(seq, ..)| *seq);
+    let mut uses = std::collections::HashMap::<u32, usize>::new();
+    for (_, id, _) in &candidates {
+        *uses.entry(*id).or_default() += 1;
+    }
+    let single = all_tables == 1 && tcds.len() == 1;
+    let mut placed = Vec::new();
+    let mut failures = Vec::new();
+    let mut work = 0usize;
+    for (_, id, info) in &candidates {
+        let result = if single {
+            tcds.first().map_or(Err("no TCD entry"), |t| single_association(q, *id, info, t.data, &mut work))
+        } else {
+            slot_association(q, *id, info, &tcds, uses.get(id).copied().unwrap_or(0), &mut work)
+        };
+        match result {
+            Ok(ranges) => placed.push((*id, ranges)),
+            Err(reason) => failures.push((*id, reason)),
+        }
+    }
+    let all_placed = failures.is_empty() && placed.len() == tcds.len() && candidates.len() == all_tables;
+    for (id, ranges) in placed {
+        if let Some(story) = q.stories.get_mut(&id) {
+            story.cell_ranges = Some(ranges);
+        }
+    }
+    if all_placed {
+        q.warnings.retain(|w| w != LOSS_WARNING);
+    }
+    for (id, reason) in failures.iter().take(MAX_PLACEMENT_WARNINGS) {
+        q.warnings
+            .push(format!("Publisher table text for story {id} was not placed in its cells ({reason}); the original text was kept after the table."));
+    }
+    if failures.len() > MAX_PLACEMENT_WARNINGS {
+        q.warnings.push(format!("{} more Publisher tables kept their original text after the table.", failures.len() - MAX_PLACEMENT_WARNINGS));
+    }
+    Ok(())
+}
+
+/// One table and one TCD: the Contents link selects the story and the boundaries must fit only it.
+fn single_association(
+    q: &crate::quill::Quill,
+    id: u32,
+    info: &TableInfo,
+    data: &[u8],
+    work: &mut usize,
+) -> std::result::Result<Vec<Range<usize>>, &'static str> {
+    if !row_major_unmerged(info) {
+        return Err("the cells are merged or not in row-major order");
+    }
+    tcd_header(data, info.cells.len())?;
+    let end = info.cells.len().checked_sub(1).and_then(|i| i.checked_mul(4)).and_then(|n| n.checked_add(12)).and_then(|at| u32_at(data, at).ok());
+    let mut matched = None;
+    for (&story_id, story) in &q.stories {
+        if Some(story.units.len()) != end.map(|e| e as usize) || story.units.last() != Some(&13) {
+            continue;
+        }
+        *work = work.saturating_add(info.cells.len());
+        if *work > 1_000_000 {
+            return Err("the association needs too much work");
+        }
+        if let Ok(ranges) = text_ranges(data, &story.units) {
+            if matched.is_some() {
+                return Err("more than one story fits the cell boundaries");
+            }
+            matched = Some((story_id, ranges));
+        }
+    }
+    match matched {
+        Some((story_id, ranges)) if story_id == id => Ok(ranges),
+        Some(_) => Err("the cell boundaries fit a different story than the table's link"),
+        None => Err("the cell boundaries do not fit the linked story"),
+    }
+}
+
+/// Several tables or TCD entries: the story id, its SYID slot and the TCD slot field must agree.
+fn slot_association(
+    q: &crate::quill::Quill,
+    id: u32,
+    info: &TableInfo,
+    tcds: &[TcdEntry<'_>],
+    uses: usize,
+    work: &mut usize,
+) -> std::result::Result<Vec<Range<usize>>, &'static str> {
+    if uses != 1 {
+        return Err("the story is shared by more than one table");
+    }
+    if !q.slots_exact {
+        return Err("the story list (SYID/STRS) is missing, repeats an id or does not match the text");
+    }
+    let mut slots = q.slots.iter().enumerate().filter(|(_, s)| **s == id).map(|(i, _)| i);
+    let (Some(slot), None) = (slots.next(), slots.next()) else { return Err("the story id is missing from the story list or appears twice") };
+    let Ok(slot) = u16::try_from(slot) else { return Err("the story list position does not fit the TCD slot field") };
+    let mut chosen = tcds.iter().filter(|t| t.slot == slot);
+    let (Some(entry), None) = (chosen.next(), chosen.next()) else { return Err("the story does not have exactly one TCD entry") };
+    if !row_major_unmerged(info) {
+        return Err("the cells are merged or not in row-major order");
+    }
+    tcd_header(entry.data, info.cells.len())?;
+    let story = q.stories.get(&id).ok_or("the linked story is missing")?;
+    *work = work.saturating_add(info.cells.len());
+    if *work > 1_000_000 {
+        return Err("the association needs too much work");
+    }
+    if story.units.last() != Some(&13) {
+        return Err("the story does not end with a paragraph separator");
+    }
+    text_ranges(entry.data, &story.units).map_err(|_| "the cell boundaries or separators do not fit the story text")
 }
 
 impl Builder<'_> {
@@ -638,7 +743,7 @@ mod multi_story_text_tests {
     #[test]
     fn explicit_table_link_and_unique_boundaries_recover_cell_ranges() {
         let (c, mut q, bytes) = example();
-        recover_single_table_text(&c, &mut q, &bytes).unwrap();
+        recover_table_text(&c, &mut q, &bytes).unwrap();
         assert_eq!(q.stories[&6].cell_ranges, Some(vec![0..2, 3..5]));
         assert!(q.stories[&1].cell_ranges.is_none());
         assert_eq!(q.warnings, ["another real loss"]);
@@ -660,18 +765,21 @@ mod multi_story_text_tests {
                 _ => bytes[112..116].copy_from_slice(&5u32.to_le_bytes()),
             }
             let original: Vec<_> = q.stories.iter().map(|(id, s)| (*id, s.units.clone())).collect();
-            recover_single_table_text(&c, &mut q, &bytes).unwrap();
+            recover_table_text(&c, &mut q, &bytes).unwrap();
             assert!(q.stories.values().all(|s| s.cell_ranges.is_none()), "case {case}");
             for (id, units) in original {
                 assert_eq!(q.stories[&id].units, units);
             }
-            assert_eq!(q.warnings.len(), 2, "case {case}");
+            // The two earlier warnings stay; the table adds one bounded reason.
+            assert_eq!(q.warnings.len(), 3, "case {case}");
+            assert_eq!(q.warnings[..2], [LOSS_WARNING, "another real loss"], "case {case}");
+            assert!(q.warnings[2].contains("was not placed"), "case {case}");
         }
     }
     #[test]
     fn repeated_directory_offsets_are_rejected() {
         let (_, _, mut bytes) = example();
         bytes[28..32].copy_from_slice(&24u32.to_le_bytes());
-        assert!(single_tcd(&bytes).is_err());
+        assert!(tcd_entries(&bytes).is_err());
     }
 }
