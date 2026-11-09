@@ -73,8 +73,9 @@ pub enum Source {
     /// A/B: a Quill story id, its UTF-16 unit range in TEXT, and every Contents record that links to it
     /// (storage order only; neither reading order nor threading).
     Story { id: u32, units: std::ops::Range<usize>, records: Vec<u16> },
-    /// C: a directory record id and its byte range in the Contents text buffer (relative to its start).
-    Record { id: u16, bytes: std::ops::Range<usize> },
+    /// C: the target record id, the index-26 map record that lists it, and its byte range in the Contents
+    /// text buffer (relative to its start).
+    Record { id: u16, map: u16, bytes: std::ops::Range<usize> },
 }
 
 /// One recovered piece of text. `text` is `None` when the bytes could not be decoded safely
@@ -172,6 +173,11 @@ pub(crate) fn open(bytes: &[u8]) -> Result<Container, LegacyError> {
     Ok(Container { contents, clsid })
 }
 
+/// Whether a Quill stream is present, tested without reading its payload.
+fn quill_present(bytes: &[u8]) -> bool {
+    open_cf(bytes).is_ok_and(|cf| cf.is_stream("/Quill/QuillSub/CONTENTS"))
+}
+
 /// The Quill text stream, read only once the family is known to use it.
 fn quill_stream(bytes: &[u8]) -> Result<Option<Vec<u8>>, LegacyError> {
     let mut cf = open_cf(bytes)?;
@@ -193,7 +199,7 @@ pub fn read_legacy(bytes: &[u8]) -> Result<LegacyText, LegacyError> {
         },
         Family::C => {
             // Family C keeps its text in Contents; an alternate store is warned about, never followed.
-            if let Ok(Some(_)) = quill_stream(bytes) {
+            if quill_present(bytes) {
                 warnings.push(format!("{}: an unexpected Quill text store is present and was not read.", family.label()));
             }
             cmap::read_map(&layout)

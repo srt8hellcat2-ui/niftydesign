@@ -134,6 +134,9 @@ impl<'a> Layout<'a> {
         if need32(data, 0x1a, "table pointer")? as usize != TABLE_START {
             return Err(bad("the layout table does not start at 0x22"));
         }
+        if c > len || d > len {
+            return Err(bad("the control or directory pointer is outside the stream"));
+        }
         // G03 family and table.
         let word0 = need16(data, TABLE_START, "table cardinality")?;
         if need16(data, TABLE_START + 2, "table prefix")? != 6 {
@@ -236,6 +239,14 @@ impl<'a> Layout<'a> {
             }
             records.push(Rec { id, parent, r, e, index, h });
         }
+        let consumed = [0u16, 1, 8, 10, 21, 26];
+        let unvalidated = records.iter().filter(|r| table.contains_key(&r.index) && !consumed.contains(&r.index)).count();
+        if unvalidated > 0 {
+            warnings.push(format!(
+                "{}: {unvalidated} bounded record(s) were not interpreted and stay opaque; their extents were not validated.",
+                family.label()
+            ));
+        }
         if opaque > 0 {
             warnings.push(format!("{}: {opaque} record(s) have a layout index outside the table and stay opaque.", family.label()));
         }
@@ -245,24 +256,30 @@ impl<'a> Layout<'a> {
         let [root] = roots[..] else { return Err(bad("the record graph does not have exactly one root")) };
         // Each record reaches the root through resolving parents; remember settled records so the
         // total work stays linear however long an adversarial chain is.
-        let mut settled = vec![false; records.len()];
-        if let Some(r) = settled.get_mut(root) {
-            *r = true;
+        // 0 = unvisited, 1 = on the current path, 2 = reaches the root.
+        let mut state = vec![0u8; records.len()];
+        if let Some(r) = state.get_mut(root) {
+            *r = 2;
         }
         for start in 0..records.len() {
             let mut path = Vec::new();
             let mut at = start;
-            while !settled.get(at).copied().unwrap_or(false) {
-                if path.len() > records.len() || path.contains(&at) {
-                    return Err(bad("the record parent graph has a cycle"));
+            loop {
+                match state.get(at).copied().ok_or_else(|| bad("record graph index"))? {
+                    2 => break,
+                    1 => return Err(bad("the record parent graph has a cycle")),
+                    _ => {}
+                }
+                if let Some(x) = state.get_mut(at) {
+                    *x = 1;
                 }
                 path.push(at);
                 let parent = records.get(at).map(|r| r.parent).ok_or_else(|| bad("record graph index"))?;
                 at = *by_id.get(&parent).ok_or_else(|| bad("a record parent does not resolve"))?;
             }
             for i in path {
-                if let Some(x) = settled.get_mut(i) {
-                    *x = true;
+                if let Some(x) = state.get_mut(i) {
+                    *x = 2;
                 }
             }
         }

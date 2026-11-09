@@ -350,8 +350,8 @@ fn c_positive_recovers_two_ascii_segments_without_the_trailer() {
     assert_eq!(r.family, Family::C);
     assert_eq!(r.scope, Scope::Complete);
     assert_eq!(text_of(&r), [Some("Alpha\r\n\u{c}".to_string()), Some("Beta\r\n\u{c}".to_string())]);
-    assert_eq!(r.segments[0].source, Source::Record { id: 0x201, bytes: 0..8 });
-    assert_eq!(r.segments[1].source, Source::Record { id: 0x202, bytes: 8..15 });
+    assert_eq!(r.segments[0].source, Source::Record { id: 0x201, map: 0x203, bytes: 0..8 });
+    assert_eq!(r.segments[1].source, Source::Record { id: 0x202, map: 0x203, bytes: 8..15 });
     assert_eq!(r.size.unwrap().raw_width, 7_772_400);
 }
 
@@ -851,4 +851,20 @@ fn a_long_parent_chain_is_validated_in_linear_work() {
     }
     let r = read_legacy(&file(&m)).unwrap();
     assert_eq!(r.segments.len(), 2);
+}
+
+#[test]
+fn unvalidated_known_records_are_counted_as_opaque() {
+    let mut m = ab_model(false);
+    m.records.push(R { id: 0x300, parent: 0x200, index: 33, class: 0, h: 4, set: vec![], tail: vec![9, 9, 9] });
+    let r = read_legacy(&file(&m)).unwrap();
+    assert_eq!(r.segments.len(), 2);
+    assert!(warned(&r, "stay opaque"));
+}
+
+#[test]
+fn a_quill_directory_pointer_outside_the_stream_is_refused() {
+    let mut m = ab_model(false);
+    m.quill = Some(quill(&[5, 9], &[2, 2], "A\rB\r", Some(0xffff_fff0)));
+    text_refused(&m, "outside the stream");
 }

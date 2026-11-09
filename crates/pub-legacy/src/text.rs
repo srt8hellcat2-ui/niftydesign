@@ -22,6 +22,9 @@ fn sections(q: &[u8]) -> Result<Vec<Section>, String> {
         if seen.len() >= MAX_QUILL_BLOCKS || !seen.insert(at) {
             return Err("the Quill directory chain loops or is too long".into());
         }
+        if at >= q.len() {
+            return Err("a Quill directory block starts outside the stream".into());
+        }
         let count = u16_at(q, at + 2).ok_or("a Quill directory block runs past the stream")? as usize;
         let next = u32_at(q, at + 4).ok_or("a Quill directory block runs past the stream")? as usize;
         for k in 0..count {

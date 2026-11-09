@@ -81,7 +81,7 @@ pub(crate) fn read_map(layout: &Layout<'_>) -> Result<Recovered, String> {
             unknown += 1;
             (None, true)
         };
-        segments.push(Segment { source: Source::Record { id, bytes: start..end }, text, encoding_unknown });
+        segments.push(Segment { source: Source::Record { id, map: map.id, bytes: start..end }, text, encoding_unknown });
     }
     if expect_start != m {
         return Err("the map ranges do not cover the whole text buffer (C04)".into());
