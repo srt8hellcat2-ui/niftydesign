@@ -162,7 +162,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
         })
         .collect();
     Ok(json!({
-        "index": i, "documentFonts": [], "warnings": warnings, "notes": warnings, "notice": notice,
+        "index": i, "documentFonts": [], "warnings": warnings, "notes": [], "notice": notice,
         "legacy": {
             "route": "experimental-legacy",
             "family": r.family.label(),
