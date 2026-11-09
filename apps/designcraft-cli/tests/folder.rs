@@ -225,18 +225,12 @@ fn mixed_pinned_files_produce_both_reports_and_all_four_results() {
     let value = dir.report();
     assert_eq!(
         value["summary"],
-        serde_json::json!({"files":5,"converted_no_warnings":2,"converted_check":1,"not_supported":1,"could_not_read":1,"total_pages":3})
+        serde_json::json!({"files":5,"converted_no_warnings":2,"converted_check":2,"not_supported":0,"could_not_read":1,"total_pages":4})
     );
     let md = dir.markdown();
-    for label in [
-        "Converted, no warnings",
-        "Converted, check these things",
-        "Not supported yet",
-        "Could not read",
-        "Suggestion: Open and re-save this file in Publisher 2002 or newer",
-        "Curved WordArt uses measured font advances",
-        "appears damaged",
-    ] {
+    for label in
+        ["Converted, no warnings", "Converted, check these things", "Could not read", "Curved WordArt uses measured font advances", "appears damaged"]
+    {
         assert!(md.contains(label), "{md}");
     }
     assert!(!md.contains("0x"));
@@ -257,7 +251,7 @@ fn mixed_pinned_files_produce_both_reports_and_all_four_results() {
 }
 #[test]
 #[ignore = "needs PUB_REAL_CORPUS with the pinned external data"]
-fn whole_real_folder_reports_nineteen_conversions_two_refusals_three_damaged() {
+fn whole_real_folder_reports_twenty_one_conversions_three_damaged() {
     let dir = Dir::new();
     let input = PathBuf::from(std::env::var_os("PUB_REAL_CORPUS").expect("set PUB_REAL_CORPUS"));
     let out = Command::new(env!("CARGO_BIN_EXE_designcraft-cli")).arg("convert-folder").arg(input).arg(dir.output()).output().unwrap();
@@ -265,9 +259,13 @@ fn whole_real_folder_reports_nineteen_conversions_two_refusals_three_damaged() {
     let value = dir.report();
     let s = &value["summary"];
     assert_eq!(s["files"], 24);
-    assert_eq!(s["converted_no_warnings"].as_u64().unwrap() + s["converted_check"].as_u64().unwrap(), 19);
-    assert_eq!(s["not_supported"], 2);
+    assert_eq!(
+        s["converted_no_warnings"].as_u64().unwrap() + s["converted_check"].as_u64().unwrap(),
+        21,
+        "the two older files now open as experimental text recovery"
+    );
+    assert_eq!(s["not_supported"], 0);
     assert_eq!(s["could_not_read"], 3);
-    assert_eq!(s["total_pages"], 31);
+    assert_eq!(s["total_pages"], 33);
     assert!(!dir.markdown().contains("0x"));
 }

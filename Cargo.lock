@@ -1426,6 +1426,7 @@ dependencies = [
  "designcraft-pdf",
  "designcraft-pptx",
  "designcraft-pub",
+ "designcraft-pub-legacy",
  "designcraft-render",
  "designcraft-textimport",
  "designcraft-tools",

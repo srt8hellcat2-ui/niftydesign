@@ -30,6 +30,7 @@ mod inspect;
 mod interactive;
 pub mod interchange;
 mod layout;
+pub(crate) mod legacy_open;
 pub mod library;
 mod linked;
 mod links;

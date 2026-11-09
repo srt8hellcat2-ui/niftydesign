@@ -221,5 +221,8 @@ pub(crate) struct Recovered {
     pub warnings: Vec<String>,
 }
 
+#[cfg(any(test, feature = "fixtures"))]
+pub mod fixtures;
+
 #[cfg(test)]
 mod tests;

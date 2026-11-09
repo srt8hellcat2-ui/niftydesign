@@ -463,7 +463,15 @@ pub(crate) fn open_pub(s: &mut Session, p: &Value) -> Result<Value> {
             resources = super::file::load_document_fonts(d, path);
         }
     });
-    let mut imp = imported.map_err(|e| EngineError::Other(format!("can't open the Publisher file: {e}")))?;
+    let mut imp = match imported {
+        Ok(imp) => imp,
+        // Only the older-family refusal, with the older discriminator confirmed on the bytes, is
+        // offered to the experimental text recovery; every other failure stays as it was.
+        Err(designcraft_pub::PubError::Unsupported(why)) if designcraft_pub_legacy::looks_legacy(&bytes) => {
+            return super::legacy_open::open_legacy(s, p, &bytes, title, &why);
+        }
+        Err(e) => return Err(EngineError::Other(format!("can't open the Publisher file: {e}"))),
+    };
     let (fonts, faces, font_warnings) = resources;
     imp.warnings.extend(font_warnings);
     let mut d = imp.document;

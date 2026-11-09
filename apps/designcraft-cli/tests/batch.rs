@@ -118,8 +118,9 @@ fn real_publisher_corpus_keeps_expected_status_counts() {
     let summary: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
     assert_eq!(summary["files"], 24);
     assert_eq!(summary["converted_ok"], 9);
-    assert_eq!(summary["converted_with_warnings"], 10);
-    assert_eq!(summary["failed"], 5, "the CLI combines two refusals with three damaged-file failures");
+    // Sample98 and Sample2000 used to be refused; the experimental text recovery now opens them with warnings.
+    assert_eq!(summary["converted_with_warnings"], 12);
+    assert_eq!(summary["failed"], 3, "the three damaged-file failures");
 
     const LIMIT: u64 = 16 * 1024 * 1024;
     let mut report = String::new();
@@ -128,11 +129,10 @@ fn real_publisher_corpus_keeps_expected_status_counts() {
     // Failure rows in this pinned set have single-line errors and empty warnings.
     // Successful rows can contain multiline warnings, so count only failure records.
     let failures: Vec<_> = report.lines().filter(|line| line.contains(",,,\"failed\",\"\",\"\",\"import:")).collect();
-    assert_eq!(failures.len(), 5);
-    let refused = failures.iter().filter(|line| line.contains("unsupported Publisher file:")).count();
-    assert_eq!(refused, 2);
-    assert_eq!(failures.len() - refused, 3);
+    assert_eq!(failures.len(), 3);
+    assert_eq!(failures.iter().filter(|line| line.contains("unsupported Publisher file:")).count(), 0);
     for name in ["Sample98.pub", "Sample2000.pub"] {
-        assert!(failures.iter().any(|line| line.starts_with(&format!("\"{name}\",")) && line.contains("unsupported Publisher file:")));
+        let row = report.lines().find(|line| line.starts_with(&format!("\"{name}\","))).unwrap();
+        assert!(row.contains("\"converted with warnings\"") && row.contains("experimental legacy"), "{row}");
     }
 }

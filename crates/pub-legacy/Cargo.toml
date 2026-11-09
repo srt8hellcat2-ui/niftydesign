@@ -12,5 +12,13 @@ workspace = true
 [dependencies]
 cfb = { workspace = true }
 
+[features]
+# Byte-built legacy files for other crates' tests.
+fixtures = ["dep:uuid"]
+
+[dependencies.uuid]
+version = "1"
+optional = true
+
 [dev-dependencies]
 uuid = "1"
