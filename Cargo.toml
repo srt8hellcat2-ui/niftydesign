@@ -30,6 +30,7 @@ designcraft-render = { path = "crates/render" }
 designcraft-pdf = { path = "crates/pdf" }
 designcraft-idml = { path = "crates/idml" }
 designcraft-pub = { path = "crates/pub" }
+designcraft-pub-legacy = { path = "crates/pub-legacy" }
 designcraft-epub = { path = "crates/epub" }
 designcraft-pptx = { path = "crates/pptx" }
 designcraft-textimport = { path = "crates/textimport" }

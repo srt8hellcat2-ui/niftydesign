@@ -1602,6 +1602,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "designcraft-pub-legacy"
+version = "0.18.0-nifty-alpha.5"
+dependencies = [
+ "cfb",
+]
+
+[[package]]
 name = "designcraft-render"
 version = "0.18.0-nifty-alpha.5"
 dependencies = [
