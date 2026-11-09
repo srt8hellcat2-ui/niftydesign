@@ -25,13 +25,10 @@ pub(crate) fn read_map(layout: &Layout<'_>) -> Result<Recovered, String> {
     // C02 source map: exactly one index 26, class 10, H = 4.
     let mut maps = layout.records.iter().filter(|r| r.index == 26);
     let (Some(map), None) = (maps.next(), maps.next()) else { return Err("there is not exactly one index-26 map record (C02)".into()) };
-    if layout.class_of(map) != Some(10) || map.h != 4 {
-        return Err("the map record is not class 10 with H=4 (C02)".into());
-    }
     // C03 arrays.
-    let (n, w) = layout.check_extent(map).map_err(|why| format!("the map record failed its extent check: {why} (C03)"))?;
-    if n == 0 || n % 2 != 0 || w != 10 {
-        return Err("the map count is not positive and even, or its element width is not 10 (C03)".into());
+    let n = layout.check_profile(map, 10, 4, 10).map_err(|why| format!("the map record failed its profile check: {why} (C02/C03)"))?;
+    if n == 0 || n % 2 != 0 {
+        return Err("the map count is not positive and even (C03)".into());
     }
     if n / 2 > MAX_SEGMENTS {
         return Err("more segments than the reader limit".into());
@@ -75,7 +72,8 @@ pub(crate) fn read_map(layout: &Layout<'_>) -> Result<Recovered, String> {
         if target.index != want_index || !ids.insert(id) {
             return Err("a map element's target index or uniqueness is wrong (C05)".into());
         }
-        layout.check_extent(target).map_err(|why| format!("map target {id:#x} failed its extent check: {why} (C05)"))?;
+        let (class, h, width) = if want_index == 0 { (9, 92, 2) } else { (1, 96, 14) };
+        layout.check_profile(target, class, h, width).map_err(|why| format!("map target {id:#x} failed its profile check: {why} (C05)"))?;
         // C06 decode: exact for ASCII-only, otherwise encoding-unknown.
         let (text, encoding_unknown) = if bytes.is_ascii() {
             (Some(bytes.iter().map(|x| char::from(*x)).collect::<String>()), false)

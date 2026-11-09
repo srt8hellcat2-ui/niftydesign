@@ -63,12 +63,12 @@ struct Model {
     dup_start: bool,
 }
 
-fn root(children: &[u16], w: u32, h: u32) -> R {
+fn root(children: &[u16], w: u32, h: u32, root_h: usize) -> R {
     let mut tail = array_tail(children.len() as u16, 2, &[]);
     for c in children {
         p16(&mut tail, *c);
     }
-    R { id: 0x200, parent: 0xffff, index: 21, class: 25, h: 0x20, set: vec![(0x14, w), (0x18, h)], tail }
+    R { id: 0x200, parent: 0xffff, index: 21, class: 25, h: root_h, set: vec![(0x14, w), (0x18, h)], tail }
 }
 
 fn link_rec(id: u16, index: u16, class: u16, h: usize, anchor: usize, story: u32, w: u16) -> R {
@@ -77,7 +77,7 @@ fn link_rec(id: u16, index: u16, class: u16, h: usize, anchor: usize, story: u32
 
 fn ab_model(clsid_b: bool) -> Model {
     let records =
-        vec![root(&[0x201, 0x202], 7_560_000, 10_692_000), link_rec(0x201, 8, 9, 0x60, 0x58, 5, 2), link_rec(0x202, 10, 1, 0x6c, 0x66, 9, 8)];
+        vec![root(&[0x201, 0x202], 7_560_000, 10_692_000, 178), link_rec(0x201, 8, 9, 118, 0x58, 5, 2), link_rec(0x202, 10, 1, 116, 0x66, 9, 8)];
     Model {
         clsid: CLSID_AB,
         word0: if clsid_b { 94 } else { 89 },
@@ -117,9 +117,9 @@ fn c_model() -> Model {
     map_tail.extend(extra);
     map_tail.extend(elems);
     let records = vec![
-        root(&[0x201, 0x202, 0x203], 7_772_400, 10_058_400),
-        R { id: 0x201, parent: 0x200, index: 0, class: 9, h: 0x5c, set: vec![], tail: array_tail(0, 2, &[]) },
-        R { id: 0x202, parent: 0x200, index: 1, class: 1, h: 0x60, set: vec![], tail: array_tail(0, 14, &[]) },
+        root(&[0x201, 0x202, 0x203], 7_772_400, 10_058_400, 136),
+        R { id: 0x201, parent: 0x200, index: 0, class: 9, h: 92, set: vec![], tail: array_tail(0, 2, &[]) },
+        R { id: 0x202, parent: 0x200, index: 1, class: 1, h: 96, set: vec![], tail: array_tail(0, 14, &[]) },
         R { id: 0x203, parent: 0x200, index: 26, class: 10, h: 4, set: vec![], tail: map_tail },
     ];
     Model {
@@ -272,7 +272,7 @@ fn quill_raw(ids: &[u32], lens: &[u32], text: &[u8], next: Option<u32>) -> Vec<u
 }
 
 fn compound(clsid: &str, contents: &[u8], quill: Option<&[u8]>) -> Vec<u8> {
-    let mut cf = cfb::CompoundFile::create(std::io::Cursor::new(Vec::new())).unwrap();
+    let mut cf = cfb::CompoundFile::create_with_version(cfb::Version::V3, std::io::Cursor::new(Vec::new())).unwrap();
     cf.set_storage_clsid("/", uuid::Uuid::parse_str(clsid).unwrap()).unwrap();
     cf.create_stream("/Contents").unwrap().write_all(contents).unwrap();
     if let Some(q) = quill {
@@ -317,8 +317,8 @@ fn a_positive_recovers_two_linked_stories_and_a_raw_size() {
     assert_eq!(r.family, Family::A);
     assert_eq!(r.scope, Scope::Complete);
     assert_eq!(text_of(&r), [Some("A\r".to_string()), Some("B\r".to_string())]);
-    assert_eq!(r.segments[0].source, Source::Story { id: 5, units: 0..2 });
-    assert_eq!(r.segments[1].source, Source::Story { id: 9, units: 2..4 });
+    assert_eq!(r.segments[0].source, Source::Story { id: 5, units: 0..2, records: vec![0x201] });
+    assert_eq!(r.segments[1].source, Source::Story { id: 9, units: 2..4, records: vec![0x202] });
     let size = r.size.unwrap();
     assert_eq!((size.raw_width, size.raw_height), (7_560_000, 10_692_000));
     assert!((size.inferred_mm.0 - 210.0).abs() < 1e-9 && (size.inferred_mm.1 - 297.0).abs() < 1e-9);
@@ -412,7 +412,7 @@ fn g03_unknown_cardinality_and_ambiguous_b_terminators_are_refused() {
     let mut c = build_contents(&m);
     // The first entry's non-terminating word is at 0x26 + 6.
     set16(&mut c, 0x26 + 6, 0x0100);
-    refused(&compound(CLSID_AB, &c, m.quill.as_deref()), is_unsupported, "terminators are ambiguous");
+    refused(&compound(CLSID_AB, &c, m.quill.as_deref()), is_unsupported, "terminator");
 }
 
 // ---------- G04 regions ----------
@@ -456,7 +456,7 @@ fn g06_prefix_disagreeing_with_the_table_is_refused() {
     let mut c = build_contents(&m);
     let d = u32_at_test(&c, 0x16);
     let first = u32_at_test(&c, d + 4 + 4);
-    c[first + 3] = 0x21; // H stays inside its span but no longer matches the table entry
+    c[first + 3] = 0xb3; // H stays inside its span but no longer matches the table entry
     refused(&compound(CLSID_AB, &c, m.quill.as_deref()), is_bad, "disagrees with its layout table");
 }
 
@@ -486,7 +486,7 @@ fn g08_a_broken_link_record_is_withheld_and_a_broken_root_withholds_only_the_siz
     let r = read_legacy(&file(&m)).unwrap();
     assert_eq!(r.scope, Scope::Partial);
     assert_eq!(text_of(&r), [Some("B\r".to_string())]);
-    assert!(warned(&r, "extent") || warned(&r, "predicted end"));
+    assert!(warned(&r, "profile") || warned(&r, "extent") || warned(&r, "predicted end") || warned(&r, "expected class"));
     let mut m = ab_model(false);
     m.records[0].tail = {
         let mut t = array_tail(2, 2, &[]);
@@ -757,4 +757,98 @@ fn real_sample98_and_sample2000_match_the_contract_numbers() {
         let size = r.size.unwrap();
         assert_eq!((size.raw_width, size.raw_height), (7_560_000, 10_692_000), "{name}");
     }
+}
+
+// ---------- hardening from the review ----------
+
+#[test]
+fn g03_an_agreeing_but_unlisted_b_terminator_is_unsupported() {
+    let m = ab_model(true);
+    let mut c = build_contents(&m);
+    // The first entry's terminator is the word after its non-terminating tail word (0x26 + 8).
+    set16(&mut c, 0x26 + 8, 0x0200);
+    refused(&compound(CLSID_AB, &c, m.quill.as_deref()), is_unsupported, "not one of the observed terminators");
+}
+
+#[test]
+fn g08_exact_profiles_are_enforced_not_only_the_equation() {
+    // A link record with a different (but self-consistent) H is not used as a story link.
+    let mut m = ab_model(false);
+    m.records[1] = link_rec(0x201, 8, 9, 0x70, 0x58, 5, 2);
+    let r = read_legacy(&file(&m)).unwrap();
+    assert_eq!(r.scope, Scope::Partial);
+    assert_eq!(r.segments.len(), 1);
+    assert!(warned(&r, "not the expected class 9 record with H=118"), "{:?}", r.warnings);
+    // A root with another width is withheld from the size only.
+    let mut m = ab_model(false);
+    m.records[0].tail = {
+        let mut t = array_tail(2, 4, &[]);
+        t.extend([0u8; 4]);
+        p16(&mut t, 0x201);
+        p16(&mut t, 0x202);
+        t
+    };
+    let r = read_legacy(&file(&m)).unwrap();
+    assert!(r.size.is_none() && warned(&r, "profile check"));
+}
+
+#[test]
+fn ab07_every_linking_record_is_kept_as_provenance() {
+    let mut m = ab_model(false);
+    m.records[2].set = vec![(0x66, 5)];
+    let r = read_legacy(&file(&m)).unwrap();
+    assert_eq!(r.segments.len(), 1);
+    assert_eq!(r.segments[0].source, Source::Story { id: 5, units: 0..2, records: vec![0x201, 0x202] });
+}
+
+#[test]
+fn ab08_zero_length_sections_and_failed_candidates_do_not_make_an_empty_store() {
+    // A present but zero-length TEXT is not the absent-section empty profile.
+    let mut q = quill(&[], &[], "", None);
+    set16(&mut q, 0x18 + 2, 2);
+    q[0x18 + 8 + 24 + 2..0x18 + 8 + 24 + 6].copy_from_slice(b"TEXT");
+    let mut m = ab_model(false);
+    m.quill = Some(q);
+    text_refused(&m, "unsupported empty-store variant");
+    // A candidate record that fails its profile prevents the known-empty claim.
+    let mut m = ab_model(false);
+    m.quill = Some(quill(&[], &[], "", None));
+    m.records[1].set = vec![];
+    m.records[2].set = vec![];
+    m.records[2].tail = array_tail(3, 8, &[]);
+    let r = read_legacy(&file(&m)).unwrap();
+    assert_eq!(r.scope, Scope::Partial);
+    assert!(warned(&r, "not asserted to be empty"));
+}
+
+#[test]
+fn positive_catalog_ids_without_a_link_are_counted_not_claimed() {
+    let mut m = ab_model(false);
+    m.quill = Some(quill(&[5, 9, 11], &[2, 2, 2], "A\rB\rC\r", None));
+    let r = read_legacy(&file(&m)).unwrap();
+    assert_eq!(r.segments.len(), 2);
+    assert!(warned(&r, "1 story id(s)") && warned(&r, "no validated Contents link"));
+}
+
+#[test]
+fn c_with_an_extra_quill_store_warns_and_still_recovers() {
+    let mut m = c_model();
+    m.quill = Some(quill(&[5], &[2], "A\r", None));
+    let r = read_legacy(&file(&m)).unwrap();
+    assert_eq!(r.scope, Scope::Complete);
+    assert!(warned(&r, "unexpected Quill text store"));
+}
+
+#[test]
+fn a_long_parent_chain_is_validated_in_linear_work() {
+    // 3000 records chained to one root: the memoised walk finishes at once.
+    let mut m = ab_model(false);
+    let mut prev = 0x200u16;
+    for k in 0..3000u16 {
+        let id = 0x300 + k;
+        m.records.push(R { id, parent: prev, index: 3, class: 0, h: 4, set: vec![], tail: vec![] });
+        prev = id;
+    }
+    let r = read_legacy(&file(&m)).unwrap();
+    assert_eq!(r.segments.len(), 2);
 }

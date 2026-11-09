@@ -70,8 +70,9 @@ impl std::error::Error for LegacyError {}
 /// Where a segment's text came from.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Source {
-    /// A/B: a Quill story id and its UTF-16 unit range in TEXT.
-    Story { id: u32, units: std::ops::Range<usize> },
+    /// A/B: a Quill story id, its UTF-16 unit range in TEXT, and every Contents record that links to it
+    /// (storage order only; neither reading order nor threading).
+    Story { id: u32, units: std::ops::Range<usize>, records: Vec<u16> },
     /// C: a directory record id and its byte range in the Contents text buffer (relative to its start).
     Record { id: u16, bytes: std::ops::Range<usize> },
 }
@@ -124,38 +125,57 @@ pub fn looks_legacy(bytes: &[u8]) -> bool {
 
 pub(crate) struct Container {
     pub contents: Vec<u8>,
-    pub quill: Option<Vec<u8>>,
     pub clsid: String,
 }
 
 const CFB_SIGNATURE: [u8; 8] = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
 
-fn read_stream(cf: &mut cfb::CompoundFile<std::io::Cursor<&[u8]>>, path: &str) -> Result<Option<Vec<u8>>, LegacyError> {
-    if !cf.is_stream(path) {
-        return Ok(None);
-    }
-    let s = cf.open_stream(path).map_err(|e| LegacyError::Malformed(format!("stream {path}: {e}")))?;
-    let mut out = Vec::new();
-    s.take(MAX_BYTES + 1).read_to_end(&mut out).map_err(|e| LegacyError::Malformed(format!("stream {path}: {e}")))?;
-    if out.len() as u64 > MAX_BYTES {
-        return Err(LegacyError::Limit(format!("stream {path} is larger than {MAX_BYTES} bytes")));
-    }
-    Ok(Some(out))
-}
+type Cf<'a> = cfb::CompoundFile<std::io::Cursor<&'a [u8]>>;
 
-/// G01: a bounded compound-file read; never carves strings from a failed container.
-pub(crate) fn open(bytes: &[u8]) -> Result<Container, LegacyError> {
+fn open_cf(bytes: &[u8]) -> Result<Cf<'_>, LegacyError> {
     if bytes.len() as u64 > MAX_BYTES {
         return Err(LegacyError::Limit(format!("the file is larger than {MAX_BYTES} bytes")));
     }
     if !bytes.starts_with(&CFB_SIGNATURE) {
         return Err(LegacyError::NotLegacy("not a compound file".into()));
     }
-    let mut cf = cfb::CompoundFile::open(std::io::Cursor::new(bytes)).map_err(|e| LegacyError::Malformed(format!("compound file: {e}")))?;
+    let cf = cfb::CompoundFile::open(std::io::Cursor::new(bytes)).map_err(|e| LegacyError::Malformed(format!("compound file: {e}")))?;
+    if cf.version() != cfb::Version::V3 {
+        return Err(LegacyError::Unsupported("only version 3 compound files are admitted".into()));
+    }
+    Ok(cf)
+}
+
+/// Read one stream within the byte budget; the delivered length must equal the declared one.
+fn read_stream(cf: &mut Cf<'_>, path: &str) -> Result<Option<Vec<u8>>, LegacyError> {
+    if !cf.is_stream(path) {
+        return Ok(None);
+    }
+    let declared = cf.entry(path).map_err(|e| LegacyError::Malformed(format!("stream {path}: {e}")))?.len();
+    if declared > MAX_BYTES {
+        return Err(LegacyError::Limit(format!("stream {path} is larger than {MAX_BYTES} bytes")));
+    }
+    let s = cf.open_stream(path).map_err(|e| LegacyError::Malformed(format!("stream {path}: {e}")))?;
+    let mut out = Vec::new();
+    s.take(MAX_BYTES + 1).read_to_end(&mut out).map_err(|e| LegacyError::Malformed(format!("stream {path}: {e}")))?;
+    if out.len() as u64 != declared {
+        return Err(LegacyError::Malformed(format!("stream {path} delivered {} bytes but declares {declared}", out.len())));
+    }
+    Ok(Some(out))
+}
+
+/// G01: a bounded compound-file read of root Contents; never carves strings from a failed container.
+pub(crate) fn open(bytes: &[u8]) -> Result<Container, LegacyError> {
+    let mut cf = open_cf(bytes)?;
     let clsid = cf.root_entry().clsid().to_string().to_ascii_lowercase();
     let contents = read_stream(&mut cf, "/Contents")?.ok_or_else(|| LegacyError::NotLegacy("no Contents stream".into()))?;
-    let quill = read_stream(&mut cf, "/Quill/QuillSub/CONTENTS")?;
-    Ok(Container { contents, quill, clsid })
+    Ok(Container { contents, clsid })
+}
+
+/// The Quill text stream, read only once the family is known to use it.
+fn quill_stream(bytes: &[u8]) -> Result<Option<Vec<u8>>, LegacyError> {
+    let mut cf = open_cf(bytes)?;
+    read_stream(&mut cf, "/Quill/QuillSub/CONTENTS")
 }
 
 /// Read a legacy file. Refuses what it cannot vouch for; see [`LegacyText::scope`].
@@ -167,8 +187,17 @@ pub fn read_legacy(bytes: &[u8]) -> Result<LegacyText, LegacyError> {
     let (size, size_warning) = layout.size_candidate();
     warnings.extend(size_warning);
     let outcome = match family {
-        Family::A | Family::B => text::read_quill(&layout, container.quill.as_deref()),
-        Family::C => cmap::read_map(&layout),
+        Family::A | Family::B => match quill_stream(bytes) {
+            Ok(q) => text::read_quill(&layout, q.as_deref()),
+            Err(e) => Err(format!("the Quill stream could not be read: {e}")),
+        },
+        Family::C => {
+            // Family C keeps its text in Contents; an alternate store is warned about, never followed.
+            if let Ok(Some(_)) = quill_stream(bytes) {
+                warnings.push(format!("{}: an unexpected Quill text store is present and was not read.", family.label()));
+            }
+            cmap::read_map(&layout)
+        }
     };
     let (segments, scope, text_warnings) = match outcome {
         Ok(ok) => (ok.segments, ok.scope, ok.warnings),

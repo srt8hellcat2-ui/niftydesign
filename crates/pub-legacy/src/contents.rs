@@ -77,6 +77,9 @@ impl Term {
     }
 }
 
+/// The raw terminator words seen with the B profile; any other agreeing terminator is unsupported.
+const B_TERMINATORS: [u16; 4] = [0x0000, 0x0600, 0x0800, 0xa600];
+
 type Walk = Vec<(u16, u16, u16, usize)>;
 
 /// Walk `count` ordinary entries from 0x26; the walk must end exactly at `end`.
@@ -95,6 +98,9 @@ fn walk(data: &[u8], count: usize, end: usize, term: Term) -> Result<Walk, Legac
             let w = need16(data, pos, "layout table tail")?;
             pos += 2;
             if term.ends(w) {
+                if !matches!(term, Term::Zero) && !B_TERMINATORS.contains(&w) {
+                    return Err(LegacyError::Unsupported(format!("legacy B table terminator {w:#06x} is not one of the observed terminators")));
+                }
                 break;
             }
         }
@@ -237,15 +243,26 @@ impl<'a> Layout<'a> {
         // G07 root and parents.
         let roots: Vec<usize> = records.iter().enumerate().filter(|(_, r)| !by_id.contains_key(&r.parent)).map(|(i, _)| i).collect();
         let [root] = roots[..] else { return Err(bad("the record graph does not have exactly one root")) };
+        // Each record reaches the root through resolving parents; remember settled records so the
+        // total work stays linear however long an adversarial chain is.
+        let mut settled = vec![false; records.len()];
+        if let Some(r) = settled.get_mut(root) {
+            *r = true;
+        }
         for start in 0..records.len() {
+            let mut path = Vec::new();
             let mut at = start;
-            let mut steps = 0usize;
-            while at != root {
-                steps += 1;
+            while !settled.get(at).copied().unwrap_or(false) {
+                if path.len() > records.len() || path.contains(&at) {
+                    return Err(bad("the record parent graph has a cycle"));
+                }
+                path.push(at);
                 let parent = records.get(at).map(|r| r.parent).ok_or_else(|| bad("record graph index"))?;
                 at = *by_id.get(&parent).ok_or_else(|| bad("a record parent does not resolve"))?;
-                if steps > records.len() {
-                    return Err(bad("the record parent graph has a cycle"));
+            }
+            for i in path {
+                if let Some(x) = settled.get_mut(i) {
+                    *x = true;
                 }
             }
         }
@@ -287,18 +304,32 @@ impl<'a> Layout<'a> {
         Ok((n, w))
     }
 
+    /// Exact descriptor class, prefix length and element width, then the extent equation.
+    pub(crate) fn check_profile(&self, r: &Rec, class: u16, h: usize, width: usize) -> Result<usize, String> {
+        if self.class_of(r) != Some(class) || r.h != h {
+            return Err(format!("it is not the expected class {class} record with H={h}"));
+        }
+        let (n, w) = self.check_extent(r)?;
+        if w != width {
+            return Err(format!("its element width is not {width}"));
+        }
+        Ok(n)
+    }
+
+    /// The root record's expected profile for this family.
+    pub(crate) fn root_h(&self) -> usize {
+        if self.family == Family::C { 136 } else { 178 }
+    }
+
     /// G08/G09: the root-size candidate, or a warning saying why it is withheld.
     pub(crate) fn size_candidate(&self) -> (Option<SizeCandidate>, Option<String>) {
         let label = self.family.label();
         let Some(root) = self.records.get(self.root) else { return (None, Some(format!("{label}: no root record."))) };
         let fail = |why: String| (None, Some(format!("{label}: the page size candidate was withheld: {why}.")));
-        let (n, w) = match self.check_extent(root) {
+        let n = match self.check_profile(root, 25, self.root_h(), 2) {
             Ok(x) => x,
-            Err(why) => return fail(format!("the root record failed its extent check ({why})")),
+            Err(why) => return fail(format!("the root record failed its profile check ({why})")),
         };
-        if w != 2 {
-            return fail("the root tail width is not 2".into());
-        }
         let t = root.r + root.h;
         for k in 0..n {
             let Some(id) = u16_at(self.data, t + 10 + 2 * k) else { return fail("a root tail id runs past the record".into()) };

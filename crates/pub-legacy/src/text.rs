@@ -78,8 +78,8 @@ fn catalog(q: &[u8]) -> Result<Catalog, String> {
         return Err("SYID has a zero or repeated story id".into());
     }
     if n == 0 {
-        if text.is_some_and(|t| t.len > 0) || strs.is_some_and(|s| s.len > 0) {
-            return Err("SYID is empty but TEXT or STRS is not".into());
+        if text.is_some() || strs.is_some() {
+            return Err("SYID is empty but TEXT or STRS is present (an unsupported empty-store variant)".into());
         }
         return Ok(Catalog { ids, units: Vec::new(), ranges: Vec::new() });
     }
@@ -125,29 +125,30 @@ pub(crate) fn read_quill(layout: &Layout<'_>, quill: Option<&[u8]>) -> Result<Re
     let by_id: HashMap<u32, usize> = cat.ids.iter().enumerate().map(|(i, id)| (*id, i)).collect();
     let mut warnings = Vec::new();
     let mut segments: Vec<Segment> = Vec::new();
-    let mut emitted = HashSet::new();
+    let mut emitted: HashMap<u32, usize> = HashMap::new();
     let mut withheld = 0usize;
-    let mut probes = 0usize;
     for rec in &layout.records {
-        let anchor = match rec.index {
-            8 => 0x58usize,
-            10 => 0x66,
+        // Candidate link records: index 8 (class 9, H=118, width 2) and index 10 (class 1, H=116, width 8).
+        let (anchor, class, h, width) = match rec.index {
+            8 => (0x58usize, 9u16, 118usize, 2usize),
+            10 => (0x66, 1, 116, 8),
             _ => continue,
         };
-        if let Err(why) = layout.check_extent(rec) {
+        if let Err(why) = layout.check_profile(rec, class, h, width) {
             withheld += 1;
             warnings.push(format!("{label}: record {:#x} was not used as a story link: {why}.", rec.id));
             continue;
         }
-        if anchor + 4 > rec.h {
+        let Some(v) = u32_at(layout.data, rec.r + anchor) else {
             withheld += 1;
             warnings.push(format!("{label}: record {:#x} is too short for a story link.", rec.id));
             continue;
-        }
-        let Some(v) = u32_at(layout.data, rec.r + anchor) else { continue };
-        probes += 1;
+        };
         if v == 0 {
             continue;
+        }
+        if cat.ids.is_empty() {
+            return Err("the Quill store is empty but a Contents link points into it (AB08)".into());
         }
         if v > 0xffff {
             withheld += 1;
@@ -159,8 +160,11 @@ pub(crate) fn read_quill(layout: &Layout<'_>, quill: Option<&[u8]>) -> Result<Re
             warnings.push(format!("{label}: record {:#x} links to story {v}, which the Quill store does not list.", rec.id));
             continue;
         };
-        if !emitted.insert(v) {
-            warnings.push(format!("{label}: story {v} is linked from more than one record; it is reported once."));
+        if let Some(&at) = emitted.get(&v) {
+            warnings.push(format!("{label}: story {v} is linked from more than one record; it is reported once with every linking record."));
+            if let Some(Segment { source: Source::Story { records, .. }, .. }) = segments.get_mut(at) {
+                records.push(rec.id);
+            }
             continue;
         }
         if segments.len() >= MAX_SEGMENTS {
@@ -169,7 +173,14 @@ pub(crate) fn read_quill(layout: &Layout<'_>, quill: Option<&[u8]>) -> Result<Re
         let range = cat.ranges.get(slot).cloned().ok_or("story slot")?;
         let slice = cat.units.get(range.clone()).ok_or("story slice")?;
         match String::from_utf16(slice) {
-            Ok(text) => segments.push(Segment { source: Source::Story { id: v, units: range }, text: Some(text), encoding_unknown: false }),
+            Ok(text) => {
+                emitted.insert(v, segments.len());
+                segments.push(Segment {
+                    source: Source::Story { id: v, units: range, records: vec![rec.id] },
+                    text: Some(text),
+                    encoding_unknown: false,
+                });
+            }
             Err(_) => {
                 withheld += 1;
                 warnings.push(format!("{label}: story {v} is not valid UTF-16 and was withheld."));
@@ -177,15 +188,17 @@ pub(crate) fn read_quill(layout: &Layout<'_>, quill: Option<&[u8]>) -> Result<Re
         }
     }
     if cat.ids.is_empty() {
-        if probes > 0
-            && layout
-                .records
-                .iter()
-                .any(|r| matches!(r.index, 8 | 10) && u32_at(layout.data, r.r + if r.index == 8 { 0x58 } else { 0x66 }).is_some_and(|v| v != 0))
-        {
-            return Err("the Quill store is empty but a Contents link points into it (AB08)".into());
+        // Known-empty only when every candidate record passed its checks and every probe was zero.
+        let scope = if withheld == 0 { Scope::EmptyKnownStore } else { Scope::Partial };
+        if withheld > 0 {
+            warnings.push(format!("{label}: a candidate story link failed its checks, so the store is not asserted to be empty."));
         }
-        return Ok(Recovered { segments, scope: Scope::EmptyKnownStore, warnings });
+        return Ok(Recovered { segments, scope, warnings });
+    }
+    let unlinked = cat.ids.iter().filter(|id| !emitted.contains_key(id)).count();
+    if unlinked > 0 {
+        warnings
+            .push(format!("{label}: {unlinked} story id(s) in the Quill store have no validated Contents link and were not reported as stories."));
     }
     let scope = if withheld > 0 || segments.is_empty() { Scope::Partial } else { Scope::Complete };
     if segments.is_empty() {
