@@ -83,29 +83,48 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     let undecoded = r.segments.len() - decoded;
     let encoding_unknown = r.segments.iter().filter(|g| g.encoding_unknown).count();
     if r.segments.is_empty() && r.scope != Scope::EmptyKnownStore {
-        let why = r.warnings.iter().find(|w| w.contains("refused")).cloned().unwrap_or_else(|| "no text was recovered".into());
+        let why = r
+            .warnings
+            .iter()
+            .find(|w| w.contains("refused"))
+            .or_else(|| r.warnings.iter().find(|w| !w.contains("raw candidate") && !w.contains("text and a size candidate only")))
+            .cloned()
+            .unwrap_or_else(|| "no text was recovered".into());
         return Err(refuse(why));
     }
     let ((w, h), size_status) = page_size(&r);
     // Lay the frames out first, then build the document with exactly that many pages.
-    let body_w = (w - 2.0 * MARGIN).max(36.0);
-    let body_h = (h - 2.0 * MARGIN).max(36.0);
+    // Margins shrink on a very small page so a frame never reaches the page edge.
+    let margin = MARGIN.min(w / 4.0).min(h / 4.0);
+    let body_w = w - 2.0 * margin;
+    let body_h = h - 2.0 * margin;
     let mut placed: Vec<(usize, Rect, String)> = Vec::new();
-    let (mut page, mut y) = (0usize, MARGIN);
+    let mut trimmed_segments = 0usize;
+    let (mut page, mut y) = (0usize, margin);
     for seg in &r.segments {
         let text = match &seg.text {
-            Some(t) => visible(t),
+            Some(t) => {
+                let shown = visible(t);
+                // Form feeds, other controls and trailing paragraph marks are not shown; say so.
+                let kept = t.chars().filter(|c| !matches!(c, '\r' | '\n' | '\t') && (*c as u32) >= 0x20).count();
+                if t.chars().any(|c| (c as u32) < 0x20 && !matches!(c, '\r' | '\n' | '\t'))
+                    || shown.chars().filter(|c| *c != '\n' && *c != '\t').count() != kept
+                {
+                    trimmed_segments += 1;
+                }
+                shown
+            }
             None => PLACEHOLDER.to_string(),
         };
         let height = frame_height(&text, body_w, body_h);
-        if y > MARGIN && y + height > h - MARGIN {
+        if y > margin && y + height > h - margin {
             page += 1;
-            y = MARGIN;
+            y = margin;
         }
         if page >= MAX_PAGES {
             return Err(refuse("more recovered text than the page limit".into()));
         }
-        placed.push((page, Rect::new(MARGIN, y, MARGIN + body_w, y + height), text));
+        placed.push((page, Rect::new(margin, y, margin + body_w, y + height), text));
         y += height + 8.0;
     }
     let nd = NewDocument {
@@ -140,6 +159,9 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     if overset {
         warnings.push("Some recovered text extends beyond its recovery page. The full text is retained for editing.".to_string());
     }
+    if trimmed_segments > 0 {
+        warnings.push(format!("{trimmed_segments} segment(s) had stored control characters or trailing paragraph marks that are not shown; their provenance is in the report."));
+    }
     warnings.push(DETAIL.to_string());
     let mut state = DocState::new(d, None);
     state.import_notes = warnings.clone();
@@ -171,7 +193,9 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
             "segmentCount": r.segments.len(), "decodedCount": decoded, "encodingUnknownCount": encoding_unknown, "undecodedCount": undecoded,
             "rawSizePair": r.size.map(|z| json!([z.raw_width, z.raw_height])),
             "sizeStatus": size_status,
-            "recoveryPageSize": {"width": w, "height": h, "unit": "pt"},
+            "recoveryPageSize": {"width": w, "height": h, "unit": "pt", "widthMm": w * 25.4 / 72.0, "heightMm": h * 25.4 / 72.0},
+            "withheldCount": "unknown",
+            "readerRevision": concat!("designcraft-pub-legacy ", env!("CARGO_PKG_VERSION")),
             "provenance": provenance, "storageOrderOnly": true,
         }
     }))

@@ -304,3 +304,39 @@ pub fn legacy_a_file_without_text_store() -> Vec<u8> {
     m.quill = None;
     file(&m)
 }
+
+/// An invented B-profile file with the same two stories as [`legacy_a_file`].
+pub fn legacy_b_file() -> Vec<u8> {
+    file(&ab_model(true))
+}
+
+/// An invented A-profile file with a validated empty text store.
+pub fn legacy_a_empty_file() -> Vec<u8> {
+    let mut m = ab_model(false);
+    m.quill = Some(quill(&[], &[], "", None));
+    m.records[1].set = vec![];
+    m.records[2].set = vec![];
+    file(&m)
+}
+
+/// An invented C-profile file whose two segments both hold bytes at or above 0x80.
+pub fn legacy_c_all_unknown_file() -> Vec<u8> {
+    let mut m = c_model();
+    m.core[0] = 0x93;
+    m.core[8] = 0x94;
+    file(&m)
+}
+
+/// An invented C-profile file with one decodable and one undecodable segment.
+pub fn legacy_c_mixed_file() -> Vec<u8> {
+    let mut m = c_model();
+    m.core[0] = 0x93;
+    file(&m)
+}
+
+/// An invented A-profile file whose root size pair is `w` x `h` raw units.
+pub fn legacy_a_file_with_size(w: u32, h: u32) -> Vec<u8> {
+    let mut m = ab_model(false);
+    m.records[0].set = vec![(0x14, w), (0x18, h)];
+    file(&m)
+}

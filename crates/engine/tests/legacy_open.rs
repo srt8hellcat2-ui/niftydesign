@@ -5,7 +5,10 @@
 
 use designcraft_engine::Session;
 use designcraft_engine::cmd::base64_encode;
-use designcraft_pub_legacy::fixtures::{legacy_a_file, legacy_a_file_without_text_store, legacy_c_file};
+use designcraft_pub_legacy::fixtures::{
+    legacy_a_empty_file, legacy_a_file, legacy_a_file_without_text_store, legacy_b_file, legacy_c_all_unknown_file, legacy_c_file,
+    legacy_c_mixed_file,
+};
 use serde_json::json;
 
 fn open(session: &mut Session, name: &str, bytes: &[u8]) -> Result<serde_json::Value, String> {
@@ -80,4 +83,84 @@ fn a_current_publisher_file_never_takes_the_legacy_route() {
     let r = open(&mut s, "flyer.pub", bytes).unwrap();
     assert!(r.get("legacy").is_none());
     assert_eq!(r["notice"], designcraft_pub::CONVERSION_NOTICE);
+}
+
+const PLACEHOLDER: &str = "[Text could not be read. No replacement text was guessed.]";
+
+#[test]
+fn a_b_family_file_opens_through_the_same_route() {
+    let mut s = Session::new();
+    let r = open(&mut s, "b.pub", &legacy_b_file()).unwrap();
+    assert_eq!(r["legacy"]["family"], "experimental legacy B");
+    assert_eq!(r["legacy"]["segmentCount"], 2);
+    assert_eq!(frame_texts(&s), ["A", "B"]);
+}
+
+#[test]
+fn a_known_empty_store_opens_one_empty_workspace_page_with_its_own_notice() {
+    let mut s = Session::new();
+    let r = open(&mut s, "empty.pub", &legacy_a_empty_file()).unwrap();
+    assert_eq!(r["legacy"]["scope"], "EmptyKnownStore");
+    assert_eq!(r["legacy"]["openResult"], "empty-recovery-workspace");
+    assert_eq!(r["legacy"]["segmentCount"], 0);
+    assert!(r["notice"].as_str().unwrap().starts_with("Experimental text recovery found no text"));
+    assert!(frame_texts(&s).is_empty());
+    assert_eq!(s.doc().unwrap().doc.spreads.len(), 1);
+}
+
+#[test]
+fn undecodable_c_text_is_marked_never_guessed() {
+    let mut s = Session::new();
+    let r = open(&mut s, "mixed.pub", &legacy_c_mixed_file()).unwrap();
+    assert_eq!(r["legacy"]["scope"], "Partial");
+    let l = &r["legacy"];
+    assert_eq!(
+        (l["segmentCount"].as_u64(), l["decodedCount"].as_u64(), l["undecodedCount"].as_u64(), l["encodingUnknownCount"].as_u64()),
+        (Some(2), Some(1), Some(1), Some(1))
+    );
+    assert_eq!(frame_texts(&s), [PLACEHOLDER, "Beta"]);
+    assert!(r["notice"].as_str().unwrap().starts_with("Experimental text recovery. Some text could not be recovered."));
+    // Every segment unknown: placeholders, still Partial, never the empty-store state or a refusal.
+    let mut s = Session::new();
+    let r = open(&mut s, "unknown.pub", &legacy_c_all_unknown_file()).unwrap();
+    let l = &r["legacy"];
+    assert_eq!(l["scope"], "Partial");
+    assert_eq!((l["segmentCount"].as_u64(), l["decodedCount"].as_u64(), l["undecodedCount"].as_u64()), (Some(2), Some(0), Some(2)));
+    assert_eq!(frame_texts(&s), [PLACEHOLDER, PLACEHOLDER]);
+}
+
+#[test]
+fn a_refused_open_leaves_the_open_document_alone() {
+    let mut s = Session::new();
+    s.execute("file.new", &json!({})).unwrap();
+    s.execute("frame.create", &json!({"rect": [10, 10, 200, 60], "content": "text", "text": "keep me"})).unwrap();
+    let before = serde_json::to_value(&*s.doc().unwrap().doc).unwrap();
+    let e = open(&mut s, "older.pub", &legacy_a_file_without_text_store()).unwrap_err();
+    assert!(e.contains("Reason:"), "{e}");
+    assert_eq!(serde_json::to_value(&*s.doc().unwrap().doc).unwrap(), before);
+}
+
+#[test]
+fn report_fields_follow_the_shared_schema() {
+    let mut s = Session::new();
+    let r = open(&mut s, "older.pub", &legacy_a_file()).unwrap();
+    let l = &r["legacy"];
+    assert_eq!(l["withheldCount"], "unknown");
+    assert!(l["readerRevision"].as_str().unwrap().starts_with("designcraft-pub-legacy "));
+    assert!(l["recoveryPageSize"]["widthMm"].as_f64().unwrap() > 200.0);
+    assert_eq!(l["segmentCount"].as_u64().unwrap(), l["decodedCount"].as_u64().unwrap() + l["undecodedCount"].as_u64().unwrap());
+}
+
+#[test]
+fn a_tiny_page_keeps_its_frames_inside_the_margins() {
+    // A raw 72 x 72 pt page is 914400 raw units square.
+    let mut s = Session::new();
+    let r = open(&mut s, "tiny.pub", &designcraft_pub_legacy::fixtures::legacy_a_file_with_size(914_400, 914_400)).unwrap();
+    assert_eq!(r["legacy"]["sizeStatus"], "inferred-from-raw");
+    let doc = &s.doc().unwrap().doc;
+    let page = &doc.spreads[0].pages[0];
+    for item in &doc.spreads[0].items {
+        let b = item.bounds();
+        assert!(b.x0 > 0.0 && b.y0 > 0.0 && b.x1 < page.width && b.y1 < page.height, "{b:?} on {} x {}", page.width, page.height);
+    }
 }
