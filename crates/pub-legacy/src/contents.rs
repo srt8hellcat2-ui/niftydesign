@@ -185,7 +185,8 @@ impl<'a> Layout<'a> {
         if n == 0 {
             return Err(bad("the directory is empty"));
         }
-        let dir_end = n.checked_mul(10).and_then(|x| x.checked_add(d + 4)).filter(|e| *e <= len).ok_or_else(|| bad("the directory runs past the stream"))?;
+        let dir_end =
+            n.checked_mul(10).and_then(|x| x.checked_add(d + 4)).filter(|e| *e <= len).ok_or_else(|| bad("the directory runs past the stream"))?;
         let mut raw = Vec::with_capacity(n);
         let mut ids = HashSet::new();
         let mut best = 0u16;
@@ -315,6 +316,12 @@ impl<'a> Layout<'a> {
             return fail("a size field is zero".into());
         }
         let size = SizeCandidate { raw_width: wd, raw_height: ht, inferred_mm: (f64::from(wd) / 36000.0, f64::from(ht) / 36000.0) };
-        (Some(size), Some(format!("{label}: the page size is a raw candidate (units not verified; inferred {:.1} x {:.1} mm at 36000 units per mm).", size.inferred_mm.0, size.inferred_mm.1)))
+        (
+            Some(size),
+            Some(format!(
+                "{label}: the page size is a raw candidate (units not verified; inferred {:.1} x {:.1} mm at 36000 units per mm).",
+                size.inferred_mm.0, size.inferred_mm.1
+            )),
+        )
     }
 }

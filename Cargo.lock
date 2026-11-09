@@ -1606,6 +1606,7 @@ name = "designcraft-pub-legacy"
 version = "0.18.0-nifty-alpha.5"
 dependencies = [
  "cfb",
+ "uuid",
 ]
 
 [[package]]

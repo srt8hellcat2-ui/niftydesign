@@ -89,7 +89,8 @@ pub(crate) fn read_map(layout: &Layout<'_>) -> Result<Recovered, String> {
         return Err("the map ranges do not cover the whole text buffer (C04)".into());
     }
     if unknown > 0 {
-        warnings.push(format!("{label}: {unknown} segment(s) contain bytes at or above 0x80 whose code page is not established; they were not decoded."));
+        warnings
+            .push(format!("{label}: {unknown} segment(s) contain bytes at or above 0x80 whose code page is not established; they were not decoded."));
     }
     let scope = if unknown > 0 { Scope::Partial } else { Scope::Complete };
     Ok(Recovered { segments, scope, warnings })

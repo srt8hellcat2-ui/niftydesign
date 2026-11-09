@@ -11,3 +11,6 @@ workspace = true
 
 [dependencies]
 cfb = { workspace = true }
+
+[dev-dependencies]
+uuid = "1"

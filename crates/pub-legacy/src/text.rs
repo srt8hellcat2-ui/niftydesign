@@ -177,7 +177,12 @@ pub(crate) fn read_quill(layout: &Layout<'_>, quill: Option<&[u8]>) -> Result<Re
         }
     }
     if cat.ids.is_empty() {
-        if probes > 0 && layout.records.iter().any(|r| matches!(r.index, 8 | 10) && u32_at(layout.data, r.r + if r.index == 8 { 0x58 } else { 0x66 }).is_some_and(|v| v != 0)) {
+        if probes > 0
+            && layout
+                .records
+                .iter()
+                .any(|r| matches!(r.index, 8 | 10) && u32_at(layout.data, r.r + if r.index == 8 { 0x58 } else { 0x66 }).is_some_and(|v| v != 0))
+        {
             return Err("the Quill store is empty but a Contents link points into it (AB08)".into());
         }
         return Ok(Recovered { segments, scope: Scope::EmptyKnownStore, warnings });
