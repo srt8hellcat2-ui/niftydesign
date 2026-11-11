@@ -224,3 +224,47 @@ fn folder_report_has_parity_with_mixed_c_command_result() {
         assert!(entry["legacy"].get(*field).is_some(), "missing legacy.{field}");
     }
 }
+
+#[test]
+fn standard_positive_raw_pair_keeps_its_own_recovery_size() {
+    // INFERENCE: an invented Letter-size candidate is inside the proposed plausibility range.
+    let bytes = designcraft_pub_legacy::fixtures::legacy_a_file_with_size(7_772_400, 10_058_400);
+    let (session, result) = open(&bytes);
+    let legacy = &result["legacy"];
+    assert_eq!(legacy["scope"], "Complete");
+    assert_eq!(legacy["segmentCount"], 2);
+    assert_eq!(legacy["decodedCount"], 2);
+    assert_eq!(legacy["rawSizePair"], json!([7_772_400, 10_058_400]));
+    assert_eq!(legacy["sizeStatus"], "inferred-from-raw");
+    assert!((legacy["recoveryPageSize"]["widthMm"].as_f64().unwrap() - 215.9).abs() < 1e-6);
+    assert!((legacy["recoveryPageSize"]["heightMm"].as_f64().unwrap() - 279.4).abs() < 1e-6);
+    let doc = &session.doc().unwrap().doc;
+    let page = &doc.spreads[0].pages[0];
+    assert!((page.width - 612.0).abs() < 1e-6);
+    assert!((page.height - 792.0).abs() < 1e-6);
+    assert!(result["warnings"].as_array().unwrap().iter().any(|w| {
+        w.as_str().unwrap() == "Page size is estimated from stored numbers. It has not been verified."
+    }));
+}
+
+#[test]
+#[ignore = "EXPECTED FAILURE b1e4dbec: the proposed greater-than-450-mm plausibility fallback is not implemented"]
+fn oversized_square_uses_a4_workspace_and_preserves_raw_pair() {
+    // INFERENCE: 18,000,000 / 36,000 = 500 mm; this is invented test metadata, not a private file.
+    let bytes = designcraft_pub_legacy::fixtures::legacy_a_file_with_size(18_000_000, 18_000_000);
+    let (session, result) = open(&bytes);
+    let legacy = &result["legacy"];
+    assert_eq!(legacy["scope"], "Complete");
+    assert_eq!(legacy["segmentCount"], 2);
+    assert_eq!(legacy["rawSizePair"], json!([18_000_000, 18_000_000]));
+    assert_eq!(legacy["sizeStatus"], "default-A4");
+    assert!((legacy["recoveryPageSize"]["widthMm"].as_f64().unwrap() - 210.0).abs() < 0.01);
+    assert!((legacy["recoveryPageSize"]["heightMm"].as_f64().unwrap() - 297.0).abs() < 0.01);
+    let doc = &session.doc().unwrap().doc;
+    let page = &doc.spreads[0].pages[0];
+    assert!((page.width - 595.276).abs() < 0.01);
+    assert!((page.height - 841.89).abs() < 0.01);
+    assert!(result["warnings"].as_array().unwrap().iter().any(|w| {
+        w.as_str().unwrap() == "Original page size is unverified. A standard A4 recovery page is being used."
+    }));
+}
