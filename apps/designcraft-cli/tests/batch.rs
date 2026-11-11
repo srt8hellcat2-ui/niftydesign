@@ -60,7 +60,7 @@ fn recursive_batch_continues_after_bad_input_and_writes_both_valid_formats() {
     assert!(!report.contains("excluded.pub"));
     for (directory, name) in [("", "same.pub"), ("nested,folder", "same.PUB")] {
         assert_eq!(fs::read(input.join(directory).join(name)).unwrap(), PUB);
-        let pdf = output.join(directory).join(format!("{name}.pdf"));
+        let pdf = fs::canonicalize(&output).unwrap().join(directory).join(format!("{name}.pdf"));
         assert!(report.contains(&format!(",\"{}\",\"\"", pdf.to_string_lossy())), "{report}");
     }
     assert_eq!(fs::read(input.join("00-bad.pub")).unwrap(), b"broken file");
