@@ -268,3 +268,71 @@ fn oversized_square_uses_a4_workspace_and_preserves_raw_pair() {
         w.as_str().unwrap() == "Original page size is unverified. A standard A4 recovery page is being used."
     }));
 }
+
+#[test]
+#[ignore = "requires LEGACY_FOLLOWUP_CLI; positive A-family batch-notice check, not an expected failure"]
+fn a_family_file_open_and_batch_keep_legacy_notice_and_warning_status() {
+    // INFERENCE: parse CSV quoting so commas/newlines in warnings cannot masquerade as the notice column.
+    fn csv_rows(text: &str) -> Vec<Vec<String>> {
+        let mut rows = Vec::new();
+        let mut row = Vec::new();
+        let mut field = String::new();
+        let mut quoted = false;
+        let mut chars = text.chars().peekable();
+        while let Some(c) = chars.next() {
+            match c {
+                '"' if quoted && chars.peek() == Some(&'"') => {
+                    field.push('"');
+                    let _ = chars.next();
+                }
+                '"' => quoted = !quoted,
+                ',' if !quoted => row.push(std::mem::take(&mut field)),
+                '\n' if !quoted => {
+                    row.push(std::mem::take(&mut field));
+                    rows.push(std::mem::take(&mut row));
+                }
+                '\r' if !quoted && chars.peek() == Some(&'\n') => {}
+                _ => field.push(c),
+            }
+        }
+        assert!(!quoted, "unterminated CSV field");
+        if !field.is_empty() || !row.is_empty() {
+            row.push(field);
+            rows.push(row);
+        }
+        rows
+    }
+
+    let temp = tempfile::tempdir().unwrap();
+    let input = temp.path().join("input");
+    std::fs::create_dir(&input).unwrap();
+    let path = input.join("invented-a.pub");
+    std::fs::write(&path, legacy_a_file()).unwrap();
+    let mut session = Session::new();
+    let opened = session.execute("file.open", &json!({"path": path})).unwrap();
+    assert_eq!(opened["legacy"]["family"], "experimental legacy A");
+    assert_eq!(opened["legacy"]["scope"], "Complete");
+    assert_eq!(texts(&session), ["A", "B"]);
+    let notice = opened["notice"].as_str().unwrap();
+    assert!(notice.starts_with("Experimental text recovery."));
+    assert!(notice.contains("not the original layout"));
+
+    let out = temp.path().join("batch");
+    let mut command = cli();
+    command.arg("batch-convert").arg(&input).arg("--out").arg(&out);
+    let output = command_output(command);
+    let summary: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(summary["files"], 1);
+    assert_eq!(summary["converted_with_warnings"], 1);
+    assert_eq!(summary["failed"], 0);
+
+    let csv = std::fs::read_to_string(out.join("report.csv")).unwrap();
+    let rows = csv_rows(&csv);
+    assert_eq!(rows.len(), 2, "expected a header and exactly one CSV record");
+    assert_eq!(rows[0].len(), rows[1].len());
+    let column = |name: &str| rows[0].iter().position(|field| field == name).unwrap();
+    assert_eq!(rows[1][column("file")], "invented-a.pub");
+    assert_eq!(rows[1][column("status")], "converted with warnings");
+    assert!(rows[1][column("notice")].contains(notice));
+    assert!(rows[1][column("failure_reason")].is_empty());
+}
