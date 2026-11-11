@@ -1,5 +1,7 @@
 # Legacy integration follow-up
 
+OBSERVATION: updated by [round 2](legacy-followup-2.md) with the owner-executed Windows results against b1e4dbec. Those results supersede the earlier test-execution and identity unknowns; the original source comparison remains pinned to that revision.
+
 OBSERVATION: this follow-up reviews the owner's implementation at `b1e4dbec`, superseding the source conclusions pinned to `9b4cf49f` in [the previous integration check](legacy-integration-check.md). Evidence is limited to this repository's notes, the explicitly permitted implementation/tests and the owner's Windows observations in this task. No private Publisher file was requested, downloaded, uploaded or run. Source review and owner execution are distinguished below.
 
 OBSERVATION: the requested branch starts from the documentation branch, which does not contain the experimental reader or its engine dependency. Only this note and `crates/engine/tests/legacy_followup.rs` are added. The test file targets the implementation at b1e4dbec and must be applied there for compilation; no reader/importer logic or manifest was copied into this branch. A separate detached checkout at that revision was prepared for verification. The configured corpus folders are unavailable; no substitute corpus was used.
@@ -15,12 +17,12 @@ OBSERVATION: the owner reports a successful Windows `cargo build --release -p de
 | OBSERVATION | MODERN.PUB | 337408 / aa446e31e352 | 3 / 74 | C / 508 x 508 | Nine undecoded; 65 with omitted controls. |
 | OBSERVATION | PLAIN.PUB | 343552 / 48384326430f | 3 / 88 | C / 558.8 x 558.8 | Ten undecoded; 78 with omitted controls. |
 | OBSERVATION | SCHOOL.PUB | 88064 / e859a1a272e0 | 6 / 30 | C / 215.9 x 279.4 | One undecoded; 29 with omitted controls. |
-| OBSERVATION | mspub.pub | 19968 / 0eff04981722 | 1 / 0 | A / 215.9 x 279.4 | Supported-store empty notice. Identity qualification below applies. |
+| OBSERVATION | mspub.pub | 19968 / 0eff04981728 | 1 / 0 | A / 215.9 x 279.4 | Supported-store empty notice; full identity confirmed in round 2. |
 | OBSERVATION | zmspub.pub | 17920 / 8a7962fc897a | 1 / 0 | A / 210 x 297 | Supported-store empty notice. |
 
 OBSERVATION: every owner result also includes opaque-record, raw-size uncertainty, estimated-page-size and missing-original-layout/keep-original warnings. The CSV contains only `file,pages,objects,status,warnings,pdf_path,failure_reason,notes,notice`. It has no typed legacy object or columns. On the desktop, JAZZY opened with title “NiftyDesign — JAZZY”, a partial notice, collapsed “Import notes (8)” and plain stacked boxes including an unreadable-text placeholder. The owner transcribed its brackets as parentheses; the pinned source literal uses square brackets. This does not establish a content/encoding discrepancy.
 
-UNKNOWN: the reported mspub prefix `0eff04981722` differs from the earlier pinned file's `0eff04981728` (full prior SHA-256 `0eff0498172805bf1e52c74a6334ecc4cdc84fb2e531c0ea25734cfac7923c7d`). A transcription error versus a different binary cannot be separated from the supplied prefix. Compare the full hash locally before transferring the earlier file-specific conclusions. No file upload is needed.
+OBSERVATION: the owner corrected a typo in the earlier brief: mspub.pub has full SHA-256 `0eff0498172805bf1e52c74a6334ecc4cdc84fb2e531c0ea25734cfac7923c7d`, exactly the pinned identity. The earlier `0eff04981722` prefix was a brief error, not a second file or an unresolved hash discrepancy. No file transfer was needed.
 
 ## Re-check of every earlier comparison row
 
@@ -40,7 +42,7 @@ INFERENCE: MATCH, STRICTER and LOOSER retain their earlier meanings. Each row be
 | OBSERVATION | Partial banner | MATCH | N/A | Copy unchanged; owner observed it on JAZZY. Mixed/all-unknown integration tests now exist in b1e4dbec. |
 | OBSERVATION | Partial details/counts | LOOSER | N/A | Counts remain in command JSON, not a complete visible breakdown; withheldCount now explicitly unknown. Batch omits typed counts. Still open. |
 | OBSERVATION | Refusal copy | LOOSER | N/A | Appended experimental reason remains, with better fallback selection; construction wrapping and sanitization still open. |
-| OBSERVATION | Empty known-store copy | MATCH | N/A | Unchanged wording; owner observed it on the two A opens, subject to mspub identity qualification. |
+| OBSERVATION | Empty known-store copy | MATCH | N/A | Unchanged wording; owner observed it on the two A opens, with the mspub identity now confirmed. |
 | OBSERVATION | Undecoded placeholder | MATCH | N/A | Square-bracket literal unchanged; mixed/all-unknown tests added. Owner observed a placeholder with parentheses in the transcription. |
 | OBSERVATION | Estimated-size and fallback-size warnings | MATCH | N/A | Unchanged copy; owner confirms estimated-size uncertainty warnings. A4 fallback not exercised in that run. |
 | OBSERVATION | Long-text warning | LOOSER | N/A | Estimator and approximate trigger unchanged. Owner measured CATALOG composition overflow; actual fit is not guaranteed. Still open. |
@@ -90,7 +92,7 @@ OBSERVATION: `size_candidate` computes inferred_mm=raw/36000. `legacy_open::page
 
 OBSERVATION: `NewDocument::default` selects Picas; `Document::new` copies its units to both ruler settings. The adapter does not override that default. In `ui-egui/src/canvas/rulers.rs` labels use `unit.from_pt` while zoom determines tick spacing and screen position. `geom/src/units.rs` defines 12 points per pica. Consequently 1440 points = 120 picas = 508 mm; 1584 points = 132 picas = 558.8 mm. Zoom at 44% changes screen width, not the physical unit or ruler value. The default therefore explains a width near 120 on JAZZY without requiring a conversion error.
 
-UNKNOWN: the owner's checked ruler unit, origin and exact app dimensions were not supplied. No unit bug is established by the screenshot description. Nor do these arithmetic fits prove that the root fields are the physical page rather than another size/canvas candidate. Intended native page size versus wrong semantic field remains UNKNOWN. Treat this as an intentionally labelled raw candidate with an unverified physical interpretation, not a verified 20- or 22-inch publication. There are three large-square files here, not four: JAZZY, MODERN and PLAIN.
+OBSERVATION: the owner has confirmed JAZZY at 1440 pt = 508 mm = 120 picas, with the app ruler using picas. There is no unit bug in this observation. UNKNOWN: these arithmetic fits do not prove the root fields are the native physical page rather than another size/canvas candidate. Treat them as intentionally labelled raw candidates with an unverified physical interpretation. The three large-square files are JAZZY, MODERN and PLAIN.
 
 INFERENCE: locally right-click each ruler and record the checked unit. Then select Millimeters, inspect File > Document Setup width/height with their units, record the values and cancel. A 120-pica width should correspond to 508 mm if the displayed document uses this candidate. Owner-recorded page settings in the native application, or an independent save with a known size and a new locally recorded raw pair, would test whether the selected fields and scale track physical size. A ruler change alone cannot settle field semantics. Return only numeric settings/hashes and redacted screenshots, never the private files or their text.
 
@@ -98,9 +100,9 @@ INFERENCE: proposed adapter policy only: never call any raw conversion verified.
 
 ## The two A files with no recovered text
 
-OBSERVATION: prior notes for the pinned mspub/zmspub identities record 4152-byte root Contents, the supported A profile, a 1024-byte `/Quill/QuillSub/CONTENTS` stream with SYID count zero, absent TEXT/STRS/TCD sections and two checked zero story probes. Their Quill streams were identical; their complete files were not. That evidence fits EmptyKnownStore under the narrow contract. The owner reports the corresponding empty-store notice, one generated page and zero objects, consistent with this state. The mspub hash discrepancy must be resolved first.
+OBSERVATION: prior notes for the pinned mspub/zmspub identities record 4152-byte root Contents, the supported A profile, a 1024-byte `/Quill/QuillSub/CONTENTS` stream with SYID count zero, absent TEXT/STRS/TCD sections and two checked zero story probes. Their Quill streams were identical; their complete files were not. That evidence fits EmptyKnownStore under the narrow contract. The owner reports the corresponding empty-store notice, one generated page and zero objects, consistent with this state. The mspub full hash has now been confirmed against the pinned identity.
 
-UNKNOWN: EmptyKnownStore is not proof the publication contains no text anywhere. An unsupported alternate store, object text or a different file identity could still matter. A no-text result by itself cannot distinguish those possibilities, and the existing empty notice deliberately makes no publication-wide claim.
+UNKNOWN: EmptyKnownStore is not proof the publication contains no text anywhere. An unsupported alternate store or object text could still matter in an unfamiliar file. A no-text result by itself cannot distinguish those possibilities, and the existing empty notice deliberately makes no publication-wide claim.
 
 INFERENCE: the owner can decide the next step locally without sending either binary: compare full file SHA-256/size; obtain a container-only inventory of stream names, lengths and stream hashes using an already permitted local CFB diagnostic; compare root Contents and Quill lengths with the prior facts; and inspect the CLI's family/scope/count fields. If a local diagnostic is available, report SYID count, presence/absence of TEXT/STRS, and counts of valid zero/positive candidate links, not their text. Identical Quill hashes confirm identical stores only. A zero SYID plus absent TEXT/STRS and fully validated zero links supports EmptyKnownStore; a positive count, unexpected text section or positive link contradicts that profile and needs a reported refusal/research step, not a guessed fallback.
 
@@ -110,18 +112,18 @@ INFERENCE: if the owner can open the original locally in its authoring applicati
 
 OBSERVATION: `crates/engine/tests/legacy_followup.rs` builds only invented test data. The existing permitted synthetic A/C builders are used; the control fixture replaces Quill with a byte-built three-section store, IDs 5/9 and invented short text. No Publisher-made input or private file is used. These checks extend the existing b1e4dbec mixed/all-unknown tests with additional count/provenance and nonempty-notice assertions.
 
-| Basis | New test | Intended result on b1e4dbec | Actual local execution |
+| Basis | Earlier follow-up test | Required result on b1e4dbec | Owner Windows execution, round 2 |
 | --- | --- | --- | --- |
-| INFERENCE / UNKNOWN | all_unknown_c_retains_every_placeholder_and_is_not_empty | Partial, two placeholders, 2=0+2, unknown two, no refusal/empty notice | UNKNOWN: cargo unavailable |
-| INFERENCE / UNKNOWN | mixed_c_retains_one_decoded_frame_and_one_placeholder | Partial, placeholder plus Beta, 2=1+1, unknown one | UNKNOWN: cargo unavailable |
-| INFERENCE / UNKNOWN | controls_are_kept_by_reader_but_only_tab_is_shown_by_adapter | Reader retains original sequence; displayed tab survives, FF/other control/trailing CRs do not; warning present | UNKNOWN: cargo unavailable |
-| INFERENCE / UNKNOWN | original_control_sequence_is_retained_after_open | Expected failure: no full original sequence in opened document/report | Explicitly ignored with EXPECTED FAILURE reason; not run |
-| INFERENCE / UNKNOWN | removed_trailing_paragraphs_alone_are_reported | Expected failure: current counter misses trailing-only removal | Explicitly ignored with EXPECTED FAILURE reason; not run |
-| INFERENCE / UNKNOWN | cli_run_and_script_keep_mixed_c_report_fields | run --cmd and script - expose all declared legacy fields and count invariant | Ignored until LEGACY_FOLLOWUP_CLI names a built pinned CLI; not run |
-| INFERENCE / UNKNOWN | batch_report_has_parity_with_mixed_c_command_result | Expected failure: existing CSV columns present but typed fields missing | Explicitly ignored with EXPECTED FAILURE reason; not run |
-| INFERENCE / UNKNOWN | folder_report_has_parity_with_mixed_c_command_result | Expected failure: per-file JSON warnings exist but legacy object missing | Explicitly ignored with EXPECTED FAILURE reason; not run |
+| OBSERVATION | all_unknown_c_retains_every_placeholder_and_is_not_empty | Partial, two placeholders, 2=0+2, unknown two, no refusal/empty notice | PASS in owner ordinary run against b1e4dbec |
+| OBSERVATION | mixed_c_retains_one_decoded_frame_and_one_placeholder | Partial, placeholder plus Beta, 2=1+1, unknown one | PASS in owner ordinary run against b1e4dbec |
+| OBSERVATION | controls_are_kept_by_reader_but_only_tab_is_shown_by_adapter | Reader retains original sequence; displayed tab survives, FF/other control/trailing CRs do not; warning present | PASS in owner ordinary run; current display behavior, not lossless retention |
+| OBSERVATION | original_control_sequence_is_retained_after_open | Expected failure: no full original sequence in opened document/report | Owner explicitly ran it: failed intended assertion at legacy_followup.rs:124; confirmed gap |
+| OBSERVATION | removed_trailing_paragraphs_alone_are_reported | Expected failure: current counter misses trailing-only removal | Owner explicitly ran it: failed intended assertion at legacy_followup.rs:132; confirmed gap |
+| OBSERVATION | cli_run_and_script_keep_mixed_c_report_fields | run --cmd and script - expose all declared legacy fields and count invariant | PASS in owner explicit run with LEGACY_FOLLOWUP_CLI set to release CLI |
+| OBSERVATION | batch_report_has_parity_with_mixed_c_command_result | Expected failure: existing CSV columns present but typed fields missing | Owner explicitly ran it: failed intended assertion at legacy_followup.rs:203; confirmed gap |
+| OBSERVATION | folder_report_has_parity_with_mixed_c_command_result | Expected failure: per-file JSON warnings exist but legacy object missing | Owner explicitly ran it: failed intended assertion at legacy_followup.rs:222; confirmed gap |
 
-OBSERVATION: both requested commands, `cargo test -p designcraft-engine` and `cargo test -p designcraft-cli`, were attempted in the pinned implementation checkout and stopped with exit 127: `/bin/bash: line 1: cargo: command not found`. No passing or failing compilation/test count is claimed; all runtime results for these new tests are UNKNOWN. Formatting with rustfmt is also unverified. `git diff --check` checks whitespace only.
+OBSERVATION: the earlier local environment lacked Cargo, but that no longer leaves these eight tests unexecuted: the owner ran them on Windows against b1e4dbec with this test file applied. The ordinary target had 3 passed and 5 ignored; the CLI check subsequently passed explicitly, and each of the four expected-failure cases failed on its intended assertion, not setup/build. These are separate runs, not a single combined green suite. The reported full engine/CLI/importer run has one unrelated Windows batch-test path assertion failure; see round 2. Formatting with rustfmt was not reported by the owner, and remains unverified.
 
 INFERENCE: after applying this test-only file to b1e4dbec in a code checkout, run the ordinary engine/CLI tests. Build the CLI there, set LEGACY_FOLLOWUP_CLI to that executable's absolute path, and run this integration target's CLI test with `--ignored --exact` and its listed test name. Run each expected-failure test separately with `--ignored --exact`; it should assert the missing requirement and fail, not accept missing data as success. A failure before its intended assertion (build, export, missing executable) is a blocked/invalid expected-failure run and must be reported separately. Once a gap is fixed, remove its ignore reason in the code lane and require a pass. Do not count ignored tests as passing parity.
 
@@ -129,17 +131,18 @@ INFERENCE: after applying this test-only file to b1e4dbec in a code checkout, ru
 
 INFERENCE: this supersedes the earlier assumed Sample98/Sample2000 workflow and its no-rebuild restriction. Build on the PC from the intended revision; shipped alpha.5 is insufficient even if its version string matches. Use any owner-chosen 97/98/2000 files already on that PC, in a dedicated input folder containing only test copies. No Publisher 2000 sample is available on the PC yet; mark B/native-2000 testing not performed until one is independently supplied locally. Do not request or upload private files.
 
-INFERENCE: in the repository's PowerShell window, use the following local procedure. Choose a new empty output location when prompted. Batch conversion writes PDF/native copies and CSV into its output directory; it does not replace the input files. Each script invocation captures the separate file.open result, rather than relying on warnings in CSV. The command-line files stay private on the PC.
+INFERENCE: in the repository's PowerShell window, use the following local procedure. The PC now has Git and the Rust/MSVC toolchain. The repository is `E:\Projects\NiftyDesign-src`, the built app is `target\release\designcraft.exe`, and the seven local inputs are in `E:\Projects\quarantine\legacy-intake\in`. Choose a new empty output location when prompted. Batch conversion writes PDF/native copies and CSV into its output directory; it does not replace the input files. Each script invocation captures the separate file.open result, rather than relying on warnings in CSV. The command-line files stay private on the PC.
 
 ```powershell
-# INFERENCE: run locally in the owner's repository checkout.
+# INFERENCE: run locally in the owner's implementation checkout.
+Set-Location 'E:\Projects\NiftyDesign-src'
 git rev-parse HEAD
 cargo build --release -p designcraft -p designcraft-cli
 if ($LASTEXITCODE -ne 0) { throw 'Build failed; stop and record the error.' }
 $legacyCli = (Resolve-Path '.\target\release\designcraft-cli.exe').Path
 $legacyApp = (Resolve-Path '.\target\release\designcraft.exe').Path
 & $legacyCli --version
-$legacyInput = (Resolve-Path (Read-Host 'Folder containing only the chosen test copies')).Path
+$legacyInput = (Resolve-Path 'E:\Projects\quarantine\legacy-intake\in').Path
 $legacyOut = Read-Host 'New local output folder for this run'
 if (Test-Path -LiteralPath $legacyOut) { throw 'Choose a new output folder.' }
 New-Item -ItemType Directory -Path $legacyOut | Out-Null
@@ -175,10 +178,10 @@ INFERENCE: after the run recompute full SHA-256/size locally and compare with id
 
 ## Ranked next steps
 
-1. INFERENCE: smallest next step: right-click JAZZY's ruler, record its checked unit, switch to mm, and record/cancel Document Setup. Compare 120 picas, 1440 points and 508 mm against the command result. This can resolve the immediate apparent ruler discrepancy without private-file transfer or new decoding.
+1. INFERENCE: the unit-level check is complete: JAZZY's 120 picas equals 1440 points and 508 mm. The next smallest code step is preserving the typed legacy result in the batch worker outcome; round 2 gives the ordered plan and existing red tests.
 2. INFERENCE: keep exact source controls/trailing paragraphs in recovery provenance or an explicit lossless export, fix the trailing-only warning, and replace the approximate fit decision with actual composition evidence. Re-run byte-built control tests and the local CATALOG fit check; do not call a control-removal warning preservation.
 3. INFERENCE: preserve the typed legacy result through batch and folder reports, and replace the expected-failure parity tests with required passing tests. Keep a real build commit distinct from the package-version readerRevision.
-4. INFERENCE: resolve the mspub full-hash discrepancy and confirm the narrow empty-store facts locally. Keep missed alternate text UNKNOWN unless native visibility/stream metadata contradict the validated store.
-5. INFERENCE: obtain owner-authored, independently saved known-size/known-text A and B samples locally, including a real 2000 sample for this PC. Confirm field semantics/scale and fragile populated-link behavior before widening recovery claims. C code-page identity remains UNKNOWN; no guessed decoder is proposed here.
+4. INFERENCE: mspub identity is now settled; retain the narrow EmptyKnownStore interpretation. Keep missed alternate text UNKNOWN unless native visibility/stream metadata contradict the validated store.
+5. INFERENCE: when independent known-size/known-text A/B samples are available locally, including a real 2000 sample for this PC, test field semantics/scale and fragile populated-link behavior before widening recovery claims. No private file transfer is requested. C code-page identity remains UNKNOWN; no guessed decoder is proposed here.
 
-UNKNOWN: new tests have not compiled or executed in this environment, native intended page sizes remain unconfirmed, the mspub identity mismatch is unresolved, and the owner run does not establish control preservation or batch-schema parity. The measured Windows successes are valuable execution evidence with explicit warnings, not confirmation of original layout fidelity.
+OBSERVATION: the owner has now compiled/executed the tests; the four red expected-failure cases confirm the control/warning/report gaps. The mspub identity and pica conversion are settled. UNKNOWN: native intended physical page sizes, C code-page identity, wider A/B replication and the proposed fixes remain unverified. Successful warned conversion is not original-layout fidelity.
