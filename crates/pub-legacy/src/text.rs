@@ -102,7 +102,7 @@ fn catalog(q: &[u8]) -> Result<Catalog, String> {
     if tx.len() % 2 != 0 {
         return Err("TEXT has an odd byte count".into());
     }
-    let units: Vec<u16> = tx.chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]])).collect();
+    let units: Vec<u16> = tx.as_chunks::<2>().0.iter().map(|c| u16::from_le_bytes(*c)).collect();
     let mut ranges = Vec::with_capacity(n);
     let mut start = 0usize;
     for k in 0..n {

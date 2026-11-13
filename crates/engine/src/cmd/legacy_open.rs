@@ -33,15 +33,27 @@ const A4: (f64, f64) = (595.276, 841.89);
 const MARGIN: f64 = 36.0;
 const MAX_PAGES: usize = 2000;
 
-fn page_size(r: &LegacyText) -> ((f64, f64), &'static str) {
+/// The largest side accepted as a recovered page. The stored size is only a raw candidate whose units are
+/// not verified, so a size far beyond a normal sheet is not shown as if it were the original page.
+const MAX_PLAUSIBLE_MM: f64 = 450.0;
+
+/// The recovery page size, its status, and whether a stored candidate was rejected as implausible.
+fn page_size(r: &LegacyText) -> ((f64, f64), &'static str, bool) {
+    let mut rejected = false;
     if let Some(size) = r.size {
         let (w, h) = (size.inferred_mm.0 * 72.0 / 25.4, size.inferred_mm.1 * 72.0 / 25.4);
-        if (72.0..=15_552.0).contains(&w) && (72.0..=15_552.0).contains(&h) {
-            return ((w, h), "inferred-from-raw");
+        let max_pt = MAX_PLAUSIBLE_MM * 72.0 / 25.4;
+        if (72.0..=max_pt).contains(&w) && (72.0..=max_pt).contains(&h) {
+            return ((w, h), "inferred-from-raw", false);
         }
+        rejected = true;
     }
-    (A4, "default-A4")
+    (A4, "default-A4", rejected)
 }
+
+/// The most source text kept per segment in the command result, and how many segments keep any.
+const MAX_SOURCE_CHARS: usize = 4096;
+const MAX_SOURCE_SEGMENTS: usize = 1000;
 
 /// Paragraph text for a frame: CR LF and CR become paragraph ends; form feeds and other controls
 /// are not turned into anything visible.
@@ -92,7 +104,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
             .unwrap_or_else(|| "no text was recovered".into());
         return Err(refuse(why));
     }
-    let ((w, h), size_status) = page_size(&r);
+    let ((w, h), size_status, size_rejected) = page_size(&r);
     // Lay the frames out first, then build the document with exactly that many pages.
     // Margins shrink on a very small page so a frame never reaches the page edge.
     let margin = MARGIN.min(w / 4.0).min(h / 4.0);
@@ -100,17 +112,29 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     let body_h = h - 2.0 * margin;
     let mut placed: Vec<(usize, Rect, String)> = Vec::new();
     let mut trimmed_segments = 0usize;
+    let mut source_text: Vec<Value> = Vec::new();
     let (mut page, mut y) = (0usize, margin);
-    for seg in &r.segments {
+    for (index, seg) in r.segments.iter().enumerate() {
         let text = match &seg.text {
             Some(t) => {
                 let shown = visible(t);
-                // Form feeds, other controls and trailing paragraph marks are not shown; say so.
+                // Form feeds, other controls and extra trailing paragraph marks are not shown; say so.
+                // One closing paragraph mark is the normal end of a story and is not counted.
                 let kept = t.chars().filter(|c| !matches!(c, '\r' | '\n' | '\t') && (*c as u32) >= 0x20).count();
+                let trailing_marks = t.chars().rev().take_while(|c| matches!(c, '\r' | '\n')).count();
                 if t.chars().any(|c| (c as u32) < 0x20 && !matches!(c, '\r' | '\n' | '\t'))
                     || shown.chars().filter(|c| *c != '\n' && *c != '\t').count() != kept
+                    || trailing_marks > 2
+                    || t.ends_with("\r\r")
+                    || t.ends_with("\n\n")
                 {
                     trimmed_segments += 1;
+                    // Keep the stored text, controls included, in the command result only (bounded).
+                    if source_text.len() < MAX_SOURCE_SEGMENTS {
+                        let total = t.chars().count();
+                        let kept_text: String = t.chars().take(MAX_SOURCE_CHARS).collect();
+                        source_text.push(json!({"segment": index, "text": kept_text, "truncated": total > MAX_SOURCE_CHARS}));
+                    }
                 }
                 shown
             }
@@ -147,7 +171,9 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
         _ => NOTICE_PARTIAL,
     };
     let mut warnings = r.warnings.clone();
-    warnings.push(if size_status == "default-A4" {
+    warnings.push(if size_rejected {
+        "Original page size is unverified. A standard A4 recovery page is being used.".to_string()
+    } else if size_status == "default-A4" {
         "Original page size is unknown. A standard A4 recovery page is being used.".to_string()
     } else {
         "Page size is estimated from stored numbers. It has not been verified.".to_string()
@@ -196,7 +222,9 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
             "recoveryPageSize": {"width": w, "height": h, "unit": "pt", "widthMm": w * 25.4 / 72.0, "heightMm": h * 25.4 / 72.0},
             "withheldCount": "unknown",
             "readerRevision": concat!("designcraft-pub-legacy ", env!("CARGO_PKG_VERSION")),
+            "buildCommit": option_env!("NIFTY_BUILD_COMMIT").unwrap_or("unknown"),
             "provenance": provenance, "storageOrderOnly": true,
+            "sourceText": source_text,
         }
     }))
 }

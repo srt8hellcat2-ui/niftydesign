@@ -52,15 +52,15 @@ fn recursive_batch_continues_after_bad_input_and_writes_both_valid_formats() {
         assert_eq!(designcraft_render::pdf_page_count(&pdf), Some(1));
     }
     let report = fs::read_to_string(output.join("report.csv")).unwrap();
-    assert!(report.starts_with("file,pages,objects,status,warnings,pdf_path,failure_reason,notes,notice\n"));
+    assert!(report.starts_with("file,pages,objects,status,warnings,pdf_path,failure_reason,notes,notice,legacy\n"));
     assert!(report.contains(designcraft_pub::CONVERSION_NOTICE));
     assert!(report.contains("\"00-bad.pub\",,,\"failed\""));
     assert!(report.contains(&format!("\"{}\",1,2,", Path::new("nested,folder").join("same.PUB").display())));
     assert!(report.contains("import:"));
     assert!(!report.contains("excluded.pub"));
-    for name in ["same.pub", "nested,folder/same.PUB"] {
-        assert_eq!(fs::read(input.join(name)).unwrap(), PUB);
-        let pdf = output.join(format!("{name}.pdf"));
+    for (directory, name) in [("", "same.pub"), ("nested,folder", "same.PUB")] {
+        assert_eq!(fs::read(input.join(directory).join(name)).unwrap(), PUB);
+        let pdf = fs::canonicalize(&output).unwrap().join(directory).join(format!("{name}.pdf"));
         assert!(report.contains(&format!(",\"{}\",\"\"", pdf.to_string_lossy())), "{report}");
     }
     assert_eq!(fs::read(input.join("00-bad.pub")).unwrap(), b"broken file");
@@ -98,7 +98,10 @@ fn empty_folder_writes_a_zero_file_report_and_help_is_noninteractive() {
     assert!(result.status.success());
     let summary: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
     assert_eq!(summary["files"], 0);
-    assert_eq!(fs::read_to_string(output.join("report.csv")).unwrap(), "file,pages,objects,status,warnings,pdf_path,failure_reason,notes,notice\n");
+    assert_eq!(
+        fs::read_to_string(output.join("report.csv")).unwrap(),
+        "file,pages,objects,status,warnings,pdf_path,failure_reason,notes,notice,legacy\n"
+    );
     assert!(Command::new(env!("CARGO_BIN_EXE_designcraft-cli")).args(["batch-convert", "--help"]).status().unwrap().success());
 }
 
