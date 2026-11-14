@@ -245,7 +245,7 @@ mod tests {
     fn narrow_font() -> Vec<u8> {
         let mut font = crate::testing::font_with("Available Narrow Sans", &['A']).unwrap();
         let count = u16::from_be_bytes(font[4..6].try_into().unwrap()) as usize;
-        let record = font[12..].chunks_exact(16).take(count).find(|r| r.starts_with(b"OS/2")).unwrap();
+        let record = font[12..].as_chunks::<16>().0.iter().take(count).find(|r| r.starts_with(b"OS/2")).unwrap();
         let at = u32::from_be_bytes(record[8..12].try_into().unwrap()) as usize;
         // OS/2 usWidthClass: 3 is condensed. All other tables/traits remain the bundled sans.
         font[at + 6..at + 8].copy_from_slice(&3u16.to_be_bytes());

@@ -52,15 +52,15 @@ fn recursive_batch_continues_after_bad_input_and_writes_both_valid_formats() {
         assert_eq!(designcraft_render::pdf_page_count(&pdf), Some(1));
     }
     let report = fs::read_to_string(output.join("report.csv")).unwrap();
-    assert!(report.starts_with("file,pages,objects,status,warnings,pdf_path,failure_reason,notes,notice\n"));
+    assert!(report.starts_with("file,pages,objects,status,warnings,pdf_path,failure_reason,notes,notice,legacy\n"));
     assert!(report.contains(designcraft_pub::CONVERSION_NOTICE));
     assert!(report.contains("\"00-bad.pub\",,,\"failed\""));
     assert!(report.contains(&format!("\"{}\",1,2,", Path::new("nested,folder").join("same.PUB").display())));
     assert!(report.contains("import:"));
     assert!(!report.contains("excluded.pub"));
-    for name in ["same.pub", "nested,folder/same.PUB"] {
-        assert_eq!(fs::read(input.join(name)).unwrap(), PUB);
-        let pdf = output.join(format!("{name}.pdf"));
+    for (directory, name) in [("", "same.pub"), ("nested,folder", "same.PUB")] {
+        assert_eq!(fs::read(input.join(directory).join(name)).unwrap(), PUB);
+        let pdf = fs::canonicalize(&output).unwrap().join(directory).join(format!("{name}.pdf"));
         assert!(report.contains(&format!(",\"{}\",\"\"", pdf.to_string_lossy())), "{report}");
     }
     assert_eq!(fs::read(input.join("00-bad.pub")).unwrap(), b"broken file");
@@ -98,7 +98,10 @@ fn empty_folder_writes_a_zero_file_report_and_help_is_noninteractive() {
     assert!(result.status.success());
     let summary: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
     assert_eq!(summary["files"], 0);
-    assert_eq!(fs::read_to_string(output.join("report.csv")).unwrap(), "file,pages,objects,status,warnings,pdf_path,failure_reason,notes,notice\n");
+    assert_eq!(
+        fs::read_to_string(output.join("report.csv")).unwrap(),
+        "file,pages,objects,status,warnings,pdf_path,failure_reason,notes,notice,legacy\n"
+    );
     assert!(Command::new(env!("CARGO_BIN_EXE_designcraft-cli")).args(["batch-convert", "--help"]).status().unwrap().success());
 }
 
@@ -118,8 +121,9 @@ fn real_publisher_corpus_keeps_expected_status_counts() {
     let summary: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
     assert_eq!(summary["files"], 24);
     assert_eq!(summary["converted_ok"], 9);
-    assert_eq!(summary["converted_with_warnings"], 10);
-    assert_eq!(summary["failed"], 5, "the CLI combines two refusals with three damaged-file failures");
+    // Sample98 and Sample2000 used to be refused; the experimental text recovery now opens them with warnings.
+    assert_eq!(summary["converted_with_warnings"], 12);
+    assert_eq!(summary["failed"], 3, "the three damaged-file failures");
 
     const LIMIT: u64 = 16 * 1024 * 1024;
     let mut report = String::new();
@@ -128,11 +132,10 @@ fn real_publisher_corpus_keeps_expected_status_counts() {
     // Failure rows in this pinned set have single-line errors and empty warnings.
     // Successful rows can contain multiline warnings, so count only failure records.
     let failures: Vec<_> = report.lines().filter(|line| line.contains(",,,\"failed\",\"\",\"\",\"import:")).collect();
-    assert_eq!(failures.len(), 5);
-    let refused = failures.iter().filter(|line| line.contains("unsupported Publisher file:")).count();
-    assert_eq!(refused, 2);
-    assert_eq!(failures.len() - refused, 3);
+    assert_eq!(failures.len(), 3);
+    assert_eq!(failures.iter().filter(|line| line.contains("unsupported Publisher file:")).count(), 0);
     for name in ["Sample98.pub", "Sample2000.pub"] {
-        assert!(failures.iter().any(|line| line.starts_with(&format!("\"{name}\",")) && line.contains("unsupported Publisher file:")));
+        let row = report.lines().find(|line| line.starts_with(&format!("\"{name}\","))).unwrap();
+        assert!(row.contains("\"converted with warnings\"") && row.contains("experimental legacy"), "{row}");
     }
 }

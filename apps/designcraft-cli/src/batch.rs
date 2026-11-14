@@ -25,6 +25,26 @@ pub(crate) struct Outcome {
     pub(crate) warnings: Vec<String>,
     pub(crate) notes: Vec<String>,
     notice: Option<String>,
+    /// The typed result of the experimental Publisher 97/98/2000 text recovery, when that route opened the file.
+    pub(crate) legacy: Option<Value>,
+}
+
+/// The legacy open result without the recovered text, and with its provenance bounded, so a report stays small
+/// and never carries document text.
+fn compact_legacy(value: &Value) -> Option<Value> {
+    let mut legacy = value.as_object()?.clone();
+    legacy.remove("sourceText");
+    let mut truncated = false;
+    if let Some(Value::Array(provenance)) = legacy.get_mut("provenance")
+        && provenance.len() > 500
+    {
+        provenance.truncate(500);
+        truncated = true;
+    }
+    if truncated {
+        legacy.insert("provenanceTruncated".into(), Value::Bool(true));
+    }
+    Some(Value::Object(legacy))
 }
 impl Outcome {
     fn failure(message: impl Into<String>) -> Self {
@@ -70,6 +90,9 @@ impl Outcome {
         if let Some(notice) = value.get("notice").and_then(Value::as_str) {
             self.notice = Some(notice.chars().take(1000).collect());
         }
+        if let Some(legacy) = value.get("legacy").and_then(compact_legacy) {
+            self.legacy = Some(legacy);
+        }
         for note in value.get("notes").and_then(Value::as_array).into_iter().flatten() {
             if let Some(message) = note.as_str() {
                 self.note(message);
@@ -91,7 +114,7 @@ impl Outcome {
         }
     }
     fn value(&self) -> Value {
-        json!({"pages": self.pages, "objects": self.objects, "failed": self.failed, "warnings": self.warnings, "notes": self.notes, "notice": self.notice, "failure_reason": self.failure_reason})
+        json!({"pages": self.pages, "objects": self.objects, "failed": self.failed, "warnings": self.warnings, "notes": self.notes, "notice": self.notice, "failure_reason": self.failure_reason, "legacy": self.legacy})
     }
     fn from_value(v: Value) -> Result<Self, String> {
         let failed = v.get("failed").and_then(Value::as_bool).ok_or("invalid worker result")?;
@@ -119,6 +142,9 @@ impl Outcome {
         }
         if v.get("notes").is_some_and(|n| n.as_array().is_none_or(|a| a.len() > 201 || a.iter().any(|n| !n.is_string()))) {
             return Err("invalid worker notes".into());
+        }
+        if v.get("legacy").is_some_and(|l| !l.is_null() && !l.is_object()) {
+            return Err("invalid worker legacy result".into());
         }
         out.add_warnings(&v);
         Ok(out)
@@ -254,7 +280,7 @@ fn csv(value: &str) -> String {
 fn row(report: &mut File, name: &Path, outcome: &Outcome) -> Result<(), String> {
     writeln!(
         report,
-        "{},{},{},{},{},{},{},{},{}",
+        "{},{},{},{},{},{},{},{},{},{}",
         csv(&name.to_string_lossy()),
         outcome.pages.map(|n| n.to_string()).unwrap_or_default(),
         outcome.objects.map(|n| n.to_string()).unwrap_or_default(),
@@ -263,7 +289,8 @@ fn row(report: &mut File, name: &Path, outcome: &Outcome) -> Result<(), String> 
         csv(&outcome.pdf_path.as_ref().map(|p| p.to_string_lossy()).unwrap_or_default()),
         csv(outcome.failure_reason.as_deref().unwrap_or_default()),
         csv(&outcome.notes.join("\n")),
-        csv(outcome.notice.as_deref().unwrap_or_default())
+        csv(outcome.notice.as_deref().unwrap_or_default()),
+        csv(&outcome.legacy.as_ref().map(Value::to_string).unwrap_or_default())
     )
     .map_err(|e| format!("write report: {e}"))?;
     report.flush().map_err(|e| format!("flush report: {e}"))
@@ -393,7 +420,7 @@ pub(crate) fn run(args: &[String]) -> Result<(), String> {
         .create_new(true)
         .open(&report_path)
         .map_err(|e| format!("create {} (existing reports are not overwritten): {e}", report_path.display()))?;
-    writeln!(report, "file,pages,objects,status,warnings,pdf_path,failure_reason,notes,notice").map_err(|e| e.to_string())?;
+    writeln!(report, "file,pages,objects,status,warnings,pdf_path,failure_reason,notes,notice,legacy").map_err(|e| e.to_string())?;
     let scratch_path = output.join(format!(".batch-work-{}", std::process::id()));
     fs::create_dir(&scratch_path).map_err(|e| format!("create batch workspace: {e}"))?;
     let scratch = Scratch(scratch_path);

@@ -1426,6 +1426,7 @@ dependencies = [
  "designcraft-pdf",
  "designcraft-pptx",
  "designcraft-pub",
+ "designcraft-pub-legacy",
  "designcraft-render",
  "designcraft-textimport",
  "designcraft-tools",
@@ -1599,6 +1600,14 @@ dependencies = [
  "miniz_oxide 0.8.9",
  "serde_json",
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "designcraft-pub-legacy"
+version = "0.18.0-nifty-alpha.5"
+dependencies = [
+ "cfb",
+ "uuid",
 ]
 
 [[package]]
