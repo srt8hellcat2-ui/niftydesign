@@ -17,7 +17,7 @@ What this does **not** show: other Windows PCs, other printers, other graphics c
 
 ## Opening files
 
-- Only Publisher 2002 and later files are supported. **Publisher 97, 98 and 2000 files are refused** with a message asking you to open and save the file in Publisher 2002 or later.
+- Full import supports Publisher 2002 and later files only. **In released builds, Publisher 97, 98 and 2000 files are refused** with a message asking you to open and save the file in Publisher 2002 or later. The next build adds an experimental, text-only recovery for them (see docs/pub-format/legacy-minimal-reader.md); it does not recover frames, fonts, formatting, page order, tables or pictures.
 - **Real-file check (24 files, test files from a software project, pinned by commit):** Of 24 real Apache test files: 9 opened with only notes about formatting settings we do not understand and skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. The 9 are not a claim that they match Publisher; we have not compared them with Publisher. Earlier counts called these 9 'warnings'; only the labelling changed, not the importer's fidelity. Earlier, 8 files with tables failed; they open now (with warnings) after a fix. Treat 24 files as a small sample: your files may behave differently, and no test of 40 or more files made by real users has been done.
 - **Controlled sample files:** all 142 open (134 with no warnings, 8 with warnings). These are one-feature files, easier than real documents. They are scored against the answer files that came with them. Nine also have Publisher reference images for comparison.
 - **What the 24 files contain:** 15 of the 24 hold only generic content, per our scan. The newsletter and brochure hold Microsoft template content, so their images are not published.
@@ -53,7 +53,7 @@ File > Print... (Ctrl+P) sends pages through the system print spooler: CUPS on m
 - Table cell shading (fills) and borders. In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. Cell fills, borders and uncertain merged-cell text remain unsupported.
 - Text in merged table cells: merged cells come over, but which cell holds the text is not settled; check merged cells against the original.
 - Default upward arch WordArt uses editable paths fitted from measured font advances. Circle and other warps come out straight; exact Publisher glyph fitting remains unknown. See [the measured results](pub-format/wordart.md).
-- Publisher 97, 98 and 2000 files.
+- Publisher 97, 98 and 2000 layout (frames, fonts, formatting, tables, pictures). Text-only recovery is experimental and unreleased.
 - Page-number and date fields are left out of text.
 - Objects parked outside the page (scratch area) are left out.
 - Subscript and strikethrough are not recognised.
