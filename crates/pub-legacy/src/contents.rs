@@ -337,6 +337,40 @@ impl<'a> Layout<'a> {
         Ok(n)
     }
 
+    /// OBSERVATION (see docs/pub-format/legacy-minimal-reader.md, "Frame rectangles"): a text-linked record
+    /// stores a signed LE i32 left, top, right, bottom at +0x06 inside its fixed prefix, centered on the page
+    /// and in units of 1/914400 inch. Returns the rectangle and the ancestor directly below the root, or
+    /// `None` when the fields are not wholly inside the prefix, are not a positive box, or lie far outside
+    /// the page. A refusal here only withholds a position; the text is never affected.
+    pub(crate) fn frame_rect(&self, id: u16, page: (u32, u32)) -> Option<crate::FrameRect> {
+        let rec = self.rec(id)?;
+        if rec.h < 0x16 || rec.r.checked_add(0x16)? > rec.e {
+            return None;
+        }
+        let at = |o: usize| -> Option<i32> {
+            let s = self.data.get(rec.r + o..rec.r + o + 4)?;
+            Some(i32::from_le_bytes([*s.first()?, *s.get(1)?, *s.get(2)?, *s.get(3)?]))
+        };
+        let (left, top, right, bottom) = (at(6)?, at(10)?, at(14)?, at(18)?);
+        let limit = i64::from(page.0.max(page.1)).checked_mul(2)?;
+        let inside = [left, top, right, bottom].iter().all(|v| i64::from(*v).abs() <= limit);
+        if right <= left || bottom <= top || !inside {
+            return None;
+        }
+        // The ancestor directly below the root: a candidate page container (page identity is not established).
+        let root_id = self.records.get(self.root)?.id;
+        let mut cur = rec;
+        let mut container = rec.id;
+        for _ in 0..self.records.len() {
+            if cur.parent == root_id {
+                container = cur.id;
+                break;
+            }
+            cur = self.rec(cur.parent)?;
+        }
+        Some(crate::FrameRect { record: id, left, top, right, bottom, container })
+    }
+
     /// The root record's expected profile for this family.
     pub(crate) fn root_h(&self) -> usize {
         if self.family == Family::C { 136 } else { 178 }

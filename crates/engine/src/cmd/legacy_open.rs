@@ -77,6 +77,23 @@ fn visible(raw: &str) -> String {
     out.trim_end_matches('\n').to_string()
 }
 
+/// The stored rectangle of a story's first positioned record, converted to page points (stored values are
+/// centered on the page, in 1/914400 inch), and the candidate page container. `None` unless the whole box
+/// lies on the page, so a bad number can never put a frame off the page.
+fn stored_rect(r: &LegacyText, seg: &designcraft_pub_legacy::Segment, w: f64, h: f64) -> Option<(u16, Rect)> {
+    let Source::Story { records, .. } = &seg.source else { return None };
+    let f = r.frames.iter().find(|f| records.contains(&f.record))?;
+    let size = r.size?;
+    let pt = |v: i32, half: u32| (f64::from(v) + f64::from(half) / 2.0) / 12700.0;
+    let (l, t) = (pt(f.left, size.raw_width), pt(f.top, size.raw_height));
+    let (rt, b) = (pt(f.right, size.raw_width), pt(f.bottom, size.raw_height));
+    let slack = 1.0;
+    if l < -slack || t < -slack || rt > w + slack || b > h + slack || rt - l < 4.0 || b - t < 4.0 {
+        return None;
+    }
+    Some((f.container, Rect::new(l.max(0.0), t.max(0.0), rt.min(w), b.min(h))))
+}
+
 /// A rough frame height: 14.4 pt per line at about 6 pt per character, capped at the page body.
 fn frame_height(text: &str, width: f64, body: f64) -> f64 {
     let per_line = (width / 6.0).max(8.0);
@@ -114,6 +131,12 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     let mut trimmed_segments = 0usize;
     let mut source_text: Vec<Value> = Vec::new();
     let (mut page, mut y) = (0usize, margin);
+    // Stories whose record carried a plausible stored rectangle keep that position, one page per candidate
+    // container in order of first appearance (page identity and order are not established). Stories without a
+    // position keep the plain recovery flow on pages after them.
+    let mut positioned: Vec<(usize, Rect, String)> = Vec::new();
+    let mut containers: Vec<u16> = Vec::new();
+    let page_rects = size_status == "inferred-from-raw";
     for (index, seg) in r.segments.iter().enumerate() {
         let text = match &seg.text {
             Some(t) => {
@@ -140,6 +163,16 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
             }
             None => PLACEHOLDER.to_string(),
         };
+        if page_rects {
+            if let Some((container, rect)) = stored_rect(&r, seg, w, h) {
+                let pg = containers.iter().position(|c| *c == container).unwrap_or_else(|| {
+                    containers.push(container);
+                    containers.len() - 1
+                });
+                positioned.push((pg, rect, text));
+                continue;
+            }
+        }
         let height = frame_height(&text, body_w, body_h);
         if y > margin && y + height > h - margin {
             page += 1;
@@ -151,19 +184,25 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
         placed.push((page, Rect::new(margin, y, margin + body_w, y + height), text));
         y += height + 8.0;
     }
+    let positioned_pages = containers.len();
+    let flow_pages = if placed.is_empty() { 0 } else { page + 1 };
     let nd = NewDocument {
         title: title.clone(),
         width: w,
         height: h,
-        pages: page + 1,
+        pages: (positioned_pages + flow_pages).max(1),
         facing_pages: false,
         primary_text_frame: false,
         ..Default::default()
     };
     let mut d = Document::new(&nd);
     let layer = d.layers.first().map(|l| l.id).ok_or_else(|| bad("file.open", "new document has no layer"))?;
-    for (pg, rect, text) in &placed {
+    for (pg, rect, text) in &positioned {
         d.add_text_frame(SpreadRef::Doc(*pg), *rect, layer, text, ParaFormat::default()).map_err(|e| bad("file.open", e.to_string()))?;
+    }
+    for (pg, rect, text) in &placed {
+        d.add_text_frame(SpreadRef::Doc(positioned_pages + *pg), *rect, layer, text, ParaFormat::default())
+            .map_err(|e| bad("file.open", e.to_string()))?;
     }
     let notice = match r.scope {
         Scope::EmptyKnownStore => NOTICE_EMPTY,

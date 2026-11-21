@@ -87,6 +87,19 @@ pub struct Segment {
     pub encoding_unknown: bool,
 }
 
+/// A candidate frame rectangle for a text-linked record: signed, centered on the page, in 1/914400 inch.
+/// `container` is the record directly below the root that the frame descends from; it is a candidate page
+/// container only, and page identity and order are not established.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FrameRect {
+    pub record: u16,
+    pub left: i32,
+    pub top: i32,
+    pub right: i32,
+    pub bottom: i32,
+    pub container: u16,
+}
+
 /// The root record's raw size pair. Units are NOT verified.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SizeCandidate {
@@ -117,6 +130,9 @@ pub struct LegacyText {
     pub size: Option<SizeCandidate>,
     pub scope: Scope,
     pub warnings: Vec<String>,
+    /// Candidate frame rectangles for the records that link recovered stories (A and B only), in segment
+    /// order, at most one per segment. Positions only; nothing here is verified against Publisher.
+    pub frames: Vec<FrameRect>,
 }
 
 /// Quick check for the legacy Contents discriminator without reading the whole file.
@@ -210,8 +226,26 @@ pub fn read_legacy(bytes: &[u8]) -> Result<LegacyText, LegacyError> {
         Err(why) => (Vec::new(), Scope::TextRefused, vec![format!("{}: the text path was refused: {why}", family.label())]),
     };
     warnings.extend(text_warnings);
+    // Frame positions: the first linked record of each story that has a plausible rectangle.
+    let mut frames = Vec::new();
+    if let (Some(sz), Family::A | Family::B) = (size, family) {
+        for seg in &segments {
+            if let Source::Story { records, .. } = &seg.source {
+                if let Some(f) = records.iter().find_map(|id| layout.frame_rect(*id, (sz.raw_width, sz.raw_height))) {
+                    frames.push(f);
+                }
+            }
+        }
+    }
     warnings.push(format!("{}: text and a size candidate only; frames, pages, fonts and formatting are not recovered.", family.label()));
-    Ok(LegacyText { family, segments, size, scope, warnings })
+    if !frames.is_empty() {
+        warnings.push(format!(
+            "{}: {} candidate frame position(s) were read from stored numbers; they are not verified, and page identity and order are unknown.",
+            family.label(),
+            frames.len()
+        ));
+    }
+    Ok(LegacyText { family, segments, size, scope, warnings, frames })
 }
 
 /// What a text path returns.
