@@ -74,6 +74,26 @@ fn c_positive_recovers_two_ascii_segments_without_the_trailer() {
 }
 
 #[test]
+fn c_layout_with_a_58_entry_table_under_the_other_root_class_recovers_text() {
+    let mut m = c_model();
+    m.clsid = CLSID_AB;
+    m.word0 = 58;
+    m.count = 58;
+    let r = read_legacy(&file(&m)).unwrap();
+    assert_eq!(r.family, Family::C);
+    assert_eq!(text_of(&r), [Some("Alpha\r\n\u{c}".to_string()), Some("Beta\r\n\u{c}".to_string())]);
+}
+
+#[test]
+fn a_table_word_of_58_on_a_different_cardinality_is_still_refused() {
+    let mut m = c_model();
+    m.clsid = CLSID_AB;
+    m.word0 = 57;
+    m.count = 57;
+    assert!(matches!(read_legacy(&file(&m)), Err(LegacyError::Unsupported(_))));
+}
+
+#[test]
 fn relocated_structures_still_parse() {
     // A different root id, and an extra bounded record, so no sample offset or id is hard-coded.
     let mut m = ab_model(false);

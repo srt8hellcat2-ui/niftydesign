@@ -17,7 +17,7 @@ use std::fmt;
 use std::io::Read;
 
 /// Files and extracted streams above this size are refused (an operational limit, not a format fact).
-pub const MAX_BYTES: u64 = 32 * 1024 * 1024;
+pub const MAX_BYTES: u64 = 64 * 1024 * 1024;
 /// Most recovered segments or story ids.
 pub const MAX_SEGMENTS: usize = 65_535;
 /// Most Quill directory blocks followed.

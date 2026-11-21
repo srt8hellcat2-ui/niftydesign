@@ -141,7 +141,8 @@ pub(crate) fn c_model() -> Model {
 }
 
 pub(crate) fn build_contents(m: &Model) -> Vec<u8> {
-    let c_family = m.clsid == CLSID_C;
+    // The 58-entry profile (header tail 0400) has the C layout under the other root class.
+    let c_family = m.clsid == CLSID_C || m.word0 == 58;
     // Table: entries for every index; the used indices carry their class and H.
     let mut table = Vec::new();
     p16(&mut table, m.word0);

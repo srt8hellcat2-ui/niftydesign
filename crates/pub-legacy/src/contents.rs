@@ -144,8 +144,12 @@ impl<'a> Layout<'a> {
         }
         let (family, count, base) = match (clsid, word0) {
             (CLSID_AB, 89) => (Family::A, 88usize, 1u16),
-            (CLSID_AB, 94) => (Family::B, 92, 2),
+            (CLSID_AB, 94) | (CLSID_C, 94) => (Family::B, 92, 2),
             (CLSID_C, 64) => (Family::C, 64, 0),
+            // OBSERVATION (three donated files, header +6 = 0x0004): the other root class with a 58-entry,
+            // zero-terminated table that ends exactly at the control block, and a text buffer that follows it.
+            // It is admitted as the C layout; its text map is held to the same checks as C.
+            (CLSID_AB, 58) => (Family::C, 58, 0),
             _ => return Err(LegacyError::Unsupported(format!("root class {clsid} with table word {word0} is not a documented profile"))),
         };
         // G04 regions.
