@@ -102,6 +102,12 @@ pub struct FrameRect {
     /// reference at +0x22 (0xC0E40000 is the "automatic" reference). 0 when the prefix is too short.
     pub fill_mode: u8,
     pub color_ref: u32,
+    /// OBSERVATION: the largest of the four side numbers at +0x2c, +0x35, +0x3b and +0x41 of a text frame
+    /// (layout index 8). 0 is no border; 1 and 4 matched a thin and a thick border on the stored preview.
+    pub border: u8,
+    /// Position of the container record in the directory (the order records are stored in): the stored order
+    /// of pages matched the stored page preview in the donated files.
+    pub container_rank: u32,
 }
 
 /// The root record's raw size pair. Units are NOT verified.

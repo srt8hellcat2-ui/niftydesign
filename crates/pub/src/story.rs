@@ -51,6 +51,9 @@ impl StoryFormats {
         if let Some(rgb) = look.fill {
             solid_fill(doc, id, rgb);
         }
+        if let Some(weight) = look.border {
+            solid_border(doc, id, weight);
+        }
         let byte = |u: usize| at.get(u.min(at.len().saturating_sub(1))).copied().unwrap_or(0);
         let defaults = q.default_char.clone();
         let mut char_ops = Vec::new();
@@ -204,6 +207,8 @@ mod tests {
 pub struct FrameLook {
     pub fill: Option<[u8; 3]>,
     pub text: Option<[u8; 3]>,
+    /// A black outline of this weight in points.
+    pub border: Option<f64>,
 }
 
 /// Give an item a solid fill of this colour.
@@ -250,4 +255,11 @@ fn story_text(source: &[u16]) -> (String, Vec<usize>, bool, usize) {
     }
     at.push(text.len());
     (text, at, skipped, units.len())
+}
+
+/// Give an item a solid black outline of this weight (points).
+pub fn solid_border(doc: &mut Document, id: ItemId, weight: f64) {
+    if let Some(item) = doc.item_mut(id) {
+        item.stroke = designcraft_doc::Stroke { swatch: designcraft_color::swatch::BLACK.into(), weight, ..designcraft_doc::Stroke::default() };
+    }
 }

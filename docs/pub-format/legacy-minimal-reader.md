@@ -262,3 +262,15 @@ OBSERVATION: for text frames (layout index 8) the byte at record +0x2a is 0, 1 o
 INFERENCE: such a frame is a black filled frame whose "automatic" text colour is white. The opener draws exactly that: a black fill, and white text for runs whose colour is automatic (top half 0xe0e4) or unset. Frames with other references (small scheme numbers 1 to 7, the 0x20 and 0x00 literal-looking forms, 0x1a, 0x1b, 0x35) get no fill, because their meaning is not decoded; their samples are mixed (light tints, pale fills, an orange). Borders are not drawn yet.
 
 UNKNOWN: the scheme and palette behind the small numbers, whether the 0x20-tagged references are literal colours, and the border widths' unit (points are likely).
+
+## Frame borders, 2026-11-21 (donated files, local only)
+
+OBSERVATION: the four per-side numbers of a text frame (layout index 8; at +0x2c, +0x35, +0x3b, +0x41) are 0 in the style template and 1 to 8 on frames that show a border on the stored page preview. In the car-sale sign the white detail box carries 1 on every side and the phone-number box carries 4, and the preview shows a thin and a thick black border on exactly those two frames. The sign's outer frame (layout index 5) carries 8 and shows the thickest border.
+
+INFERENCE: the numbers are line widths in points and the border colour is the "automatic" one, which draws black. The opener draws a solid black outline whose weight is the largest of the four numbers (clamped to 0.25 to 36 pt) on index-8 frames. Per-side differences, the same fields on shapes (indices 2 to 7) and the exact unit are not decoded; the larger numbers 0x1c seen at +0x46 to +0x4c of some frames are not read.
+
+## Page order and master pages, 2026-11-21 (donated files, local only)
+
+OBSERVATION: the records of layout index 20 directly below the root are the candidate pages and masters. In `Isreal - Rome Vacation` (17 stored pages) the directory lists, in this order, two containers whose only text is a page-number stub ("- # -"), the cover ("Jerusalem, Israel and Rome, Italy"), a notes page, then the day pages from Day 1 on. The stored page preview shows the cover. A field at record +0x14 of these records (6, 0xa, 0xe, 0x12, 0x16, ...) rises in the same order in that file but not in `Club 75`, where the directory order alone matched the preview (the first content container there holds "January" and "March" columns, as the preview does).
+
+INFERENCE: the directory order of the page records is the page order, and a container whose only text has no letter or digit and that holds no picture is a master page. The opener now orders pages by the stored position of their container record and leaves such masters out. UNKNOWN: what the +0x14 field means, whether masters should be applied to the pages they serve, and facing-page layouts. Before this change the first page of that file was the page-number stub and its second the first Day page.

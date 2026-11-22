@@ -11,6 +11,7 @@ use designcraft_doc::{Document, ParaFormat, SpreadRef};
 use designcraft_geom::Rect;
 use designcraft_pub_legacy::{LegacyText, Scope, Source, read_legacy};
 use serde_json::{Value, json};
+use std::collections::HashMap;
 
 use super::{bad, str_param};
 use crate::{DocState, EngineError, Result, Session};
@@ -91,10 +92,12 @@ fn stored_rect(r: &LegacyText, seg: &designcraft_pub_legacy::Segment, w: f64, h:
 /// is the "automatic" 0xC0E40000 shows as a dark band behind white text, so it is drawn with a black fill and
 /// white automatic text. Other references (small scheme numbers, literal colours) are not decoded and get no fill.
 fn frame_look(f: &designcraft_pub_legacy::FrameRect) -> designcraft_pub::FrameLook {
+    // A border is drawn black: its colour reference is the automatic one in every frame that has a border.
+    let border = (f.border > 0).then_some(f64::from(f.border).clamp(0.25, 36.0));
     if f.fill_mode == 2 && f.color_ref == 0xC0E4_0000 {
-        designcraft_pub::FrameLook { fill: Some([0, 0, 0]), text: Some([255, 255, 255]) }
+        designcraft_pub::FrameLook { fill: Some([0, 0, 0]), text: Some([255, 255, 255]), border }
     } else {
-        designcraft_pub::FrameLook::default()
+        designcraft_pub::FrameLook { border, ..Default::default() }
     }
 }
 
@@ -151,7 +154,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     // Stories whose record carried a plausible stored rectangle keep that position, one page per candidate
     // container in order of first appearance (page identity and order are not established). Stories without a
     // position keep the plain recovery flow on pages after them.
-    let mut positioned: Vec<(usize, Rect, String, Option<u32>, designcraft_pub::FrameLook)> = Vec::new();
+    let mut positioned: Vec<Positioned> = Vec::new();
     // The Quill store also carries fonts, sizes, styles and alignment; it is only used for stories placed at a stored rectangle.
     let formats = if matches!(r.family, designcraft_pub_legacy::Family::A | designcraft_pub_legacy::Family::B) {
         designcraft_pub_legacy::quill_bytes(bytes).and_then(|q| designcraft_pub::StoryFormats::parse(&q).ok())
@@ -161,6 +164,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     let mut format_notes: Vec<String> = Vec::new();
     let mut formatted_frames = 0usize;
     let mut containers: Vec<u16> = Vec::new();
+    let mut ranks: HashMap<u16, u32> = r.frames.iter().map(|f| (f.container, f.container_rank)).collect();
     let page_rects = size_status == "inferred-from-raw";
     for (index, seg) in r.segments.iter().enumerate() {
         let text = match &seg.text {
@@ -208,7 +212,8 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
         placed.push((page, Rect::new(margin, y, margin + body_w, y + height), text));
         y += height + 8.0;
     }
-    let (art, art_notes) = collect_art(bytes, &r, page_rects, (w, h), &mut containers);
+    let (mut art, art_notes) = collect_art(bytes, &r, page_rects, (w, h), &mut containers, &mut ranks);
+    order_pages(&mut containers, &ranks, &mut positioned, &mut art);
     let positioned_pages = containers.len();
     let flow_pages = if placed.is_empty() { 0 } else { page + 1 };
     let nd = NewDocument {
@@ -244,6 +249,9 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
                     d.add_text_frame(SpreadRef::Doc(*pg), *rect, layer, text, ParaFormat::default()).map_err(|e| bad("file.open", e.to_string()))?;
                 if let Some(rgb) = look.fill {
                     designcraft_pub::solid_fill(&mut d, id, rgb);
+                }
+                if let Some(weight) = look.border {
+                    designcraft_pub::solid_border(&mut d, id, weight);
                 }
             }
         }
@@ -331,7 +339,14 @@ struct Art {
 /// Embedded-object previews and bitmap pictures at their owning objects' stored rectangles, with the candidate
 /// page each belongs on (new containers get their own page after the text's pages). Previews come first so
 /// pictures and text lie above them.
-fn collect_art(bytes: &[u8], r: &LegacyText, enabled: bool, (w, h): (f64, f64), containers: &mut Vec<u16>) -> (Vec<Art>, Vec<String>) {
+fn collect_art(
+    bytes: &[u8],
+    r: &LegacyText,
+    enabled: bool,
+    (w, h): (f64, f64),
+    containers: &mut Vec<u16>,
+    ranks: &mut HashMap<u16, u32>,
+) -> (Vec<Art>, Vec<String>) {
     let mut items = Vec::new();
     let mut notes: Vec<String> = Vec::new();
     let Some(size) = r.size.filter(|_| enabled) else { return (items, notes) };
@@ -342,6 +357,9 @@ fn collect_art(bytes: &[u8], r: &LegacyText, enabled: bool, (w, h): (f64, f64), 
         })
     };
     for pv in designcraft_pub_legacy::read_object_previews(bytes).unwrap_or_default() {
+        if let Some(f) = &pv.frame {
+            ranks.entry(f.container).or_insert(f.container_rank);
+        }
         let Some((container, rect)) = pv.frame.as_ref().and_then(|f| frame_to_rect(f, size, w, h)) else { continue };
         let emu = |v: u32| i32::try_from(v.saturating_mul(360)).unwrap_or(i32::MAX);
         let Some(svg) = designcraft_pub::metafile_to_svg(&pv.wmf, (emu(pv.width), emu(pv.height))) else { continue };
@@ -361,6 +379,9 @@ fn collect_art(bytes: &[u8], r: &LegacyText, enabled: bool, (w, h): (f64, f64), 
         });
     }
     for pic in designcraft_pub_legacy::read_pictures(bytes).unwrap_or_default() {
+        if let Some(f) = &pic.frame {
+            ranks.entry(f.container).or_insert(f.container_rank);
+        }
         let Some((container, rect)) = pic.frame.as_ref().and_then(|f| frame_to_rect(f, size, w, h)) else { continue };
         items.push(Art {
             page: page_of(container),
@@ -454,4 +475,41 @@ fn recovery_notes(
             }
         }
     }
+}
+
+type Positioned = (usize, Rect, String, Option<u32>, designcraft_pub::FrameLook);
+
+/// Put the candidate pages in stored order and leave out master-like ones.
+///
+/// OBSERVATION (Isreal - Rome Vacation, Club 75): records directly below the root are stored in page order,
+/// which put the stored page preview's page first; a container whose only text is a page-number stub
+/// ("- # -") and that holds no picture is a master page, not a document page.
+fn order_pages(containers: &mut Vec<u16>, ranks: &HashMap<u16, u32>, positioned: &mut Vec<Positioned>, art: &mut Vec<Art>) {
+    let has_content: Vec<bool> = (0..containers.len())
+        .map(|i| positioned.iter().any(|p| p.0 == i && p.2.chars().any(char::is_alphanumeric)) || art.iter().any(|a| a.page == i))
+        .collect();
+    let mut order: Vec<usize> = (0..containers.len()).filter(|i| has_content.get(*i).copied().unwrap_or(false)).collect();
+    // Keep the first-seen order when a container has no stored rank.
+    order.sort_by_key(|i| containers.get(*i).and_then(|c| ranks.get(c)).copied().unwrap_or(u32::MAX));
+    let mut new_index: Vec<Option<usize>> = vec![None; containers.len()];
+    for (pos, old) in order.iter().enumerate() {
+        if let Some(slot) = new_index.get_mut(*old) {
+            *slot = Some(pos);
+        }
+    }
+    positioned.retain_mut(|p| match new_index.get(p.0).copied().flatten() {
+        Some(n) => {
+            p.0 = n;
+            true
+        }
+        None => false,
+    });
+    art.retain_mut(|a| match new_index.get(a.page).copied().flatten() {
+        Some(n) => {
+            a.page = n;
+            true
+        }
+        None => false,
+    });
+    *containers = order.iter().filter_map(|i| containers.get(*i).copied()).collect();
 }
