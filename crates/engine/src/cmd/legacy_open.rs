@@ -228,6 +228,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     let mut d = Document::new(&nd);
     let layer = d.layers.first().map(|l| l.id).ok_or_else(|| bad("file.open", "new document has no layer"))?;
     let (placed_previews, placed_pictures) = place_art(&mut d, layer, &art);
+    let mut frame_ids: Vec<u64> = Vec::new();
     for (pg, rect, text, story, look) in &positioned {
         // Fonts, sizes, styles and alignment come from the Quill store when it has this story; any failure
         // leaves the plain recovered text in the frame instead.
@@ -236,7 +237,8 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
             _ => None,
         };
         match styled {
-            Some((_, notes)) => {
+            Some((fid, notes)) => {
+                frame_ids.push(fid.0);
                 formatted_frames += 1;
                 for n in notes {
                     if !format_notes.contains(&n) {
@@ -253,12 +255,15 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
                 if let Some(weight) = look.border {
                     designcraft_pub::solid_border(&mut d, id, weight);
                 }
+                frame_ids.push(id.0);
             }
         }
     }
     for (pg, rect, text) in &placed {
-        d.add_text_frame(SpreadRef::Doc(positioned_pages + *pg), *rect, layer, text, ParaFormat::default())
+        let (id, _) = d
+            .add_text_frame(SpreadRef::Doc(positioned_pages + *pg), *rect, layer, text, ParaFormat::default())
             .map_err(|e| bad("file.open", e.to_string()))?;
+        frame_ids.push(id.0);
     }
     let notice = match r.scope {
         Scope::EmptyKnownStore => NOTICE_EMPTY,
@@ -293,6 +298,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
         source.with_extension("designcraft").to_string_lossy().into_owned()
     });
     let i = s.add_document(state);
+    let grown = grow_overset_frames(s, &frame_ids);
     let provenance: Vec<Value> = r
         .segments
         .iter()
@@ -312,7 +318,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
             "family": r.family.label(),
             "scope": format!("{:?}", r.scope),
             "openResult": if r.scope == Scope::EmptyKnownStore { "empty-recovery-workspace" } else { "recovery-document" },
-            "segmentCount": r.segments.len(), "decodedCount": decoded, "encodingUnknownCount": encoding_unknown, "undecodedCount": undecoded,
+            "segmentCount": r.segments.len(), "grownFrames": grown, "decodedCount": decoded, "encodingUnknownCount": encoding_unknown, "undecodedCount": undecoded,
             "rawSizePair": r.size.map(|z| json!([z.raw_width, z.raw_height])),
             "sizeStatus": size_status,
             "recoveryPageSize": {"width": w, "height": h, "unit": "pt", "widthMm": w * 25.4 / 72.0, "heightMm": h * 25.4 / 72.0},
@@ -399,9 +405,10 @@ fn collect_art(
 /// Add one piece of art as a picture frame filling its rectangle.
 fn add_art(d: &mut Document, layer: designcraft_doc::LayerId, art: &Art) -> Result<()> {
     let size = (f64::from(art.pixels.0.max(1)), f64::from(art.pixels.1.max(1)));
-    let asset = designcraft_doc::AssetId(d.alloc());
-    d.add_asset(designcraft_doc::Asset {
-        id: asset,
+    // The document stores identical data once and returns the existing asset, so use the id it returns.
+    let new_id = designcraft_doc::AssetId(d.alloc());
+    let asset = d.add_asset(designcraft_doc::Asset {
+        id: new_id,
         name: art.name.clone(),
         mime: art.mime.into(),
         data: std::sync::Arc::new(art.data.clone()),
@@ -512,4 +519,34 @@ fn order_pages(containers: &mut Vec<u16>, ranks: &HashMap<u16, u32>, positioned:
         None => false,
     });
     *containers = order.iter().filter_map(|i| containers.get(*i).copied()).collect();
+}
+
+/// Make recovered frames just tall enough for their text. The fonts the file names are often not installed, and
+/// their stand-ins are usually wider, so text that fitted in Publisher can overflow; growing the frame keeps all
+/// of it visible and avoids false "overset" errors. A frame grows in small steps, at most by 360 pt in all.
+/// Returns how many frames grew.
+fn grow_overset_frames(s: &mut Session, ids: &[u64]) -> usize {
+    const STEP: f64 = 6.0;
+    const MAX_STEPS: usize = 60;
+    let mut grown = 0usize;
+    for id in ids {
+        let mut grew = false;
+        for _ in 0..MAX_STEPS {
+            let fits = s.execute("story.get", &json!({"frame": id})).map(|r| r["overset"].is_null()).unwrap_or(true);
+            if fits {
+                break;
+            }
+            let Some(b) = s.doc().ok().and_then(|st| st.doc.item(designcraft_doc::ItemId(*id)).map(|it| it.bounds())) else { break };
+            let from = [b.x0, b.y0, b.x1, b.y1];
+            let to = [b.x0, b.y0, b.x1, b.y1 + STEP];
+            if s.execute("transform.resize", &json!({"from": from, "to": to, "ids": [id]})).is_err() {
+                break;
+            }
+            grew = true;
+        }
+        if grew {
+            grown += 1;
+        }
+    }
+    grown
 }
