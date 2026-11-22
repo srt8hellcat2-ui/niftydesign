@@ -91,6 +91,15 @@ impl StoryFormats {
             if style.underline.or(defaults.underline).unwrap_or(false) {
                 ops.push(("underline", json!(true)));
             }
+            if let Some(rgb) = style.color.or(defaults.color).and_then(literal_rgb) {
+                let name = format!("R={} G={} B={}", rgb[0], rgb[1], rgb[2]);
+                if !doc.swatches.iter().any(|s| s.name == name) {
+                    let mut s = designcraft_color::Swatch::color(&name, designcraft_color::Color::rgb8(rgb[0], rgb[1], rgb[2]));
+                    s.named = false;
+                    doc.swatches.push(s);
+                }
+                ops.push(("fill", json!(name)));
+            }
             if let Some(value) = style.capitalization.or(defaults.capitalization) {
                 ops.push(("capitalization", json!(value)));
             }
@@ -167,5 +176,31 @@ impl StoryFormats {
             warnings.push("Some text formatting could not be applied.".into());
         }
         Ok((id, warnings))
+    }
+}
+
+/// OBSERVATION (docs/pub-format/legacy-minimal-reader.md, "Text colour"): in the 97/98/2000 Quill stores a
+/// character colour whose top byte is 0x90 carries a literal colour in its low three bytes as
+/// 0x00BBGGRR (red in the lowest byte). Other tags (small palette numbers, 0x80 scheme/system values,
+/// 0xe0e4 markers) are not decoded and leave the colour unset.
+fn literal_rgb(v: u32) -> Option<[u8; 3]> {
+    (v >> 24 == 0x90).then(|| [(v & 0xff) as u8, ((v >> 8) & 0xff) as u8, ((v >> 16) & 0xff) as u8])
+}
+
+#[cfg(test)]
+mod tests {
+    use super::literal_rgb;
+
+    #[test]
+    fn a_0x90_colour_is_blue_green_red_in_the_low_three_bytes() {
+        assert_eq!(literal_rgb(0x9099_6600), Some([0x00, 0x66, 0x99]));
+        assert_eq!(literal_rgb(0x9033_6633), Some([0x33, 0x66, 0x33]));
+    }
+
+    #[test]
+    fn other_tags_are_left_unset() {
+        for v in [3, 0x8000_000c, 0xe0e4_0001, 0xffff_fffe, 0x0099_6600] {
+            assert_eq!(literal_rgb(v), None);
+        }
     }
 }

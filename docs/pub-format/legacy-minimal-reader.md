@@ -230,3 +230,11 @@ OBSERVATION (overlay of those rectangles on the stored page previews, two files)
 UNKNOWN: fill colour, line colour and width, line style, shadows, rotation, and where pictures and their data are stored. The prefix tails after the rectangle hold repeated `e4 c0` byte pairs and other small words in all of these records (template records have them too), which has not been decoded; no colour was read from them. The stored page preview must not be used to read colours into the importer, only to check results.
 
 NEXT: decode the colour and line fields from more samples, then draw rectangle-like objects with them. Until then these shapes are not drawn.
+
+## Text colour, 2026-11-21 (donated files, local only)
+
+OBSERVATION: across the 43 legacy files, character-run colours in the Quill store take these shapes (counts of runs): small numbers 1 to 11 (about 2,000 runs; `3` alone 933), `0x9033_6633`, `0x9099_6600`, `0x9099_0066`, `0x90fb_4b77`, `0x9091_032b` (about 200 runs with top byte `0x90`), `0x8000_000c`, `0x8000_0002`, `0x8000_0000`, `0x8000_0005` (about 150 runs with top byte `0x80`), `0xe0e4_0001`, `0xe0e4_0003`, `0xe0e4_0007`, `0xe0e4_0002` (about 140 runs, low half a small number), `0xffff_fffe`, `0xc0c6_0000`. The colour table of the 2002+ files is empty in all of them.
+
+OBSERVATION (visual check against the stored page previews): for a value with top byte `0x90`, the low three bytes read as blue, green, red (`0x00BBGGRR`, red in the lowest byte) match the preview: in `WPET Party - Brochure` the labels with `0x9099_0066` are purple, and in `Bonus Bonaza` the text with `0x9099_6600` is teal-blue, as read this way (and not as RGB, which would give brown). The old reader applies this only. Rendered result: the purple labels now draw purple.
+
+UNKNOWN: the small numbers (likely palette or scheme indices, document-dependent), the `0x80` values (possibly system or scheme colours), and the `0xe0e4` values (a marker plus a small number). These runs keep the frame's default colour. Shape fill and line colours in the object records are still undecoded; this text-colour finding is the only colour decoded.
