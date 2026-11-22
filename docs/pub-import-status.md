@@ -25,7 +25,7 @@ Update 2026-10-23 (T1, `codex/importer-improvements`): before/after corpus score
 | Feature | Status | Notes |
 |---|---|---|
 | Publisher 2002–2021 files | Works | All 142 samples open. Of 24 files from real users of other programs (Apache POI set), 11 open, 11 fail and 2 are refused as old; see "Real-file check" below. |
-| Publisher 97/98/2000 files | Partial (experimental, unreleased) | Released builds refuse them with a clear message (`Sample98.pub`, `Sample2000.pub`). The next build opens them through a separate reader (`crates/pub-legacy`): text at stored positions with fonts and sizes, bitmap pictures, and the stored drawings of WordArt and clip art. No shapes, fills, lines, tables or most colours; page order is a guess. |
+| Publisher 97/98/2000 files | Partial (experimental, unreleased) | Released builds refuse them with a clear message (`Sample98.pub`, `Sample2000.pub`). The next build opens them through a separate reader (`crates/pub-legacy`): text at stored positions with fonts and sizes, bitmap pictures, and the stored drawings of WordArt and clip art. Text frames with a literal fill colour are filled. No shapes, lines, tables or most colours; page order is a guess. Older files with header +4 = 200 (eight donated files) open as text only: no pages, positions, sizes or fonts. A flat, non-compound file (`MYRESUME.PUB`) is still refused. |
 | Page size, orientation, page count | Works | `pages__*` (letter, landscape, 5.75×4.75 in, 1–3 pages). |
 | Master pages | Works | Become DesignCraft parent pages, with their shapes and text. |
 | Objects beside the page (scratch area) | Not yet | Left out, warned (`pages__size-5.75x4.75`). |
