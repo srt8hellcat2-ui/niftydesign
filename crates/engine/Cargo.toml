@@ -28,6 +28,7 @@ craft-prepress = { workspace = true }
 designcraft-tools = { workspace = true }
 designcraft-idml = { workspace = true }
 designcraft-pub = { workspace = true }
+designcraft-pub-legacy = { workspace = true }
 indd = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -52,6 +53,7 @@ hayro-interpret = { version = "0.7.0", default-features = false, features = ["em
 hayro-cmap = "0.1"
 kurbo = { workspace = true }
 cfb = { workspace = true }
+designcraft-pub-legacy = { workspace = true, features = ["fixtures"] }
 miniz_oxide = "0.8"
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]

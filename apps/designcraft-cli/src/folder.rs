@@ -79,16 +79,18 @@ struct Entry {
     warnings: Vec<String>,
     notes: Vec<String>,
     message: Option<String>,
+    /// The typed result of the experimental Publisher 97/98/2000 text recovery, when that route opened the file.
+    legacy: Option<Value>,
 }
 impl Entry {
     fn failure(file: String, message: String) -> Self {
-        Self { file, result: 3, pages: None, pdf: None, warnings: Vec::new(), notes: Vec::new(), message: Some(message) }
+        Self { file, result: 3, pages: None, pdf: None, warnings: Vec::new(), notes: Vec::new(), message: Some(message), legacy: None }
     }
     fn label(&self) -> &'static str {
         RESULTS.get(self.result).copied().unwrap_or("Could not read")
     }
     fn value(&self) -> Value {
-        json!({"file":self.file,"result":self.label(),"pages":self.pages,"pdf":self.pdf,"warnings":self.warnings,"notes":self.notes,"message":self.message})
+        json!({"file":self.file,"result":self.label(),"pages":self.pages,"pdf":self.pdf,"warnings":self.warnings,"notes":self.notes,"message":self.message,"legacy":self.legacy})
     }
 }
 fn plain(message: &str) -> String {
@@ -420,6 +422,7 @@ fn run(opts: Options) -> Result<bool, String> {
             }
             entry.warnings = outcome.warnings.iter().map(|w| plain(w)).collect();
             entry.notes = outcome.notes.iter().map(|n| plain(n)).collect();
+            entry.legacy = outcome.legacy.clone();
             Ok(entry)
         };
         let entry = converted().unwrap_or_else(|e| Entry::failure(name(path, &input), e));

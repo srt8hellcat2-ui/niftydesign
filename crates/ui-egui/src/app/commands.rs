@@ -56,6 +56,8 @@ impl DesignApp {
             Ok(_) => {}
         }
         if r.is_ok() && matches!(id, "file.open" | "file.openIdml" | "file.openBytes") {
+            // A new successful open supersedes an earlier problem still shown in the status line (a later warning sets it again).
+            self.ui.status.clear();
             if self.ui.dialog.as_ref().is_some_and(|d| d.id == "findFont") {
                 self.ui.dialog = None;
             }

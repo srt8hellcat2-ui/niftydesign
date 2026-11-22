@@ -88,3 +88,14 @@ fn truncated_or_corrupt_input_is_an_error_not_a_panic() {
         let _ = read_publication(&b);
     }
 }
+
+#[test]
+fn an_early_flat_publisher_file_is_unsupported_not_a_non_publisher() {
+    let mut early = vec![0xe7, 0xac, 0x2c, 0x00, 0xc6, 0x02, 0x00, 0x00];
+    early.resize(64, 0);
+    let Err(err) = read_publication(&early) else { panic!("an early flat file must be refused") };
+    assert!(matches!(err, PubError::Unsupported(_)), "{err}");
+    assert!(err.to_string().contains("early Publisher file format"));
+    // Other flat bytes stay "not a Publisher file".
+    assert!(matches!(read_publication(&[0xe7, 0xac, 0x2d, 0x00]), Err(PubError::NotPub(_))));
+}

@@ -1,6 +1,8 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # Publisher import: what works
 
+Plan for reaching parity for every `.pub` file: [pub-format/parity-roadmap.md](pub-format/parity-roadmap.md). Desktop runs: [pub-format/desktop-test-log.md](pub-format/desktop-test-log.md).
+
 Status of opening Microsoft Publisher (`.pub`) files in DesignCraft, feature by feature.
 Refreshed 2026-10-19 from the docs merged on `pub-import` (through `9019750`): the task results in `TASKS.md`, `REPORTS.md`, `warning-triage.md` and `real-file-triage.md`. Scores are against the 142 pubsmith sample files (`0ccdf27`), each made in Publisher to show one feature. Nothing was re-run for this refresh.
 
@@ -25,7 +27,7 @@ Update 2026-10-23 (T1, `codex/importer-improvements`): before/after corpus score
 | Feature | Status | Notes |
 |---|---|---|
 | Publisher 2002–2021 files | Works | All 142 samples open. Of 24 files from real users of other programs (Apache POI set), 11 open, 11 fail and 2 are refused as old; see "Real-file check" below. |
-| Publisher 97/98/2000 files | Not yet | Refused with a clear message (`Sample98.pub`, `Sample2000.pub`). |
+| Publisher 97/98/2000 files | Partial (experimental, unreleased) | Released builds refuse them with a clear message (`Sample98.pub`, `Sample2000.pub`). The next build opens them through a separate reader (`crates/pub-legacy`): text at stored positions with fonts and sizes, bitmap pictures, and the stored drawings of WordArt and clip art. Text frames with a literal fill colour are filled. No shapes, lines, tables or most colours; page order is a guess. Older files with header +4 = 200 (eight donated files) open as text only: no pages, positions, sizes or fonts. A flat, non-compound file (`MYRESUME.PUB`) is still refused. |
 | Page size, orientation, page count | Works | `pages__*` (letter, landscape, 5.75×4.75 in, 1–3 pages). |
 | Master pages | Works | Become DesignCraft parent pages, with their shapes and text. |
 | Objects beside the page (scratch area) | Not yet | Left out, warned (`pages__size-5.75x4.75`). |

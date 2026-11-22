@@ -1,10 +1,10 @@
-NiftyDesign 0.18.0-nifty-alpha.5 - unofficial alpha
+NiftyDesign 0.20.1-nifty-alpha.6 - unofficial alpha
 Windows x64 only. Not for ARM64, 32-bit Windows, macOS or Linux.
 
 
 NiftyDesign opens and edits Microsoft Publisher (.pub) files from Publisher 2002 and newer.
 This unofficial alpha saves .designcraft documents, exports PDF and prints.
-Publisher 97, 98 and 2000 files are refused.
+Publisher 97, 98 and 2000 files open through an experimental, partial recovery (new in alpha.6).
 Based on DesignCraft by the ArtCraft team. Unofficial build; not supported by
 ArtCraft or Microsoft. This is not a Microsoft Publisher release.
 
@@ -20,9 +20,9 @@ before running designcraft.exe. The command-line tool is designcraft-cli.exe.
 
 
 Verify the zip before extracting. Download both the zip and its separate
-niftydesign-0.18.0-nifty-alpha.5-windows-x64.zip.sha256 file into the same folder.
+niftydesign-0.20.1-nifty-alpha.6-windows-x64.zip.sha256 file into the same folder.
 In PowerShell, from that folder:
-  $zip = 'niftydesign-0.18.0-nifty-alpha.5-windows-x64.zip'
+  $zip = 'niftydesign-0.20.1-nifty-alpha.6-windows-x64.zip'
   $expected = ((Get-Content -LiteralPath "$zip.sha256").Trim() -split '  ', 2)[0]
   if ((Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash -ne $expected) {
     throw "SHA256 mismatch: $zip"
@@ -55,7 +55,7 @@ Known gaps: numbered lists and custom tab stops are unsupported; table cell
 shading and borders are not decoded; merged-cell text is unconfirmed;
 upward-arch WordArt is editable curved text, but circle and other warps stay
 straight. Text inside WMF/EMF pictures is left out.
-Publisher 97-2000 files are refused.
+Publisher 97-2000 files: experimental, partial recovery; shapes, lines, tables and most colours are not recovered.
 In the eight Apache test tables, cell text is now drawn (checked by eye on one file and by text search in the PDF output on all eight). Cell fills, borders and padding are still not decoded, text in merged cells is unconfirmed, and row positions can differ by about 0.01 inch for a reason we have not found. Check tables against your original. The synthetic 2x2 table now draws A1, B1, A2 and B2. Cell fills, borders and uncertain merged-cell text remain unsupported.
 
 
@@ -76,7 +76,7 @@ Other unsupported features can produce warnings or different-looking output.
 Keep the original .pub and check any exported PDF carefully.
 
 
-Of 24 real Apache test files: 9 opened with only notes about formatting settings we do not understand and skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. The 9 are not a claim that they match Publisher; we have not compared them with Publisher. Earlier counts called these 9 'warnings'; only the labelling changed, not the importer's fidelity.
+Of 24 real Apache test files (re-run on the alpha.6 code): 21 opened, all with notes or warnings (including the 2 Publisher 98 and 2000 files), and 3 were deliberately damaged test files that were correctly rejected. Opening is not a claim that a file matches Publisher; we have not compared them with Publisher.
 These are test files, including deliberately damaged inputs, not a representative
 survey of real users' publications. A warning is not a promise of visual accuracy.
 

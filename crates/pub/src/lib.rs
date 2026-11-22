@@ -47,8 +47,10 @@ mod metafile;
 mod overset;
 mod paths;
 mod presets;
+mod preview;
 mod quill;
 mod read;
+mod story;
 mod tables;
 mod wordart;
 
@@ -99,6 +101,9 @@ const EMU_PER_PT: f64 = 12_700.0;
 const MAX_GROUP_DEPTH: usize = 16;
 
 /// True for an OLE2 compound file holding a Publisher `Contents` stream.
+pub use preview::{MetafileSvg, metafile_to_svg};
+pub use story::{FrameLook, StoryFormats, solid_border, solid_fill};
+
 pub fn is_pub(bytes: &[u8]) -> bool {
     bytes.starts_with(&CFB_SIGNATURE)
         && cfb::CompoundFile::open(std::io::Cursor::new(bytes)).is_ok_and(|mut cf| {
@@ -180,6 +185,13 @@ pub fn read_publication(bytes: &[u8]) -> Result<Publication> {
         return Err(PubError::Unsupported("the file is larger than 512 MB".into()));
     }
     if !bytes.starts_with(&CFB_SIGNATURE) {
+        // OBSERVATION (one donated file): an early Publisher file is not a compound file; its first four bytes are
+        // e7 ac 2c 00. It is a Publisher file, so it is not reported as "not a Publisher file".
+        if bytes.starts_with(&[0xe7, 0xac, 0x2c, 0x00]) {
+            return Err(PubError::Unsupported(
+                "this is an early Publisher file format that is not stored as a compound file; it is not supported yet".into(),
+            ));
+        }
         return Err(PubError::NotPub("not an OLE2 compound file".into()));
     }
     let mut cf = cfb::CompoundFile::open(std::io::Cursor::new(bytes)).map_err(|e| PubError::Malformed(format!("compound file: {e}")))?;
