@@ -112,6 +112,9 @@ pub struct FrameRect {
     /// reference at +0x22 (0xC0E40000 is the "automatic" reference). 0 when the prefix is too short.
     pub fill_mode: u8,
     pub color_ref: u32,
+    /// OBSERVATION: the byte at record +0x17. Among the frames with fill byte 2 and the automatic reference, 13 of 15
+    /// with 0x03 are black on the stored preview, and the one frame with 0x43 (bit 0x40 set) is a pale divider.
+    pub frame_flags: u8,
     /// OBSERVATION: the largest of the four side numbers at +0x2c, +0x35, +0x3b and +0x41 of a text frame
     /// (layout index 8). 0 is no border; 1 and 4 matched a thin and a thick border on the stored preview.
     pub border: u8,

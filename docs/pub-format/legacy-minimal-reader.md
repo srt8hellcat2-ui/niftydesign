@@ -319,3 +319,11 @@ INFERENCE: the reader returns the root pair as the size candidate when the direc
 OBSERVATION (desktop test, Flyer 200201): the per-side border numbers at +0x2c, +0x35, +0x3b and +0x41 of a text frame are 0x81 on the two tall khaki and white columns, which have no thick border on the stored preview. Read as the whole byte (129) and clamped to 36 points, they drew a black outline 36 points thick around those frames; that outline is the large dark area of the first desktop capture and also took the text space that made the left column run off the page. With the flag bit 0x80 masked off the number is 1.
 
 INFERENCE: bit 0x80 is a flag, not part of the width; the width is the low seven bits. Numbers above 8 after masking have not been seen on a bordered frame, so they are not read as a width (UNKNOWN). After the change the page renders close to the stored preview, and the text fits (checked by eye on that file).
+
+## Black fill: what is and is not known, 2026-11-22 (donated files, local only)
+
+OBSERVATION (21 text frames with byte +0x2a = 2 and the automatic reference 0xC0E40000, 24 donated files, stored previews): by byte +0x17 of the record, 0x03 is black on 13 frames and pale on 2; 0x83 is black on 3 and pale on 1; 0x43 (the only one) is a pale divider in Flyer 200404.
+
+OBSERVATION (the limit): in Flyer 200404 the tall divider frame 381 (byte +0x17 = 0x03, mode 2, automatic) is byte for byte the same as the black strips of Flyer 200201 except for its id, one link number and a word at +0x04 (0x0a8c, against 0 in Flyer 200201). The preview shows it pale. So the black fill is not decided by the bytes read so far.
+
+INFERENCE: the opener keeps the black fill for these frames, because it matches 16 of 21, and skips it when bit 0x40 of byte +0x17 is set. The remaining mismatches (for example the stray black bar in the middle of Flyer 200404) are UNKNOWN; the fill probably depends on something that is not read, such as a style or the text colour.

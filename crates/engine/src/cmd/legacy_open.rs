@@ -109,7 +109,7 @@ fn stored_rect(r: &LegacyText, seg: &designcraft_pub_legacy::Segment, w: f64, h:
 fn frame_look(f: &designcraft_pub_legacy::FrameRect) -> designcraft_pub::FrameLook {
     // A border is drawn black: its colour reference is the automatic one in every frame that has a border.
     let border = (f.border > 0).then_some(f64::from(f.border).clamp(0.25, 36.0));
-    if f.fill_mode == 2 && f.color_ref == 0xC0E4_0000 {
+    if f.fill_mode == 2 && f.color_ref == 0xC0E4_0000 && f.frame_flags & 0x40 == 0 {
         designcraft_pub::FrameLook { fill: Some([0, 0, 0]), text: Some([255, 255, 255]), border }
     } else if f.fill_mode == 2 && f.color_ref >> 24 == 0x20 {
         let [r, g, b, _] = f.color_ref.to_le_bytes();
@@ -578,7 +578,19 @@ mod frame_look_tests {
     use designcraft_pub_legacy::FrameRect;
 
     fn frame(fill_mode: u8, color_ref: u32) -> FrameRect {
-        FrameRect { record: 1, left: 0, top: 0, right: 1, bottom: 1, container: 0, fill_mode, color_ref, border: 0, container_rank: 0 }
+        FrameRect {
+            record: 1,
+            left: 0,
+            top: 0,
+            right: 1,
+            bottom: 1,
+            container: 0,
+            fill_mode,
+            color_ref,
+            frame_flags: 3,
+            border: 0,
+            container_rank: 0,
+        }
     }
 
     #[test]
@@ -592,6 +604,16 @@ mod frame_look_tests {
     fn the_automatic_reference_keeps_its_black_fill_and_white_text() {
         let look = frame_look(&frame(2, 0xC0E4_0000));
         assert_eq!((look.fill, look.text), (Some([0, 0, 0]), Some([255, 255, 255])));
+    }
+
+    #[test]
+    fn the_black_fill_needs_bit_0x40_of_byte_0x17_clear() {
+        let mut f = frame(2, 0xC0E4_0000);
+        assert_eq!(frame_look(&f).fill, Some([0, 0, 0]));
+        f.frame_flags = 0x43;
+        assert_eq!(frame_look(&f).fill, None, "a pale divider in Flyer 200404 carries 0x43");
+        f.frame_flags = 0x83;
+        assert_eq!(frame_look(&f).fill, Some([0, 0, 0]), "0x83 was black on three of four frames");
     }
 
     #[test]
