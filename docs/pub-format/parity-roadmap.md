@@ -26,7 +26,7 @@ What is never in scope: writing `.pub` files, mail merge, the design checker, te
 | Donated files (all generations) | 52 | 51 | 19 are 2002+, 24 are legacy A/B/C with the 0x012c header, 8 are the text-only profile D, 1 is a flat file. |
 | Legacy intake samples (97 to 2000) | 7 | 7 | Five family C, two A/B. |
 
-Level 2 for legacy files: text frames of A/B files are placed by their stored rectangles; C and D files are text only. Level 3 is not measured for any file.
+Level 2 for legacy files: text frames of A/B files are placed by their stored rectangles; C and D files are text only. Level 3 is not measured for any file. By eye against the stored previews (not Publisher), 11 of 24 A, B and C files are close, 6 are partly right, 1 has a visible fault and 3 are text only ([desktop-test-log.md](desktop-test-log.md)).
 
 ## 3. Workstreams
 
@@ -71,6 +71,7 @@ These files have no public specification. Everything here comes from observing t
 | 2.10 | The code page. Windows-1252 is inferred (2026-11-22) and labelled; confirm it with files made in other languages. | Files with accented text and known content | The "inferred" label is replaced by "confirmed", or a second code page is added. |
 | 2.11 | WordArt and clip art are placed as stored pictures; make them editable only where the stored data allows. | 2.7 | Decided per kind, not assumed. |
 | 2.12 | Two populated A files and two populated B files are the whole evidence for some paths (marked FRAGILE). | The samples listed in the legacy notes | The FRAGILE labels are removed or the paths narrowed. |
+| 2.13 | Symbol fonts (Wingdings and similar): characters show as boxes or as the wrong letter. The mapping needs data about the font, which is not in the files. | Font data supplied or a public mapping the owner approves | Bullets, stars and checkmarks render as symbols. |
 
 ### W3. Publisher 2002 to 2021: from "opens" to "looks right"
 

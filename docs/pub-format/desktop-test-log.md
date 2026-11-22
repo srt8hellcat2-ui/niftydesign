@@ -40,3 +40,19 @@ Start-Process target\debug\designcraft.exe -ArgumentList '--control','7979'
 # then send {"id":1,"method":"engine.execute","params":{"command":"file.open","params":{"path":"..."}}}
 # and {"id":2,"method":"ui.screenshot","params":{"path":"..."}} as JSON lines to 127.0.0.1:7979
 ```
+
+## Side by side with the stored previews, 2026-11-22
+
+Method: each of the 24 donated A, B and C files has a page preview stored inside it (a 16-colour bitmap). Our rendering of page 1 was set next to it and compared by eye. This is not a comparison with Publisher and the previews are low resolution, so it can only show large differences. It is not level 4 in [parity-roadmap.md](parity-roadmap.md).
+
+| Group | Files | What the comparison showed |
+|---|---|---|
+| Close | iPod Contest, Leaders Guide, Flyer 200201, Flyer 200204, Super Bowl House Warming, MyMissionField Letterhead, MyMissionField Home Page, Maggiano All Pictures, Sales Contest Flyer, Club 75, Isreal Rome Vacation | Text, fonts, pictures and most positions agree. Small differences: colours that come from colour schemes, frame outlines, WordArt look. |
+| Partly | IHEC Postcards, Advertisement Hotels, Wireless Flyer, Bonus Bonaza, Car For Sale, Box Tags | Text and pictures are there, but filled shapes are missing: the grey panels with black borders (IHEC), the red sign panel (Car For Sale), the red chart bar and rules (Bonus Bonaza), the grey background and star symbols (Box Tags). Wireless Flyer uses the wrong colours for its list and shows symbol checkmarks as `c`. |
+| Wrong in one place | Flyer 200404 | A stray tall black bar in the middle and overlapping text in the lower half. The bar is a frame whose record is identical to the black strips of Flyer 200201; see "Black fill" in [legacy-minimal-reader.md](legacy-minimal-reader.md). |
+| Text only | CACalen, CD Labels, Merry Christmas 1997 (family C) | Text on A4 with no calendar grid, label positions or page layout. |
+
+Cross-cutting causes seen on these sheets:
+- **Colour scheme references.** The small numbers that name a scheme colour cannot be resolved for the built-in schemes (Bluebird, Dark Blue, Black & Gray): the file stores no colours for them. Island stores five. This blocks most remaining shape and text colours. Roadmap 2.5.
+- **Shapes.** The record types for rectangles, bars and rules (layout indices 2 to 7, 15, 40) are not drawn. Roadmap 2.6.
+- **Symbol fonts.** Characters from a symbol font (stars, checkmarks, bullets such as in WPET Party and Box Tags) show as empty boxes or as the letter they share a code with. Roadmap, new item 2.13.
