@@ -26,7 +26,7 @@ What is never in scope: writing `.pub` files, mail merge, the design checker, te
 | Donated files (all generations) | 52 | 51 | 19 are 2002+, 24 are legacy A/B/C with the 0x012c header, 8 are the text-only profile D, 1 is a flat file. |
 | Legacy intake samples (97 to 2000) | 7 | 7 | Five family C, two A/B. |
 
-Level 2 for legacy files: text frames of A/B files are placed by their stored rectangles; C and D files are text only. Level 3 is not measured for any file. By eye against the stored previews (not Publisher), 11 of 24 A, B and C files are close, 6 are partly right, 1 has a visible fault and 3 are text only ([desktop-test-log.md](desktop-test-log.md)).
+Level 2 for legacy files: text frames of A/B files are placed by their stored rectangles; C and D files are text only. Level 3 is not measured for any file. By eye against the stored previews (not Publisher), 11 of 24 A, B and C files are close, 9 are partly right, 1 has a visible fault and 3 are text only ([desktop-test-log.md](desktop-test-log.md)).
 
 ## 3. Workstreams
 
