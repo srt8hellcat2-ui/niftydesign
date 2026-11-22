@@ -32,3 +32,11 @@ Not run: the full workspace, the 142-file corpus gate and the 24-file real-file 
 ## Branches and the GitHub notice
 
 The previous upgrade lived on the branch `nifty-update-0.18.0`, which has a different history from the fork's `main` (see ROADMAP). The upgrade branch will therefore be the working branch, and GitHub will show its "branch isn't protected" suggestion for it. A ruleset on the pattern `nifty-update-*` covers this and the next upgrade branch.
+
+## Done on branch `nifty-update-0.20.1`, 2026-11-22
+
+The upstream change set `v0.18.0 -> v0.20.1` is applied and the version is `0.20.1-nifty-alpha.6` everywhere it was hard-coded (the README's "latest release" line and the release notes for alpha.5 are left alone until a release exists).
+
+Run on the upgraded branch: `cargo xtask ci` (all 9 steps: fmt, pdf-deps, clippy, test, i18n-report, doctest, assets, layers, wasm) passed. The 142-file corpus imports 142/142. The batch counts did not change: 142 of 142 controlled files open (80 clean), 21 of 24 real Apache files open (the 3 that do not are the deliberately damaged ones), 51 of 52 donated files open.
+
+Not run: the corpus scores against the answer files (objects, positions, texts, styles), because those files are not on this machine; the desktop app on the upgraded build; the Python packaging tests; the GitHub workflows. No release or tag was made.
