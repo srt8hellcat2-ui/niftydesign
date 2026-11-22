@@ -16,18 +16,18 @@ use std::collections::HashMap;
 use super::{bad, str_param};
 use crate::{DocState, EngineError, Result, Session};
 
-const DETAIL: &str = "Pictures, shapes, tables, colours and page order are not recovered. Frame positions and text formatting are recovered only where the stored numbers could be read, and may be wrong. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy.";
+const DETAIL: &str = "Shapes, fills, tables, most colours and the exact page order are not recovered. Text positions, fonts, bitmap pictures and the stored drawings of WordArt and clip art are recovered only where the stored numbers could be read, and may be wrong. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy.";
 const NOTICE_OK: &str = concat!(
     "Experimental text recovery. Recovered text is ready to edit. This is a new document, not the original layout. ",
-    "Pictures, shapes, tables, colours and page order are not recovered. Frame positions and text formatting are recovered only where the stored numbers could be read, and may be wrong. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy."
+    "Shapes, fills, tables, most colours and the exact page order are not recovered. Text positions, fonts, bitmap pictures and the stored drawings of WordArt and clip art are recovered only where the stored numbers could be read, and may be wrong. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy."
 );
 const NOTICE_PARTIAL: &str = concat!(
     "Experimental text recovery. Some text could not be recovered. Missing text is reported below; text we could not read is marked in the document. This is a new document, not the original layout. ",
-    "Pictures, shapes, tables, colours and page order are not recovered. Frame positions and text formatting are recovered only where the stored numbers could be read, and may be wrong. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy."
+    "Shapes, fills, tables, most colours and the exact page order are not recovered. Text positions, fonts, bitmap pictures and the stored drawings of WordArt and clip art are recovered only where the stored numbers could be read, and may be wrong. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy."
 );
 const NOTICE_EMPTY: &str = concat!(
     "Experimental text recovery found no text in the supported text store. This does not mean the original file is blank. The empty page is a recovery workspace, not an original page. ",
-    "Pictures, shapes, tables, colours and page order are not recovered. Frame positions and text formatting are recovered only where the stored numbers could be read, and may be wrong. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy."
+    "Shapes, fills, tables, most colours and the exact page order are not recovered. Text positions, fonts, bitmap pictures and the stored drawings of WordArt and clip art are recovered only where the stored numbers could be read, and may be wrong. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy."
 );
 const PLACEHOLDER: &str = "[Text could not be read. No replacement text was guessed.]";
 const A4: (f64, f64) = (595.276, 841.89);
