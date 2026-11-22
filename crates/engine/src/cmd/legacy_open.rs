@@ -344,7 +344,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
             "sizeStatus": size_status,
             "recoveryPageSize": {"width": w, "height": h, "unit": "pt", "widthMm": w * 25.4 / 72.0, "heightMm": h * 25.4 / 72.0},
             "withheldCount": "unknown",
-            "readerRevision": concat!("designcraft-pub-legacy ", env!("CARGO_PKG_VERSION")),
+            "readerRevision": concat!("legacy reader ", env!("CARGO_PKG_VERSION")),
             "buildCommit": option_env!("NIFTY_BUILD_COMMIT").unwrap_or("unknown"),
             "provenance": provenance, "storageOrderOnly": true,
             "sourceText": source_text,

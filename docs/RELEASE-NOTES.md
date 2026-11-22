@@ -1,9 +1,19 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # NiftyDesign unsigned alpha: release notes
 
-NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer, lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.18.0 by the ArtCraft team, with a Publisher importer added. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
+NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer (and, experimentally and only in part, 97, 98 and 2000), lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.20.1 by the ArtCraft team, with a Publisher importer added. Publisher 97, 98 and 2000 files open through an experimental, partial recovery. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
 
-## What changed since 0.12.0-nifty-alpha.4
+## What changed since 0.18.0-nifty-alpha.5
+
+- Rebased on DesignCraft 0.20.1.
+- NEW, experimental: Publisher 97, 98 and 2000 files now open instead of being refused. They open as a new document with the text where it was stored (where that can be read), with fonts and sizes, bitmap pictures, the stored drawings of WordArt and clip art, and some frame fills. Some older files open as text only on one A4 page, with their page size read from the file when it is there. Shapes, lines, tables, most colours and the exact page order are not recovered, symbol-font characters can show as boxes, and the result can look quite different from the original. A notice on every such file says so.
+- Single-byte text in those older files is read as Windows-1252. That is inferred from where quotes and apostrophes fall in thirteen files, not confirmed, and every report says so.
+- One early flat Publisher file format is still refused, now with an accurate message instead of "not a Publisher file".
+- A failed open's error no longer stays in the status bar after later files open.
+- Checked on the alpha.6 code: the full repository CI gate passed (formatting, lint, tests, assets, layering and the web build). All 142 controlled files import. 21 of 24 real Apache files open (the other 3 are deliberately damaged), and 51 of 52 donated real files open, including in a developer build of the desktop app on one Windows 11 PC.
+- Not changed: table fills, borders and padding; numbered lists and tab stops; other WordArt shapes; page numbers and dates; saving back to .pub.
+
+## What changed in alpha.5 (since 0.12.0-nifty-alpha.4)
 
 - Rebased on DesignCraft 0.18.0.
 - A table with inconsistent stored dimensions no longer fails the whole file (issue 44, a calendar with one table per month). The table is drawn from its stored sizes and a warning names what was approximated.
@@ -33,7 +43,7 @@ On Windows 11 PCs where Smart App Control is turned On, Windows can block an uns
 Download the zip and its separate `.zip.sha256` file into the same folder. In PowerShell, change the version below to the version you downloaded:
 
 ```powershell
-$zip = 'NiftyDesign-0.18.0-nifty-alpha.5-windows-x64.zip'
+$zip = 'NiftyDesign-0.20.1-nifty-alpha.6-windows-x64.zip'
 $line = (Get-Content -LiteralPath "$zip.sha256").Trim()
 $hash, $filename = $line -split '  ', 2
 if ($filename -ne $zip -or $hash -notmatch '^[0-9a-fA-F]{64}$' -or
@@ -47,7 +57,7 @@ The sidecar verifies the finished zip before extraction. `SHA256SUMS` inside the
 
 ## Verified and unverified
 
-This version (alpha.5): built and smoke-tested automatically on Windows, and opened by hand on one Windows 11 PC with the issue 44 calendar (Set Year, undo, picture moving). Typing into table cells by hand and printing were not tried.
+This version (alpha.6): built and smoke-tested automatically on Windows by the release workflow. Its code was also run by hand on one Windows 11 PC in a developer build, where it opened all 52 donated Publisher files in the desktop window. The downloadable zip itself has not been run by hand yet, and typing into table cells and printing were not tried with it. Alpha.5 was opened by hand on that PC with the issue 44 calendar (Set Year, undo, picture moving).
 
 An earlier alpha worked on the maintainer's one Windows 11 PC: launching, opening a .pub, editing, saving and reopening, PDF export, printing on one inkjet printer, and Arial and Times New Roman found as installed fonts.
 

@@ -146,7 +146,7 @@ fn report_fields_follow_the_shared_schema() {
     let r = open(&mut s, "older.pub", &legacy_a_file()).unwrap();
     let l = &r["legacy"];
     assert_eq!(l["withheldCount"], "unknown");
-    assert!(l["readerRevision"].as_str().unwrap().starts_with("designcraft-pub-legacy "));
+    assert!(l["readerRevision"].as_str().unwrap().starts_with("legacy reader "));
     assert!(l["recoveryPageSize"]["widthMm"].as_f64().unwrap() > 200.0);
     assert_eq!(l["segmentCount"].as_u64().unwrap(), l["decodedCount"].as_u64().unwrap() + l["undecodedCount"].as_u64().unwrap());
 }
