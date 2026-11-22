@@ -38,6 +38,10 @@ const MAX_PAGES: usize = 2000;
 /// not verified, so a size far beyond a normal sheet is not shown as if it were the original page.
 const MAX_PLAUSIBLE_MM: f64 = 450.0;
 
+/// A text-only recovery does not place text, so a stored page whose shorter side is below this (4 inches) would only
+/// spread the text over many tiny pages. It is flowed on A4 instead.
+const TEXT_ONLY_MIN_PT: f64 = 288.0;
+
 /// The recovery page size, its status, and whether a stored candidate was rejected as implausible.
 fn page_size(r: &LegacyText) -> ((f64, f64), &'static str, bool) {
     let mut rejected = false;
@@ -45,6 +49,9 @@ fn page_size(r: &LegacyText) -> ((f64, f64), &'static str, bool) {
         let (w, h) = (size.inferred_mm.0 * 72.0 / 25.4, size.inferred_mm.1 * 72.0 / 25.4);
         let max_pt = MAX_PLAUSIBLE_MM * 72.0 / 25.4;
         if (72.0..=max_pt).contains(&w) && (72.0..=max_pt).contains(&h) {
+            if r.family == designcraft_pub_legacy::Family::D && w.min(h) < TEXT_ONLY_MIN_PT {
+                return (A4, "text-only-A4", false);
+            }
             return ((w, h), "inferred-from-raw", false);
         }
         rejected = true;
@@ -285,6 +292,8 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     recovery_notes(&mut warnings, (placed_pictures, placed_previews, formatted_frames), (&art_notes, &format_notes), formats.as_ref());
     warnings.push(if size_rejected {
         "Original page size is unverified. A standard A4 recovery page is being used.".to_string()
+    } else if size_status == "text-only-A4" {
+        "The stored page is small and this file is recovered as text only, so the text is flowed on a standard A4 recovery page.".to_string()
     } else if size_status == "default-A4" {
         "Original page size is unknown. A standard A4 recovery page is being used.".to_string()
     } else {

@@ -345,18 +345,26 @@ pub fn legacy_a_file_with_size(w: u32, h: u32) -> Vec<u8> {
 /// A byte-built file in the text-only profile (header +4 = 200, no directory): header, a control block, the text
 /// core (which must end in a form feed), CR LF, then invented trailing bytes that the reader must not follow.
 pub(crate) fn early_contents(core: &[u8]) -> Vec<u8> {
+    early_contents_sized(core, Some((7_772_400, 10_058_400)))
+}
+
+/// The same, with a record directory (header +0x16) holding one root record whose size pair is `size`; `None` leaves
+/// the directory pointer at a value that is not inside the stream.
+pub(crate) fn early_contents_sized(core: &[u8], size: Option<(u32, u32)>) -> Vec<u8> {
     let ctl = 0x30usize;
     let s = ctl + 46;
     let p = s + core.len();
-    let len = p + 2 + 64;
+    let dir = p + 2 + 8;
+    let root = dir + 8 + 10;
+    let len = root + 0x54 + 8;
     let mut c = vec![0u8; len];
     c[..4].copy_from_slice(&[0xe8, 0xac, 0x22, 0x00]);
     set16(&mut c, 2, 34);
     set16(&mut c, 4, 200);
     set32(&mut c, 8, len as u32);
     set32(&mut c, 0x12, ctl as u32);
-    set32(&mut c, 0x16, 508);
-    set32(&mut c, 0x1a, 0x22);
+    set32(&mut c, 0x16, if size.is_some() { dir as u32 } else { 508 });
+    set32(&mut c, 0x1a, 0x34);
     set16(&mut c, ctl, 0xf0de);
     set16(&mut c, ctl + 2, 46);
     set32(&mut c, ctl + 0x0a, len as u32);
@@ -365,12 +373,29 @@ pub(crate) fn early_contents(core: &[u8]) -> Vec<u8> {
     c[s..p].copy_from_slice(core);
     c[p] = 0x0d;
     c[p + 1] = 0x0a;
-    for (k, b) in c[p + 2 + 8..].iter_mut().enumerate() {
-        *b = (k % 251) as u8 + 1;
+    // Invented directory: count 1, maximum id, four more bytes, then one entry (offset, attribute, id, parent).
+    set16(&mut c, dir, 1);
+    set16(&mut c, dir + 2, 0x1d6);
+    c[dir + 4..dir + 8].copy_from_slice(&[0, 1, 0xff, 0]);
+    set32(&mut c, dir + 8, root as u32);
+    set16(&mut c, dir + 12, 0x16c0);
+    set16(&mut c, dir + 14, 0x1d6);
+    set16(&mut c, dir + 16, 0x100);
+    set16(&mut c, root, 21);
+    c[root + 2] = 0x5e;
+    c[root + 3] = 0x54;
+    if let Some((w, h)) = size {
+        set32(&mut c, root + 0x14, w);
+        set32(&mut c, root + 0x18, h);
     }
     c
 }
 
 pub fn legacy_d_file() -> Vec<u8> {
     compound(CLSID_C, &early_contents(b"Alpha\r\n\x0cBeta line\r\nSecond\r\n\x0c"), None)
+}
+
+/// An invented text-only (D profile) file whose root record holds this page size pair.
+pub fn legacy_d_file_with_size(w: u32, h: u32) -> Vec<u8> {
+    compound(CLSID_C, &early_contents_sized(b"Alpha\r\n\x0cBeta line\r\nSecond\r\n\x0c", Some((w, h))), None)
 }

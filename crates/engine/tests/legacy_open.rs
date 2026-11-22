@@ -164,3 +164,20 @@ fn a_tiny_page_keeps_its_frames_inside_the_margins() {
         assert!(b.x0 > 0.0 && b.y0 > 0.0 && b.x1 < page.width && b.y1 < page.height, "{b:?} on {} x {}", page.width, page.height);
     }
 }
+
+#[test]
+fn a_text_only_file_uses_its_stored_page_size_unless_the_page_is_tiny() {
+    use designcraft_pub_legacy::fixtures::legacy_d_file_with_size;
+    // Letter: used, and labelled as inferred.
+    let mut s = Session::new();
+    let r = open(&mut s, "letter.pub", &legacy_d_file_with_size(7_772_400, 10_058_400)).unwrap();
+    assert_eq!(r["legacy"]["sizeStatus"], "inferred-from-raw");
+    assert_eq!(r["legacy"]["recoveryPageSize"]["width"].as_f64().map(f64::round), Some(612.0));
+    // A business-card page (3.5 x 2 in): the text is not positioned, so it would only fill many tiny pages.
+    let mut s = Session::new();
+    let r = open(&mut s, "card.pub", &legacy_d_file_with_size(3_200_400, 1_828_800)).unwrap();
+    assert_eq!(r["legacy"]["sizeStatus"], "text-only-A4");
+    assert_eq!(r["legacy"]["rawSizePair"], json!([3_200_400, 1_828_800]));
+    assert_eq!(s.doc().unwrap().doc.spreads.len(), 1, "four short lines fit one A4 page");
+    assert!(r["warnings"].as_array().unwrap().iter().any(|w| w.as_str().is_some_and(|t| t.contains("recovered as text only"))));
+}

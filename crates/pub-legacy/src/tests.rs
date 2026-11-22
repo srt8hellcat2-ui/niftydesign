@@ -623,7 +623,10 @@ mod early_profile {
         let texts: Vec<_> = r.segments.iter().map(|s| s.text.clone().unwrap()).collect();
         assert_eq!(texts, ["Alpha\r\n\x0c", "Beta line\r\nSecond\r\n\x0c"]);
         assert!(matches!(&r.segments[1].source, Source::Range { bytes } if bytes.start == 8));
-        assert!(r.size.is_none() && r.frames.is_empty(), "no size, frame or page is claimed");
+        let size = r.size.unwrap();
+        assert_eq!((size.raw_width, size.raw_height), (7_772_400, 10_058_400));
+        assert!(r.frames.is_empty(), "no frame or page is claimed");
+        assert!(r.warnings.iter().any(|w| w.contains("raw candidate")));
         assert!(r.warnings.iter().any(|w| w.contains("text only")));
     }
 
@@ -727,5 +730,48 @@ mod early_profile_hostile {
         let r = read_legacy(&compound(CLSID_C, &early_contents(b"\x0c"), None)).unwrap();
         assert_eq!(r.segments.len(), 1);
         assert_eq!(r.segments[0].text.as_deref(), Some("\u{c}"));
+    }
+}
+
+mod early_page_size {
+    use crate::fixtures::{CLSID_C, compound, early_contents, early_contents_sized, set16, set32};
+    use crate::{Scope, read_legacy};
+
+    fn read(c: &[u8]) -> crate::LegacyText {
+        read_legacy(&compound(CLSID_C, c, None)).unwrap()
+    }
+
+    #[test]
+    fn a_business_card_sized_page_is_read_from_the_root_record() {
+        let r = read(&early_contents_sized(b"Alpha\r\n\x0c", Some((3_200_400, 1_828_800))));
+        let size = r.size.unwrap();
+        assert_eq!((size.raw_width, size.raw_height), (3_200_400, 1_828_800));
+        assert!((size.inferred_mm.0 - 88.9).abs() < 0.01 && (size.inferred_mm.1 - 50.8).abs() < 0.01, "3.5 x 2 inches");
+    }
+
+    #[test]
+    fn a_missing_or_unusable_directory_withholds_only_the_size() {
+        let no_dir = read(&early_contents_sized(b"Alpha\r\n\x0c", None));
+        assert!(no_dir.size.is_none() && no_dir.scope == Scope::Complete);
+        assert_eq!(no_dir.segments[0].text.as_deref(), Some("Alpha\r\n\x0c"));
+        assert!(no_dir.warnings.iter().any(|w| w.contains("page size candidate was withheld")));
+
+        let zero = read(&early_contents_sized(b"Alpha\r\n\x0c", Some((0, 10))));
+        assert!(zero.size.is_none() && zero.segments.len() == 1, "a zero side withholds the size, not the text");
+    }
+
+    #[test]
+    fn two_root_records_or_unordered_offsets_withhold_the_size() {
+        let good = early_contents(b"Alpha\r\n\x0c");
+        let dir = u32::from_le_bytes(good[0x16..0x1a].try_into().unwrap()) as usize;
+        // A second entry that points at the same record: two roots, and offsets that do not ascend.
+        let mut two = good.clone();
+        set16(&mut two, dir, 2);
+        let entry = two[dir + 8..dir + 18].to_vec();
+        two.splice(dir + 18..dir + 18, entry);
+        let len = two.len() as u32;
+        set32(&mut two, 8, len);
+        set32(&mut two, 0x30 + 0x0a, len);
+        assert!(read(&two).size.is_none());
     }
 }
