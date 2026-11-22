@@ -690,3 +690,42 @@ mod code_page {
         assert_eq!(r.scope, Scope::Complete);
     }
 }
+
+mod early_profile_hostile {
+    use crate::fixtures::{CLSID_C, compound, early_contents, set32};
+    use crate::read_legacy;
+
+    #[test]
+    fn every_truncation_and_flipped_byte_is_a_refusal_or_a_result_never_a_panic() {
+        let good = early_contents(b"\x93Alpha\x94\r\n\x0cBeta\x81\r\n\x0c");
+        for cut in 0..good.len() {
+            let _ = read_legacy(&compound(CLSID_C, &good[..cut], None));
+        }
+        for at in 0..good.len() {
+            for flip in [0x01u8, 0x80, 0xff] {
+                let mut b = good.clone();
+                b[at] ^= flip;
+                let _ = read_legacy(&compound(CLSID_C, &b, None));
+            }
+        }
+    }
+
+    #[test]
+    fn hostile_pointers_never_run_past_the_stream() {
+        let good = early_contents(b"Alpha\r\n\x0c");
+        for value in [0u32, 1, 0x21, 0x2f, 0x7fff_ffff, 0xffff_fffe, 0xffff_ffff] {
+            for at in [0x08usize, 0x12, 0x30 + 0x0a, 0x30 + 0x0e, 0x30 + 0x12] {
+                let mut b = good.clone();
+                set32(&mut b, at, value);
+                let _ = read_legacy(&compound(CLSID_C, &b, None));
+            }
+        }
+    }
+
+    #[test]
+    fn a_form_feed_only_buffer_gives_one_segment_and_no_panic() {
+        let r = read_legacy(&compound(CLSID_C, &early_contents(b"\x0c"), None)).unwrap();
+        assert_eq!(r.segments.len(), 1);
+        assert_eq!(r.segments[0].text.as_deref(), Some("\u{c}"));
+    }
+}
