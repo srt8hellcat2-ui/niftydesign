@@ -46,6 +46,15 @@ Created from designcraft-pub-development@6a979401aa23b0d3325e590057385b3c36c66a1
 
 ## Builder (Codex)
 
+### Task AX split plan
+
+OBSERVATION — Reviewed this repository at `000a00af344cc54b391431328f2c932c4abe37c6`, including its clean-room rules, existing provenance, importer and engine integration source, and workspace manifest.
+
+OBSERVATION — Reviewed the manifest and public API source for cfb, codepage, metafile, file-formats, file-import and sniff in craft-libs, and the cfb, codepage and metafile READMEs, for dependency and integration planning. [Source tree](https://github.com/storytold/craft-libs/tree/33be35625e252cc4f06aa375b3b428521faea37d/crates)
+
+OBSERVATION — No fixture, scoring data or external Publisher reader was used.
+
+
 ### Builder (Codex): private source sync (2026-10-22)
 
 Compared the existing private NiftyDesign export at d82d525 with this project's
