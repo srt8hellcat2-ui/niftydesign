@@ -49,6 +49,7 @@ mod paths;
 mod presets;
 mod quill;
 mod read;
+mod story;
 mod tables;
 mod wordart;
 
@@ -99,6 +100,8 @@ const EMU_PER_PT: f64 = 12_700.0;
 const MAX_GROUP_DEPTH: usize = 16;
 
 /// True for an OLE2 compound file holding a Publisher `Contents` stream.
+pub use story::StoryFormats;
+
 pub fn is_pub(bytes: &[u8]) -> bool {
     bytes.starts_with(&CFB_SIGNATURE)
         && cfb::CompoundFile::open(std::io::Cursor::new(bytes)).is_ok_and(|mut cf| {

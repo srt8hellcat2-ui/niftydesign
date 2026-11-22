@@ -230,10 +230,10 @@ pub fn read_legacy(bytes: &[u8]) -> Result<LegacyText, LegacyError> {
     let mut frames = Vec::new();
     if let (Some(sz), Family::A | Family::B) = (size, family) {
         for seg in &segments {
-            if let Source::Story { records, .. } = &seg.source {
-                if let Some(f) = records.iter().find_map(|id| layout.frame_rect(*id, (sz.raw_width, sz.raw_height))) {
-                    frames.push(f);
-                }
+            if let Source::Story { records, .. } = &seg.source
+                && let Some(f) = records.iter().find_map(|id| layout.frame_rect(*id, (sz.raw_width, sz.raw_height)))
+            {
+                frames.push(f);
             }
         }
     }
@@ -260,3 +260,9 @@ pub mod fixtures;
 
 #[cfg(test)]
 mod tests;
+
+/// The raw `Quill/QuillSub/CONTENTS` stream of an A or B file, for callers that decode its formatting
+/// themselves. `None` when the file has no readable store; the text reader does not depend on this.
+pub fn quill_bytes(bytes: &[u8]) -> Option<Vec<u8>> {
+    quill_stream(bytes).ok().flatten()
+}

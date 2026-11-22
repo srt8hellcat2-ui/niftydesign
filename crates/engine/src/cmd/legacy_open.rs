@@ -15,18 +15,18 @@ use serde_json::{Value, json};
 use super::{bad, str_param};
 use crate::{DocState, EngineError, Result, Session};
 
-const DETAIL: &str = "Original frames, fonts, formatting, page order, tables and pictures are not recovered. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy.";
+const DETAIL: &str = "Pictures, shapes, tables, colours and page order are not recovered. Frame positions and text formatting are recovered only where the stored numbers could be read, and may be wrong. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy.";
 const NOTICE_OK: &str = concat!(
     "Experimental text recovery. Recovered text is ready to edit. This is a new document, not the original layout. ",
-    "Original frames, fonts, formatting, page order, tables and pictures are not recovered. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy."
+    "Pictures, shapes, tables, colours and page order are not recovered. Frame positions and text formatting are recovered only where the stored numbers could be read, and may be wrong. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy."
 );
 const NOTICE_PARTIAL: &str = concat!(
     "Experimental text recovery. Some text could not be recovered. Missing text is reported below; text we could not read is marked in the document. This is a new document, not the original layout. ",
-    "Original frames, fonts, formatting, page order, tables and pictures are not recovered. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy."
+    "Pictures, shapes, tables, colours and page order are not recovered. Frame positions and text formatting are recovered only where the stored numbers could be read, and may be wrong. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy."
 );
 const NOTICE_EMPTY: &str = concat!(
     "Experimental text recovery found no text in the supported text store. This does not mean the original file is blank. The empty page is a recovery workspace, not an original page. ",
-    "Original frames, fonts, formatting, page order, tables and pictures are not recovered. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy."
+    "Pictures, shapes, tables, colours and page order are not recovered. Frame positions and text formatting are recovered only where the stored numbers could be read, and may be wrong. The order of recovered text may not be the reading order. Keep the original file. If possible, open it in Publisher 2002 or later and save a new copy."
 );
 const PLACEHOLDER: &str = "[Text could not be read. No replacement text was guessed.]";
 const A4: (f64, f64) = (595.276, 841.89);
@@ -134,7 +134,15 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     // Stories whose record carried a plausible stored rectangle keep that position, one page per candidate
     // container in order of first appearance (page identity and order are not established). Stories without a
     // position keep the plain recovery flow on pages after them.
-    let mut positioned: Vec<(usize, Rect, String)> = Vec::new();
+    let mut positioned: Vec<(usize, Rect, String, Option<u32>)> = Vec::new();
+    // The Quill store also carries fonts, sizes, styles and alignment; it is only used for stories placed at a stored rectangle.
+    let formats = if matches!(r.family, designcraft_pub_legacy::Family::A | designcraft_pub_legacy::Family::B) {
+        designcraft_pub_legacy::quill_bytes(bytes).and_then(|q| designcraft_pub::StoryFormats::parse(&q).ok())
+    } else {
+        None
+    };
+    let mut format_notes: Vec<String> = Vec::new();
+    let mut formatted_frames = 0usize;
     let mut containers: Vec<u16> = Vec::new();
     let page_rects = size_status == "inferred-from-raw";
     for (index, seg) in r.segments.iter().enumerate() {
@@ -163,15 +171,14 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
             }
             None => PLACEHOLDER.to_string(),
         };
-        if page_rects {
-            if let Some((container, rect)) = stored_rect(&r, seg, w, h) {
-                let pg = containers.iter().position(|c| *c == container).unwrap_or_else(|| {
-                    containers.push(container);
-                    containers.len() - 1
-                });
-                positioned.push((pg, rect, text));
-                continue;
-            }
+        if page_rects && let Some((container, rect)) = stored_rect(&r, seg, w, h) {
+            let pg = containers.iter().position(|c| *c == container).unwrap_or_else(|| {
+                containers.push(container);
+                containers.len() - 1
+            });
+            let story = if let Source::Story { id, .. } = &seg.source { Some(*id) } else { None };
+            positioned.push((pg, rect, text, story));
+            continue;
         }
         let height = frame_height(&text, body_w, body_h);
         if y > margin && y + height > h - margin {
@@ -197,8 +204,26 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     };
     let mut d = Document::new(&nd);
     let layer = d.layers.first().map(|l| l.id).ok_or_else(|| bad("file.open", "new document has no layer"))?;
-    for (pg, rect, text) in &positioned {
-        d.add_text_frame(SpreadRef::Doc(*pg), *rect, layer, text, ParaFormat::default()).map_err(|e| bad("file.open", e.to_string()))?;
+    for (pg, rect, text, story) in &positioned {
+        // Fonts, sizes, styles and alignment come from the Quill store when it has this story; any failure
+        // leaves the plain recovered text in the frame instead.
+        let styled = match (&formats, story) {
+            (Some(f), Some(id)) if f.has_story(*id) => f.add_frame(&mut d, SpreadRef::Doc(*pg), layer, *rect, *id).ok(),
+            _ => None,
+        };
+        match styled {
+            Some((_, notes)) => {
+                formatted_frames += 1;
+                for n in notes {
+                    if !format_notes.contains(&n) {
+                        format_notes.push(n);
+                    }
+                }
+            }
+            None => {
+                d.add_text_frame(SpreadRef::Doc(*pg), *rect, layer, text, ParaFormat::default()).map_err(|e| bad("file.open", e.to_string()))?;
+            }
+        }
     }
     for (pg, rect, text) in &placed {
         d.add_text_frame(SpreadRef::Doc(positioned_pages + *pg), *rect, layer, text, ParaFormat::default())
@@ -210,6 +235,19 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
         _ => NOTICE_PARTIAL,
     };
     let mut warnings = r.warnings.clone();
+    if formatted_frames > 0 {
+        warnings.push(format!(
+            "Fonts, sizes, styles and alignment were read from the stored text formatting for {formatted_frames} frame(s). Colours, pictures, shapes and other formatting are not recovered, and a font that is not installed is replaced."
+        ));
+        warnings.extend(format_notes.iter().cloned());
+        if let Some(f) = &formats {
+            for n in f.warnings() {
+                if !warnings.contains(n) {
+                    warnings.push(n.clone());
+                }
+            }
+        }
+    }
     warnings.push(if size_rejected {
         "Original page size is unverified. A standard A4 recovery page is being used.".to_string()
     } else if size_status == "default-A4" {
