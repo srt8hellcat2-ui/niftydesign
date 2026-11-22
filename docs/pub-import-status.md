@@ -1,7 +1,7 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # Publisher import: what works
 
-Plan for reaching parity for every `.pub` file: [pub-format/parity-roadmap.md](pub-format/parity-roadmap.md).
+Plan for reaching parity for every `.pub` file: [pub-format/parity-roadmap.md](pub-format/parity-roadmap.md). Desktop runs: [pub-format/desktop-test-log.md](pub-format/desktop-test-log.md).
 
 Status of opening Microsoft Publisher (`.pub`) files in DesignCraft, feature by feature.
 Refreshed 2026-10-19 from the docs merged on `pub-import` (through `9019750`): the task results in `TASKS.md`, `REPORTS.md`, `warning-triage.md` and `real-file-triage.md`. Scores are against the 142 pubsmith sample files (`0ccdf27`), each made in Publisher to show one feature. Nothing was re-run for this refresh.

@@ -417,6 +417,15 @@ mod import_warning_tests {
     }
 
     #[test]
+    fn a_successful_open_clears_the_error_of_an_earlier_failed_open() {
+        let mut app = app();
+        assert!(app.run("file.open", json!({"path": "/nonexistent/x.designcraft"})).is_err());
+        assert!(!app.ui.status.is_empty(), "the failure is shown");
+        app.open_file("file.openBytes", json!({"name": "complete.idml", "base64": designcraft_engine::cmd::base64_encode(&idml(false))})).unwrap();
+        assert!(app.ui.status.is_empty(), "{}", app.ui.status);
+    }
+
+    #[test]
     fn complete_import_does_not_show_a_warning() {
         let mut app = app();
         let result = app
