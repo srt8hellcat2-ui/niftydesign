@@ -99,6 +99,19 @@ The open warnings in the status doc and the partial and missing rows of the chec
 | 4.3 | Warnings are readable. One known fault: a warning that quotes `0x80` is printed with the number replaced. | No report line hides a number that explains it. |
 | 4.4 | Every notice says exactly what is and is not recovered for that family. | The text is checked against the level table (0.3). |
 
+### W5. A familiar workspace (optional, separate from file parity)
+
+A switch for people who know Publisher's layout: **Window > Workspace > Publisher-style**, remembered per user, with the native layout one click away. Everything in the app is already a command, and menus, shortcuts and panel docking are data in `crates/ui-egui`, so this is a preset, not a second UI.
+
+| # | Milestone | Done when |
+|---|---|---|
+| 5.1 | Menu preset: the same commands grouped under the headings a Publisher user expects (File, Edit, View, Insert, Format, Tools, Table, Arrange, Window, Help). | Every command is reachable in both layouts; none is lost. |
+| 5.2 | Shortcut preset: a second key map, switchable, with conflicts reported. | The map is data; a test checks every key is bound once. |
+| 5.3 | Panel preset: object toolbar on the left, formatting toolbar on top, task-style panel on the right. | The preset restores on restart. |
+| 5.4 | Wording preset: Publisher's terms for the same things (text box, master page, and so on) as labels only. | Labels change; command ids do not. |
+
+Limits: use feature names and plain functional descriptions only. No Microsoft icons, artwork or text, and no "Publisher" product branding on the toggle, with the same non-affiliation line the README uses. Observing Publisher's own interface for the layout is not covered by the format rules in PUB-AGENTS and needs the owner's say-so, like the reference renders in 0.1.
+
 ## 4. Suggested order
 
 1. **W0.1 to W0.3**: nothing after this can be proven without it.
@@ -107,6 +120,7 @@ The open warnings in the status doc and the partial and missing rows of the chec
 4. **W1.1** when five more flat files exist.
 5. **W3.5 to W3.11** and the rest of **W2**, by checklist weight.
 6. **W0.4** whenever a person is at a Windows desktop.
+7. **W5** (the Publisher-style workspace) once file parity work is under way; it does not depend on it.
 
 ## 5. Dependencies on the owner
 
