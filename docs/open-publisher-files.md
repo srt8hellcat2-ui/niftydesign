@@ -6,7 +6,7 @@ Microsoft stopped making Publisher in October 2026. If you have flyers, newslett
 ## What you need
 
 - DesignCraft on your computer (Mac, Windows or Linux).
-- Your `.pub` files, from Publisher 2002 or later. Most files saved since then are fine. Files from Publisher 97, 98 or 2000 open only as recovered text (experimental, in the next build); earlier builds refuse them and tell you.
+- Your `.pub` files, from Publisher 2002 or later. Most files saved since then are fine. Files from Publisher 97, 98 or 2000 open as an experimental partial recovery (text, fonts, pictures; in the next build); earlier builds refuse them and tell you.
 
 You don't need Publisher installed.
 
@@ -80,5 +80,5 @@ For the full list of what works, see [what works](pub-import-status.md).
 
 - **"not a Microsoft Publisher file"**: it's another kind of file with a `.pub` ending (address lists and some other programs use `.pub` too).
 - **"damaged Publisher file"**: the file is incomplete or corrupted. Try another copy, such as a backup or the copy you emailed someone.
-- **"Experimental text recovery" notice**: the file is from Publisher 97, 98 or 2000. Only its text was recovered, into a new document. Frames, fonts, formatting, page order, tables and pictures were not. Keep your original and compare.
+- **"Experimental text recovery" notice**: the file is from Publisher 97, 98 or 2000. Its text, fonts, bitmap pictures and the stored drawings of WordArt and clip art were recovered into a new document. Shapes, fills, lines, tables, most colours and the page order were not. Keep your original and compare.
 - **"Publisher 97/98/2000 files are not supported yet"** (earlier builds): the file is too old for DesignCraft to read yet. If you still have Publisher on a computer, open the file there and save it again; newer Publisher versions save in a format DesignCraft can read.

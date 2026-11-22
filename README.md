@@ -56,7 +56,7 @@ These are results from our own checks. Only nine test files have been compared s
 | What | Status | Detail |
 |---|---|---|
 | Publisher 2002 and newer files | Opens, with warnings | Most real files open with warnings. Check against your original. |
-| Publisher 97, 98, 2000 files | Text only, experimental, not in a release yet | Current releases refuse them with a message (re-save in Publisher 2002 or newer first). The next build recovers the text into a new document; frames, fonts, formatting, tables and pictures are not recovered. |
+| Publisher 97, 98, 2000 files | Experimental recovery, not in a release yet | Current releases refuse them with a message (re-save in Publisher 2002 or newer first). The next build opens them as a new document with the text at its stored positions, fonts and sizes, bitmap pictures and the stored drawings of WordArt and clip art. Shapes, fills, lines, tables, most colours and exact page order are not recovered. |
 | Text, colours, bullets | Works | Tested on our sample files. |
 | Fonts | Partly | Installed fonts are used (Arial and Times New Roman were found on the test PC). Microsoft fonts that are not installed are replaced by a similar available font, so spacing and line breaks can change. |
 | Shapes, lines, fills, shadows | Partly | Common shapes, lines, fills and shadows work. Curves and polylines are editable paths and the heart draws as a heart. Other shape types can still come in as rectangles, with a warning. |
@@ -140,7 +140,7 @@ The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PN
 - 🔬 Table cell fills, borders, padding and the small row-position drift
 - 🔬 How Publisher bends letters in circle, wave and other WordArt
 - 🔬 Numbered lists and custom tab stops (we need sample files)
-- 🔬 Publisher 97, 98 and 2000 files (experimental text-only recovery is built and waiting for the next release; layout is still research, see the [roadmap](ROADMAP.md))
+- 🔬 Publisher 97, 98 and 2000 files (experimental recovery of text, fonts, pictures and WordArt is built and waiting for the next release; shapes, fills, lines and colours are still research, see the [roadmap](ROADMAP.md))
 
 Real-file check (run before the table-height change and Set Year; not re-run since): of 24 real Apache test files, 9 opened with only notes about formatting settings we skip, 10 opened with warnings, 2 were refused as Publisher 97, 98 or 2000 files, and 3 were deliberately damaged test files that were correctly rejected. We have compared only nine test files with Publisher's own images, so none of this is a claim that files match Publisher. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
 
@@ -182,7 +182,7 @@ Yes. Open the file, then export PDF. Check the PDF against your original: some f
 NiftyDesign is an early, unofficial alpha built to open and edit existing .pub files. It is not a full Publisher replacement. Other free tools that can import Publisher files include LibreOffice Draw and Scribus.
 
 **Does it open old Publisher 97, 98 or 2000 files?**
-Only as text, and not in a released build yet. Released builds refuse those files with a message (re-save them in Publisher 2002 or newer first). The next build adds an experimental text recovery: it puts the text into a new document and does not recover the layout, fonts, tables or pictures. Keep your original file.
+Only partly, and not in a released build yet. Released builds refuse those files with a message (re-save them in Publisher 2002 or newer first). The next build adds an experimental recovery: it opens a new document with the text where it was, with its fonts and sizes, plus the bitmap pictures and the stored pictures of WordArt and clip art. Shapes, fills, lines, tables and most colours are not recovered, and pages may come out in the wrong order. Keep your original file.
 
 **Microsoft is retiring Publisher. What happens to my files?**
 Microsoft set October 1, 2026 as the date Publisher is retired and loses support. Your .pub files stay on your computer, but the program that edits them is going away. NiftyDesign is one way to keep opening them. Keep your original files either way.
