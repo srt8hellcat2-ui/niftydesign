@@ -588,7 +588,7 @@ impl<'a> Builder<'a> {
             t.options.inset = [inset; 4];
             t.options.vertical_justification = VerticalJustification::Center;
         }
-        let fit = curved.as_ref().and_then(|path| wordart::measure(&self.doc, id, path));
+        let fit = curved.as_ref().and_then(|path| wordart::measure(&mut self.doc, id, path));
         if let Some(fit) = fit {
             if let Some(story) = self.doc.story_mut(sid) {
                 story.format_chars(0..text.len(), |cf| {

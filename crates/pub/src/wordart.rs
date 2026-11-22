@@ -50,12 +50,29 @@ fn from_measurements(length: f64, advance: f64, descent: f64) -> Option<Fit> {
     ((0.1..=1296.0).contains(&size) && baseline_shift.is_finite()).then_some(Fit { size, baseline_shift })
 }
 
-pub(crate) fn measure(doc: &designcraft_doc::Document, id: designcraft_doc::ItemId, path: &PathData) -> Option<Fit> {
+/// Measure how a curved decorative-text item fits its path.
+///
+/// The probe needs the item set up as one straight line at size 1, so it changes the item and its story in place and
+/// puts both back afterwards. Only that one item and its story are copied, not the whole document, so the cost does not
+/// grow with the size of the publication.
+pub(crate) fn measure(doc: &mut designcraft_doc::Document, id: designcraft_doc::ItemId, path: &PathData) -> Option<Fit> {
+    let sid = doc.item(id)?.text_frame()?.story;
+    let saved_item = doc.item(id)?.clone();
+    let saved_story = doc.story(sid)?.clone();
+    let fit = measure_in_place(doc, id, sid, path);
+    if let Some(item) = doc.item_mut(id) {
+        *item = saved_item;
+    }
+    if let Some(story) = doc.story_mut(sid) {
+        *story = saved_story;
+    }
+    fit
+}
+
+fn measure_in_place(probe: &mut designcraft_doc::Document, id: designcraft_doc::ItemId, sid: designcraft_doc::StoryId, path: &PathData) -> Option<Fit> {
     use designcraft_compose::{ComposeOptions, compose_story, path_glyphs};
     use designcraft_doc::{PathType, Shape};
     use designcraft_geom::Shape as _;
-    let mut probe = doc.clone();
-    let sid = probe.item(id)?.text_frame()?.story;
     let story = probe.story_mut(sid)?;
     if story.text.is_empty() || story.text.len() > 16_384 {
         return None;
@@ -76,7 +93,7 @@ pub(crate) fn measure(doc: &designcraft_doc::Document, id: designcraft_doc::Item
     tf.options.path = Some(PathType::default());
     tf.options.inset = [0.0; 4];
     tf.options.vertical_justification = designcraft_doc::VerticalJustification::Top;
-    let cs = compose_story(&probe, sid, &ComposeOptions::default());
+    let cs = compose_story(probe, sid, &ComposeOptions::default());
     let ft = cs.frame(id)?;
     if cs.is_overset() || ft.lines.len() != 1 {
         return None;
@@ -190,7 +207,7 @@ mod tests {
             let (id, _) = doc
                 .add_text_frame(SpreadRef::Doc(0), Rect::new(0.0, 0.0, 100.0, 100.0), doc.default_layer(), text, ParaFormat::default())
                 .map_err(|e| e.to_string())?;
-            sizes.push(measure(&doc, id, &path).ok_or("no shaped measurement")?.size);
+            sizes.push(measure(&mut doc, id, &path).ok_or("no shaped measurement")?.size);
         }
         let mut it = sizes.into_iter();
         let narrow = it.next().ok_or("no narrow fit")?;
@@ -202,7 +219,25 @@ mod tests {
     }
 
     #[test]
-    fn unsupported_and_invalid_paths_are_declined() -> Result<(), String> {
+    fn measuring_leaves_the_document_unchanged() -> Result<(), String> {
+        use designcraft_doc::{Document, ParaFormat, SpreadRef};
+        let path = default_path(144, Rect::new(0.0, 0.0, 100.0, 100.0)).ok_or("no arch")?;
+        let mut doc = Document::new(&Default::default());
+        let (id, _) = doc
+            .add_text_frame(SpreadRef::Doc(0), Rect::new(0.0, 0.0, 100.0, 100.0), doc.default_layer(), "Hello", ParaFormat::default())
+            .map_err(|e| e.to_string())?;
+        let sid = doc.item(id).and_then(|i| i.text_frame()).ok_or("no frame")?.story;
+        let item_before = doc.item(id).ok_or("no item")?.clone();
+        let story_before = doc.story(sid).ok_or("no story")?.clone();
+        measure(&mut doc, id, &path).ok_or("no measurement")?;
+        if *doc.item(id).ok_or("no item")? != item_before || *doc.story(sid).ok_or("no story")? != story_before {
+            return Err("measure changed the document".into());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn unsupported_and_invalid_paths_are_declined()-> Result<(), String> {
         for (kind, r) in [
             (145, Rect::new(0.0, 0.0, 100.0, 100.0)),
             (156, Rect::ZERO),
