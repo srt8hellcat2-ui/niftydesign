@@ -31,42 +31,31 @@ impl StoryFormats {
     }
 
     /// Add a text frame holding story `tid` at `rect`, with its character and paragraph formatting.
-    pub fn add_frame(&self, doc: &mut Document, r: SpreadRef, layer: LayerId, rect: Rect, tid: u32) -> Result<(ItemId, Vec<String>)> {
+    pub fn add_frame(
+        &self,
+        doc: &mut Document,
+        r: SpreadRef,
+        layer: LayerId,
+        rect: Rect,
+        tid: u32,
+        look: FrameLook,
+    ) -> Result<(ItemId, Vec<String>)> {
         let q = &self.q;
         let mut warnings: Vec<String> = Vec::new();
         let Some(qs) = q.stories.get(&tid) else { return Err(PubError::Malformed("missing story".into())) };
-        // UTF-16 → UTF-8, keeping each unit's byte offset; Publisher ends every paragraph with CR.
-        let mut text = String::new();
-        let mut at = Vec::with_capacity(qs.units.len() + 1);
-        let mut units = qs.units.clone();
-        if units.last() == Some(&0x0d) {
-            units.pop();
-        }
-        let mut skipped = false;
-        for res in char::decode_utf16(units.iter().copied()) {
-            let len16 = res.as_ref().map_or(1, |c| c.len_utf16());
-            for _ in 0..len16 {
-                at.push(text.len());
-            }
-            match res {
-                Ok('\r') => text.push('\n'),
-                Ok('\u{000b}') => text.push(designcraft_doc::FORCED_LINE_BREAK),
-                Ok('\t') => text.push('\t'),
-                Ok(c) if (c as u32) < 0x20 => skipped = true,
-                Ok(c) => text.push(c),
-                Err(_) => text.push(char::REPLACEMENT_CHARACTER),
-            }
-        }
-        at.push(text.len());
+        let (text, at, skipped, unit_count) = story_text(&qs.units);
         if skipped {
             warnings.push("Fields and special characters (page numbers, dates) were left out of the text.".into());
         }
         let (id, sid) = doc.add_text_frame(r, rect, layer, &text, ParaFormat::default()).map_err(|e| PubError::Malformed(e.to_string()))?;
+        if let Some(rgb) = look.fill {
+            solid_fill(doc, id, rgb);
+        }
         let byte = |u: usize| at.get(u.min(at.len().saturating_sub(1))).copied().unwrap_or(0);
         let defaults = q.default_char.clone();
         let mut char_ops = Vec::new();
         let runs: Vec<(std::ops::Range<usize>, quill::CharStyle)> =
-            if qs.chars.is_empty() { vec![(0..units.len(), defaults.clone())] } else { qs.chars.clone() };
+            if qs.chars.is_empty() { vec![(0..unit_count, defaults.clone())] } else { qs.chars.clone() };
         for (range, style) in runs {
             let (a, z) = (byte(range.start), byte(range.end));
             if z <= a {
@@ -91,7 +80,7 @@ impl StoryFormats {
             if style.underline.or(defaults.underline).unwrap_or(false) {
                 ops.push(("underline", json!(true)));
             }
-            if let Some(rgb) = style.color.or(defaults.color).and_then(literal_rgb) {
+            if let Some(rgb) = run_color(&style, &defaults, look.text) {
                 ops.push(("fill", json!(rgb_swatch(doc, rgb))));
             }
             if let Some(value) = style.capitalization.or(defaults.capitalization) {
@@ -107,7 +96,7 @@ impl StoryFormats {
         }
         let defaults_p = q.default_para.clone();
         let mut para_ops = Vec::new();
-        let para_runs = if qs.paras.is_empty() { vec![(0..units.len(), defaults_p.clone())] } else { qs.paras.clone() };
+        let para_runs = if qs.paras.is_empty() { vec![(0..unit_count, defaults_p.clone())] } else { qs.paras.clone() };
         for (range, style) in &para_runs {
             let (a, z) = (byte(range.start), byte(range.end.saturating_sub(1)).max(byte(range.start)));
             let align = match style.align.or(defaults_p.align) {
@@ -208,4 +197,57 @@ mod tests {
             assert_eq!(literal_rgb(v), None);
         }
     }
+}
+
+/// How a frame looks beyond its text: a solid background, and the colour for text that sets none.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct FrameLook {
+    pub fill: Option<[u8; 3]>,
+    pub text: Option<[u8; 3]>,
+}
+
+/// Give an item a solid fill of this colour.
+pub fn solid_fill(doc: &mut Document, id: ItemId, rgb: [u8; 3]) {
+    let name = rgb_swatch(doc, rgb);
+    if let Some(item) = doc.item_mut(id) {
+        item.fill = designcraft_doc::Fill::swatch(&name);
+    }
+}
+
+/// The colour of a run: its literal colour, else the colour the frame gives text that sets none or the
+/// "automatic" colour (top half 0xe0e4).
+fn run_color(style: &quill::CharStyle, defaults: &quill::CharStyle, fallback: Option<[u8; 3]>) -> Option<[u8; 3]> {
+    match style.color.or(defaults.color) {
+        Some(v) => literal_rgb(v).or(fallback.filter(|_| v >> 16 == 0xe0e4)),
+        None => fallback,
+    }
+}
+
+/// A story's UTF-16 units as text (Publisher ends every paragraph with CR), each unit's byte offset in it (plus
+/// the end), whether control characters (fields, page numbers) were left out, and the unit count without the
+/// closing CR.
+fn story_text(source: &[u16]) -> (String, Vec<usize>, bool, usize) {
+    let mut text = String::new();
+    let mut at = Vec::with_capacity(source.len() + 1);
+    let mut units = source.to_vec();
+    if units.last() == Some(&0x0d) {
+        units.pop();
+    }
+    let mut skipped = false;
+    for res in char::decode_utf16(units.iter().copied()) {
+        let len16 = res.as_ref().map_or(1, |c| c.len_utf16());
+        for _ in 0..len16 {
+            at.push(text.len());
+        }
+        match res {
+            Ok('\r') => text.push('\n'),
+            Ok('\u{000b}') => text.push(designcraft_doc::FORCED_LINE_BREAK),
+            Ok('\t') => text.push('\t'),
+            Ok(c) if (c as u32) < 0x20 => skipped = true,
+            Ok(c) => text.push(c),
+            Err(_) => text.push(char::REPLACEMENT_CHARACTER),
+        }
+    }
+    at.push(text.len());
+    (text, at, skipped, units.len())
 }

@@ -80,10 +80,22 @@ fn visible(raw: &str) -> String {
 /// The stored rectangle of a story's first positioned record, converted to page points (stored values are
 /// centered on the page, in 1/914400 inch), and the candidate page container. `None` unless the whole box
 /// lies on the page, so a bad number can never put a frame off the page.
-fn stored_rect(r: &LegacyText, seg: &designcraft_pub_legacy::Segment, w: f64, h: f64) -> Option<(u16, Rect)> {
+fn stored_rect(r: &LegacyText, seg: &designcraft_pub_legacy::Segment, w: f64, h: f64) -> Option<(u16, Rect, designcraft_pub::FrameLook)> {
     let Source::Story { records, .. } = &seg.source else { return None };
     let f = r.frames.iter().find(|f| records.contains(&f.record))?;
-    frame_to_rect(f, r.size?, w, h)
+    let (container, rect) = frame_to_rect(f, r.size?, w, h)?;
+    Some((container, rect, frame_look(f)))
+}
+
+/// OBSERVATION (Advertisement - Hotels, 17 frames): a frame whose byte at +0x2a is 2 and whose colour reference
+/// is the "automatic" 0xC0E40000 shows as a dark band behind white text, so it is drawn with a black fill and
+/// white automatic text. Other references (small scheme numbers, literal colours) are not decoded and get no fill.
+fn frame_look(f: &designcraft_pub_legacy::FrameRect) -> designcraft_pub::FrameLook {
+    if f.fill_mode == 2 && f.color_ref == 0xC0E4_0000 {
+        designcraft_pub::FrameLook { fill: Some([0, 0, 0]), text: Some([255, 255, 255]) }
+    } else {
+        designcraft_pub::FrameLook::default()
+    }
 }
 
 /// A stored rectangle (centered on the page, 1/914400 inch) as a page rectangle in points, and its candidate
@@ -139,7 +151,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     // Stories whose record carried a plausible stored rectangle keep that position, one page per candidate
     // container in order of first appearance (page identity and order are not established). Stories without a
     // position keep the plain recovery flow on pages after them.
-    let mut positioned: Vec<(usize, Rect, String, Option<u32>)> = Vec::new();
+    let mut positioned: Vec<(usize, Rect, String, Option<u32>, designcraft_pub::FrameLook)> = Vec::new();
     // The Quill store also carries fonts, sizes, styles and alignment; it is only used for stories placed at a stored rectangle.
     let formats = if matches!(r.family, designcraft_pub_legacy::Family::A | designcraft_pub_legacy::Family::B) {
         designcraft_pub_legacy::quill_bytes(bytes).and_then(|q| designcraft_pub::StoryFormats::parse(&q).ok())
@@ -176,13 +188,13 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
             }
             None => PLACEHOLDER.to_string(),
         };
-        if page_rects && let Some((container, rect)) = stored_rect(&r, seg, w, h) {
+        if page_rects && let Some((container, rect, look)) = stored_rect(&r, seg, w, h) {
             let pg = containers.iter().position(|c| *c == container).unwrap_or_else(|| {
                 containers.push(container);
                 containers.len() - 1
             });
             let story = if let Source::Story { id, .. } = &seg.source { Some(*id) } else { None };
-            positioned.push((pg, rect, text, story));
+            positioned.push((pg, rect, text, story, look));
             continue;
         }
         let height = frame_height(&text, body_w, body_h);
@@ -211,11 +223,11 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     let mut d = Document::new(&nd);
     let layer = d.layers.first().map(|l| l.id).ok_or_else(|| bad("file.open", "new document has no layer"))?;
     let (placed_previews, placed_pictures) = place_art(&mut d, layer, &art);
-    for (pg, rect, text, story) in &positioned {
+    for (pg, rect, text, story, look) in &positioned {
         // Fonts, sizes, styles and alignment come from the Quill store when it has this story; any failure
         // leaves the plain recovered text in the frame instead.
         let styled = match (&formats, story) {
-            (Some(f), Some(id)) if f.has_story(*id) => f.add_frame(&mut d, SpreadRef::Doc(*pg), layer, *rect, *id).ok(),
+            (Some(f), Some(id)) if f.has_story(*id) => f.add_frame(&mut d, SpreadRef::Doc(*pg), layer, *rect, *id, *look).ok(),
             _ => None,
         };
         match styled {
@@ -228,7 +240,11 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
                 }
             }
             None => {
-                d.add_text_frame(SpreadRef::Doc(*pg), *rect, layer, text, ParaFormat::default()).map_err(|e| bad("file.open", e.to_string()))?;
+                let (id, _) =
+                    d.add_text_frame(SpreadRef::Doc(*pg), *rect, layer, text, ParaFormat::default()).map_err(|e| bad("file.open", e.to_string()))?;
+                if let Some(rgb) = look.fill {
+                    designcraft_pub::solid_fill(&mut d, id, rgb);
+                }
             }
         }
     }

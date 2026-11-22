@@ -102,7 +102,7 @@ const MAX_GROUP_DEPTH: usize = 16;
 
 /// True for an OLE2 compound file holding a Publisher `Contents` stream.
 pub use preview::{MetafileSvg, metafile_to_svg};
-pub use story::StoryFormats;
+pub use story::{FrameLook, StoryFormats, solid_fill};
 
 pub fn is_pub(bytes: &[u8]) -> bool {
     bytes.starts_with(&CFB_SIGNATURE)

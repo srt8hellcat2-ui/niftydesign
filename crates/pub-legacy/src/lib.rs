@@ -98,6 +98,10 @@ pub struct FrameRect {
     pub right: i32,
     pub bottom: i32,
     pub container: u16,
+    /// OBSERVATION: the byte at record +0x2a (0 or 1: no fill seen, 2: a fill or border is on) and the colour
+    /// reference at +0x22 (0xC0E40000 is the "automatic" reference). 0 when the prefix is too short.
+    pub fill_mode: u8,
+    pub color_ref: u32,
 }
 
 /// The root record's raw size pair. Units are NOT verified.

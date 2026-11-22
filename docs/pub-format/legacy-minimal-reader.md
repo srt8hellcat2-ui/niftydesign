@@ -254,3 +254,11 @@ OBSERVATION: a record of layout index 34 (prefix 8) whose bytes at +8 are `4D 4F
 OBSERVATION (visual check, car-sale sign): converting the metafile with the existing WMF-to-SVG converter and placing it at the owner's rectangle draws the "FOR SALE" lettering with its black drop shadow, and the phone and detail lines, where the page preview has them. The red panel behind them is a separate shape and is not drawn.
 
 INFERENCE: these objects are WordArt, clip art and similar drawn objects; the metafile is their stored picture. They are placed as pictures and cannot be edited as text or shapes. Bitmaps inside such metafiles are left out by the converter. UNKNOWN: which of the two presentations Publisher itself used; the reader takes the first well-formed one. It places the previews before the bitmap pictures and the text so the text lies above them.
+
+## Frame fills, 2026-11-21 (donated files, local only)
+
+OBSERVATION: for text frames (layout index 8) the byte at record +0x2a is 0, 1 or 2, and the u32 at +0x22 is a colour reference. Across the 24 files with the 0x012c header, frames with +0x2a = 2 and the reference 0xC0E4_0000 (called "automatic" here) sample dark on the stored page previews (17 frames, mean about (97, 96, 109)); in `Advertisement - Hotels` they are the black header band and the dark strips behind white text. Four per-side groups at +0x2c, +0x35, +0x3b and +0x41 hold small numbers (0 in the template; 1 to 8 on bordered frames).
+
+INFERENCE: such a frame is a black filled frame whose "automatic" text colour is white. The opener draws exactly that: a black fill, and white text for runs whose colour is automatic (top half 0xe0e4) or unset. Frames with other references (small scheme numbers 1 to 7, the 0x20 and 0x00 literal-looking forms, 0x1a, 0x1b, 0x35) get no fill, because their meaning is not decoded; their samples are mixed (light tints, pale fills, an orange). Borders are not drawn yet.
+
+UNKNOWN: the scheme and palette behind the small numbers, whether the 0x20-tagged references are literal colours, and the border widths' unit (points are likely).

@@ -368,7 +368,10 @@ impl<'a> Layout<'a> {
             }
             cur = self.rec(cur.parent)?;
         }
-        Some(crate::FrameRect { record: id, left, top, right, bottom, container })
+        let byte = |o: usize| if rec.h > o { self.data.get(rec.r + o).copied() } else { None };
+        let fill_mode = byte(0x2a).unwrap_or(0);
+        let color_ref = if rec.h >= 0x26 { u32_at(self.data, rec.r + 0x22).unwrap_or(0) } else { 0 };
+        Some(crate::FrameRect { record: id, left, top, right, bottom, container, fill_mode, color_ref })
     }
 
     /// The root record's expected profile for this family.
