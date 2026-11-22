@@ -12,6 +12,8 @@ What the importer does and does not support is in [../publisher-import.md](../pu
 | `contents-stream.md` | The `Contents` stream: header, record directory, document, pages and masters, objects, palette, colour references. |
 | `tables.md` | Table dimensions, cell rectangles and merges, `TCD ` cell text; what stays unconfirmed. |
 | `text-store.md` | The Quill text store: section directory, text, story ids and lengths, fonts, text colours, default styles, character and paragraph runs. |
+| `drawing-details.md` | Drawing details that are confirmed or still unconfirmed: fills, borders, vertices and the remaining drawing warnings. |
+| `preset-geometry.md` | Preset shape geometry: which shape types are drawn and how. |
 
 Every statement in these notes is marked with its source: a named sample file, the public
 specifications, or "existing code". **Existing code** means the earlier reader that the person
