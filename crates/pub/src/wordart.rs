@@ -69,7 +69,12 @@ pub(crate) fn measure(doc: &mut designcraft_doc::Document, id: designcraft_doc::
     fit
 }
 
-fn measure_in_place(probe: &mut designcraft_doc::Document, id: designcraft_doc::ItemId, sid: designcraft_doc::StoryId, path: &PathData) -> Option<Fit> {
+fn measure_in_place(
+    probe: &mut designcraft_doc::Document,
+    id: designcraft_doc::ItemId,
+    sid: designcraft_doc::StoryId,
+    path: &PathData,
+) -> Option<Fit> {
     use designcraft_compose::{ComposeOptions, compose_story, path_glyphs};
     use designcraft_doc::{PathType, Shape};
     use designcraft_geom::Shape as _;
@@ -237,7 +242,7 @@ mod tests {
     }
 
     #[test]
-    fn unsupported_and_invalid_paths_are_declined()-> Result<(), String> {
+    fn unsupported_and_invalid_paths_are_declined() -> Result<(), String> {
         for (kind, r) in [
             (145, Rect::new(0.0, 0.0, 100.0, 100.0)),
             (156, Rect::ZERO),

@@ -20,7 +20,7 @@ Every open returns:
 
 - Pages, page size and master pages (as parent pages, applied to the pages that use them).
 - Text frames with their stories: fonts by name, bold/italic, size, underline, text colour,
-  capitalization, superscript/subscript position, tracking; alignment, space before/after,
+  capitalization, superscript position (subscript is not yet confirmed and is reported as unsupported), tracking; alignment, space before/after,
   indents, bullets, exact and multiple line spacing; insets and vertical alignment. Linked frames
   are threaded in chain order, the story imported once.
 - Shapes with their position, size, rotation and flips: rectangles, rounded rectangles, ovals,
