@@ -167,7 +167,8 @@ mod tests {
     #[test]
     fn a_24_bit_bitmap_in_a_metafile_becomes_a_bmp_file() {
         let d = dib(3, 2, 24, 0);
-        let found = find_dib(&wmf(&d)).unwrap();
+        let metafile = wmf(&d);
+        let found = find_dib(&metafile).unwrap();
         let p = to_picture(0x44, 0x43, found, None).unwrap();
         assert_eq!((p.width, p.height), (3, 2));
         assert_eq!(&p.bmp[..2], b"BM");
