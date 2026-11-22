@@ -320,6 +320,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
             Source::Record { id, map, bytes } => {
                 json!({"kind": "record", "id": id, "map": map, "bytes": [bytes.start, bytes.end], "decoded": g.text.is_some()})
             }
+            Source::Range { bytes } => json!({"kind": "range", "bytes": [bytes.start, bytes.end], "decoded": g.text.is_some()}),
         })
         .collect();
     Ok(json!({

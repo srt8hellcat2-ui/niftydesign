@@ -11,6 +11,7 @@
 
 mod cmap;
 mod contents;
+mod early;
 mod text;
 
 use std::fmt;
@@ -29,6 +30,8 @@ pub enum Family {
     A,
     B,
     C,
+    /// Header +0x04 = 200 and no directory: only the control block and its text buffer are read.
+    D,
 }
 
 impl Family {
@@ -37,6 +40,7 @@ impl Family {
             Family::A => "experimental legacy A",
             Family::B => "experimental legacy B",
             Family::C => "experimental legacy C",
+            Family::D => "experimental legacy D (text only)",
         }
     }
 }
@@ -76,6 +80,9 @@ pub enum Source {
     /// C: the target record id, the index-26 map record that lists it, and its byte range in the Contents
     /// text buffer (relative to its start).
     Record { id: u16, map: u16, bytes: std::ops::Range<usize> },
+    /// D: a byte range of the text buffer that ends at a form feed. Storage order only; no record, frame or page
+    /// is known for it.
+    Range { bytes: std::ops::Range<usize> },
 }
 
 /// One recovered piece of text. `text` is `None` when the bytes could not be decoded safely
@@ -213,6 +220,9 @@ fn quill_stream(bytes: &[u8]) -> Result<Option<Vec<u8>>, LegacyError> {
 /// Read a legacy file. Refuses what it cannot vouch for; see [`LegacyText::scope`].
 pub fn read_legacy(bytes: &[u8]) -> Result<LegacyText, LegacyError> {
     let container = open(bytes)?;
+    if early::admits(&container) {
+        return early::read(&container);
+    }
     let layout = contents::Layout::parse(&container.contents, &container.clsid)?;
     let family = layout.family;
     let mut warnings = layout.warnings.clone();
@@ -223,6 +233,7 @@ pub fn read_legacy(bytes: &[u8]) -> Result<LegacyText, LegacyError> {
             Ok(q) => text::read_quill(&layout, q.as_deref()),
             Err(e) => Err(format!("the Quill stream could not be read: {e}")),
         },
+        Family::D => Err("the text-only profile is read before the layout table".to_string()),
         Family::C => {
             // Family C keeps its text in Contents; an alternate store is warned about, never followed.
             if quill_present(bytes) {

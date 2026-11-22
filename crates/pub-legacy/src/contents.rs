@@ -174,6 +174,7 @@ impl<'a> Layout<'a> {
                     return Err(bad("the text buffer does not follow the control block"));
                 }
             }
+            Family::D => return Err(LegacyError::Unsupported("the text-only profile has no layout table to walk".into())),
         }
         // Table walk. B must agree under both termination masks.
         let walked = match family {
@@ -186,6 +187,7 @@ impl<'a> Layout<'a> {
                 }
                 a
             }
+            Family::D => return Err(LegacyError::Unsupported("the text-only profile has no layout table to walk".into())),
         };
         let mut table = HashMap::new();
         for (k, (w0, w1, _w2, _)) in walked.iter().enumerate() {

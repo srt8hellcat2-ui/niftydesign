@@ -487,7 +487,7 @@ fn real_sample98_and_sample2000_match_the_contract_numbers() {
             .iter()
             .map(|s| match &s.source {
                 Source::Story { units, .. } => units.len(),
-                Source::Record { .. } => 0,
+                Source::Record { .. } | Source::Range { .. } => 0,
             })
             .collect();
         assert_eq!(units, [86, 98, 62, 80, 87, 75], "{name}");
@@ -605,4 +605,59 @@ fn a_quill_directory_pointer_outside_the_stream_is_refused() {
     let mut m = ab_model(false);
     m.quill = Some(quill(&[5, 9], &[2, 2], "A\rB\r", Some(0xffff_fff0)));
     text_refused(&m, "outside the stream");
+}
+
+mod early_profile {
+    use crate::fixtures::{CLSID_C, compound, early_contents, legacy_d_file, set16, set32};
+    use crate::{Family, LegacyError, Scope, Source, read_legacy};
+
+    fn contents(core: &[u8]) -> Vec<u8> {
+        early_contents(core)
+    }
+
+    #[test]
+    fn a_text_only_file_recovers_its_segments_split_at_form_feeds() {
+        let r = read_legacy(&legacy_d_file()).unwrap();
+        assert_eq!(r.family, Family::D);
+        assert_eq!(r.scope, Scope::Complete);
+        let texts: Vec<_> = r.segments.iter().map(|s| s.text.clone().unwrap()).collect();
+        assert_eq!(texts, ["Alpha\r\n\x0c", "Beta line\r\nSecond\r\n\x0c"]);
+        assert!(matches!(&r.segments[1].source, Source::Range { bytes } if bytes.start == 8));
+        assert!(r.size.is_none() && r.frames.is_empty(), "no size, frame or page is claimed");
+        assert!(r.warnings.iter().any(|w| w.contains("text only")));
+    }
+
+    #[test]
+    fn bytes_at_or_above_0x80_are_not_decoded_and_the_rest_still_is() {
+        let f = compound(CLSID_C, &contents(b"Plain\r\n\x0cIt\x92s\r\n\x0c"), None);
+        let r = read_legacy(&f).unwrap();
+        assert_eq!(r.scope, Scope::Partial);
+        assert_eq!(r.segments[0].text.as_deref(), Some("Plain\r\n\x0c"));
+        assert!(r.segments[1].text.is_none() && r.segments[1].encoding_unknown);
+    }
+
+    #[test]
+    fn every_relationship_is_checked() {
+        let good = contents(b"Alpha\r\n\x0c");
+        let refuse = |mutate: &dyn Fn(&mut Vec<u8>)| {
+            let mut c = good.clone();
+            mutate(&mut c);
+            read_legacy(&compound(CLSID_C, &c, None))
+        };
+        assert!(matches!(refuse(&|c| set32(c, 8, 7)), Err(LegacyError::Malformed(_))), "length field");
+        assert!(matches!(refuse(&|c| set32(c, 0x30 + 0x0a, 5)), Err(LegacyError::Unsupported(_))), "a directory is present");
+        assert!(matches!(refuse(&|c| set16(c, 0x30, 0)), Err(LegacyError::Malformed(_))), "control marker");
+        assert!(matches!(refuse(&|c| set32(c, 0x30 + 0x0e, 1)), Err(LegacyError::Malformed(_))), "text start");
+        assert!(matches!(refuse(&|c| set32(c, 0x30 + 0x12, 0x30 + 46)), Err(LegacyError::Malformed(_))), "empty text");
+        assert!(matches!(refuse(&|c| set32(c, 0x30 + 0x12, 0xffff_ff00)), Err(LegacyError::Malformed(_))), "end past stream");
+        assert!(matches!(refuse(&|c| c[0x30 + 46 + 8] = b'x'), Err(LegacyError::Malformed(_))), "no form feed at the end");
+        assert!(matches!(refuse(&|c| c[0x30 + 46 + 9] = b'x'), Err(LegacyError::Malformed(_))), "no CR LF after the text");
+    }
+
+    #[test]
+    fn the_standard_header_value_keeps_other_profiles_out() {
+        let mut c = contents(b"Alpha\r\n\x0c");
+        set16(&mut c, 4, 300);
+        assert!(read_legacy(&compound(CLSID_C, &c, None)).is_err(), "header +4 = 300 is not this profile");
+    }
 }
