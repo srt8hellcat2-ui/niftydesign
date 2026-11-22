@@ -323,15 +323,15 @@ pub fn legacy_a_empty_file() -> Vec<u8> {
 /// An invented C-profile file whose two segments both hold bytes at or above 0x80.
 pub fn legacy_c_all_unknown_file() -> Vec<u8> {
     let mut m = c_model();
-    m.core[0] = 0x93;
-    m.core[8] = 0x94;
+    m.core[0] = 0x81;
+    m.core[8] = 0x8d;
     file(&m)
 }
 
 /// An invented C-profile file with one decodable and one undecodable segment.
 pub fn legacy_c_mixed_file() -> Vec<u8> {
     let mut m = c_model();
-    m.core[0] = 0x93;
+    m.core[0] = 0x81;
     file(&m)
 }
 

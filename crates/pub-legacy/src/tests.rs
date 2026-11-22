@@ -436,12 +436,12 @@ fn c05_a_bad_target_or_kind_is_refused() {
 #[test]
 fn c06_high_bytes_are_not_decoded_but_the_other_segment_is() {
     let mut m = c_model();
-    m.core[0] = 0x93;
+    m.core[0] = 0x81;
     let r = read_legacy(&file(&m)).unwrap();
     assert_eq!(r.scope, Scope::Partial);
     assert!(r.segments[0].text.is_none() && r.segments[0].encoding_unknown);
     assert_eq!(r.segments[1].text.as_deref(), Some("Beta\r\n\u{c}"));
-    assert!(warned(&r, "code page is not established"));
+    assert!(warned(&r, "no meaning in the inferred code page"));
 }
 
 // ---------- O01 and bounds ----------
@@ -628,8 +628,8 @@ mod early_profile {
     }
 
     #[test]
-    fn bytes_at_or_above_0x80_are_not_decoded_and_the_rest_still_is() {
-        let f = compound(CLSID_C, &contents(b"Plain\r\n\x0cIt\x92s\r\n\x0c"), None);
+    fn a_byte_the_code_page_leaves_undefined_is_not_decoded_and_the_rest_still_is() {
+        let f = compound(CLSID_C, &contents(b"Plain\r\n\x0cIt\x81s\r\n\x0c"), None);
         let r = read_legacy(&f).unwrap();
         assert_eq!(r.scope, Scope::Partial);
         assert_eq!(r.segments[0].text.as_deref(), Some("Plain\r\n\x0c"));
@@ -659,5 +659,34 @@ mod early_profile {
         let mut c = contents(b"Alpha\r\n\x0c");
         set16(&mut c, 4, 300);
         assert!(read_legacy(&compound(CLSID_C, &c, None)).is_err(), "header +4 = 300 is not this profile");
+    }
+}
+
+mod code_page {
+    use crate::fixtures::{CLSID_C, c_model, compound, early_contents, file};
+    use crate::{Scope, read_legacy};
+
+    #[test]
+    fn family_d_decodes_windows_1252_and_says_it_is_inferred() {
+        // 0x93 and 0x94 around a word, 0x92 inside one, 0xa9 before a year.
+        let f = compound(CLSID_C, &early_contents(b"\x93Quoted\x94 it\x92s \xa9 1996\r\n\x0cPlain\r\n\x0c"), None);
+        let r = read_legacy(&f).unwrap();
+        assert_eq!(r.scope, Scope::Complete);
+        assert_eq!(r.segments[0].text.as_deref(), Some("\u{201c}Quoted\u{201d} it\u{2019}s \u{a9} 1996\r\n\u{c}"));
+        assert!(r.segments[0].encoding_inferred && !r.segments[0].encoding_unknown);
+        assert!(!r.segments[1].encoding_inferred, "ASCII text is exact, not inferred");
+        assert!(r.warnings.iter().any(|w| w.contains("decoded as Windows-1252") && w.contains("not confirmed")));
+    }
+
+    #[test]
+    fn family_c_decodes_the_same_way() {
+        let mut m = c_model();
+        m.core[0] = 0x93;
+        m.core[3] = 0x92;
+        let r = read_legacy(&file(&m)).unwrap();
+        let first = r.segments[0].text.as_deref().unwrap();
+        assert!(first.starts_with('\u{201c}') && first.contains('\u{2019}'));
+        assert!(r.segments[0].encoding_inferred);
+        assert_eq!(r.scope, Scope::Complete);
     }
 }

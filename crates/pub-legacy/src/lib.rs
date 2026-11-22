@@ -10,6 +10,7 @@
 #![forbid(unsafe_code)]
 
 mod cmap;
+mod codepage;
 mod contents;
 mod early;
 mod text;
@@ -85,13 +86,15 @@ pub enum Source {
     Range { bytes: std::ops::Range<usize> },
 }
 
-/// One recovered piece of text. `text` is `None` when the bytes could not be decoded safely
-/// (C segments with bytes at or above 0x80: the code page is not established).
+/// One recovered piece of text. `text` is `None` when the bytes could not be decoded safely (C and D segments with a
+/// byte that the inferred code page leaves undefined). `encoding_inferred` marks single-byte text decoded as
+/// Windows-1252, which is inferred and not confirmed.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Segment {
     pub source: Source,
     pub text: Option<String>,
     pub encoding_unknown: bool,
+    pub encoding_inferred: bool,
 }
 
 /// A candidate frame rectangle for a text-linked record: signed, centered on the page, in 1/914400 inch.

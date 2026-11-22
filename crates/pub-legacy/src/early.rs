@@ -3,6 +3,7 @@
 //! single-byte text buffer after it are read (docs/pub-format/legacy-minimal-reader.md, "Files with header +4 = 0x00c8").
 //! The layout table is not read, so no frame, page, size or formatting is recovered.
 
+use crate::codepage::{Decoded, decode};
 use crate::contents::{CLSID_C, bad, need32, u16_at};
 use crate::{Container, Family, LegacyError, LegacyText, MAX_SEGMENTS, Scope, Segment, Source};
 
@@ -46,18 +47,24 @@ pub(crate) fn read(c: &Container) -> Result<LegacyText, LegacyError> {
     let core = data.get(s..p).ok_or_else(|| bad("the text buffer runs past the stream"))?;
     let mut segments = Vec::new();
     let mut unknown = 0usize;
+    let mut inferred = 0usize;
     let mut start = 0usize;
     for piece in core.split_inclusive(|b| *b == 0x0c) {
         if segments.len() >= MAX_SEGMENTS {
             return Err(LegacyError::Limit("more text segments than the reader limit".into()));
         }
-        let (text, encoding_unknown) = if piece.is_ascii() {
-            (Some(piece.iter().map(|x| char::from(*x)).collect::<String>()), false)
-        } else {
-            unknown += 1;
-            (None, true)
+        let (text, encoding_unknown, encoding_inferred) = match decode(piece) {
+            Decoded::Ascii(t) => (Some(t), false, false),
+            Decoded::Inferred(t) => {
+                inferred += 1;
+                (Some(t), false, true)
+            }
+            Decoded::Unknown => {
+                unknown += 1;
+                (None, true, false)
+            }
         };
-        segments.push(Segment { source: Source::Range { bytes: start..start + piece.len() }, text, encoding_unknown });
+        segments.push(Segment { source: Source::Range { bytes: start..start + piece.len() }, text, encoding_unknown, encoding_inferred });
         start += piece.len();
     }
     let mut warnings = vec![
@@ -65,8 +72,11 @@ pub(crate) fn read(c: &Container) -> Result<LegacyText, LegacyError> {
         format!("{label}: the page size is not recovered; the stored directory is absent and the layout table was not read."),
     ];
     if unknown > 0 {
+        warnings.push(format!("{label}: {unknown} segment(s) contain a byte with no meaning in the inferred code page; they were not decoded."));
+    }
+    if inferred > 0 {
         warnings.push(format!(
-            "{label}: {unknown} segment(s) contain bytes with the high bit set, and the code page is not established; they were not decoded."
+            "{label}: {inferred} segment(s) were decoded as Windows-1252. That is inferred from the stored quotes and apostrophes, not confirmed."
         ));
     }
     let scope = if unknown > 0 { Scope::Partial } else { Scope::Complete };

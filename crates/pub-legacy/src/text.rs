@@ -182,6 +182,7 @@ pub(crate) fn read_quill(layout: &Layout<'_>, quill: Option<&[u8]>) -> Result<Re
                     source: Source::Story { id: v, units: range, records: vec![rec.id] },
                     text: Some(text),
                     encoding_unknown: false,
+                    encoding_inferred: false,
                 });
             }
             Err(_) => {

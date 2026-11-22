@@ -1,6 +1,7 @@
 // Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0
 //! C text: the single-byte text buffer inside Contents and its index-26 map (gates C01 to C06).
 
+use crate::codepage::{Decoded, decode};
 use crate::contents::{Layout, u16_at, u32_at};
 use crate::{MAX_SEGMENTS, Recovered, Scope, Segment, Source};
 use std::collections::HashSet;
@@ -45,6 +46,7 @@ pub(crate) fn read_map(layout: &Layout<'_>) -> Result<Recovered, String> {
     let mut ids = HashSet::new();
     let mut expect_start = 0usize;
     let mut unknown = 0usize;
+    let mut inferred = 0usize;
     for j in 0..n / 2 {
         let start = u32_at(data, a + 8 * j).ok_or("a map slot runs past the stream (C04)")? as usize;
         let end = u32_at(data, a + 8 * j + 4).ok_or("a map slot runs past the stream (C04)")? as usize;
@@ -75,20 +77,29 @@ pub(crate) fn read_map(layout: &Layout<'_>) -> Result<Recovered, String> {
         let (class, h, width) = if want_index == 0 { (9, 92, 2) } else { (1, 96, 14) };
         layout.check_profile(target, class, h, width).map_err(|why| format!("map target {id:#x} failed its profile check: {why} (C05)"))?;
         // C06 decode: exact for ASCII-only, otherwise encoding-unknown.
-        let (text, encoding_unknown) = if bytes.is_ascii() {
-            (Some(bytes.iter().map(|x| char::from(*x)).collect::<String>()), false)
-        } else {
-            unknown += 1;
-            (None, true)
+        let (text, encoding_unknown, encoding_inferred) = match decode(bytes) {
+            Decoded::Ascii(t) => (Some(t), false, false),
+            Decoded::Inferred(t) => {
+                inferred += 1;
+                (Some(t), false, true)
+            }
+            Decoded::Unknown => {
+                unknown += 1;
+                (None, true, false)
+            }
         };
-        segments.push(Segment { source: Source::Record { id, map: map.id, bytes: start..end }, text, encoding_unknown });
+        segments.push(Segment { source: Source::Record { id, map: map.id, bytes: start..end }, text, encoding_unknown, encoding_inferred });
     }
     if expect_start != m {
         return Err("the map ranges do not cover the whole text buffer (C04)".into());
     }
     if unknown > 0 {
-        warnings
-            .push(format!("{label}: {unknown} segment(s) contain bytes at or above 0x80 whose code page is not established; they were not decoded."));
+        warnings.push(format!("{label}: {unknown} segment(s) contain a byte with no meaning in the inferred code page; they were not decoded."));
+    }
+    if inferred > 0 {
+        warnings.push(format!(
+            "{label}: {inferred} segment(s) were decoded as Windows-1252. That is inferred from the stored quotes and apostrophes, not confirmed."
+        ));
     }
     let scope = if unknown > 0 { Scope::Partial } else { Scope::Complete };
     Ok(Recovered { segments, scope, warnings })
