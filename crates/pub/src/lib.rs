@@ -580,7 +580,7 @@ impl<'a> Builder<'a> {
             st.format_paras(0..end, |pf| failed |= pf.para.set_json("align", &json!(align)).is_err());
         }
         if failed {
-            self.warnings.push("Some WordArt formatting could not be applied.".into());
+            self.warnings.push("Some decorative text formatting could not be applied.".into());
         }
         if let Some(item) = self.doc.item_mut(id)
             && let Content::Text(t) = &mut item.content
@@ -601,9 +601,9 @@ impl<'a> Builder<'a> {
                 tf.options.vertical_justification = VerticalJustification::Top;
                 tf.options.inset = [0.0; 4];
             }
-            self.warnings.push("Curved WordArt uses measured font advances; its appearance can differ from Publisher.".into());
+            self.warnings.push("Curved decorative text uses measured font advances; its appearance can differ from Publisher.".into());
         } else if sh.kind != 136 {
-            self.warnings.push("WordArt shapes (arches, circles, waves) were imported as straight text.".into());
+            self.warnings.push("Decorative text shapes (arches, circles, waves) were imported as straight text.".into());
         }
 
         self.shadow(id, sh);
@@ -1505,7 +1505,7 @@ mod tests {
         let ds = &item.effects.drop_shadow;
         assert!(ds.on && ds.color == "R=134 G=134 B=134");
         assert!((ds.distance - 5.0).abs() < 1e-9 && (ds.angle - 4f64.atan2(-3.0).to_degrees()).abs() < 1e-9);
-        assert_eq!(b.warnings, vec!["WordArt shapes (arches, circles, waves) were imported as straight text.".to_string()]);
+        assert_eq!(b.warnings, vec!["Decorative text shapes (arches, circles, waves) were imported as straight text.".to_string()]);
     }
     #[test]
     fn unconfirmed_wordart_inputs_keep_the_straight_fallback() -> std::result::Result<(), String> {
