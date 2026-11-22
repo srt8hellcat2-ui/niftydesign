@@ -274,3 +274,20 @@ INFERENCE: the numbers are line widths in points and the border colour is the "a
 OBSERVATION: the records of layout index 20 directly below the root are the candidate pages and masters. In `Isreal - Rome Vacation` (17 stored pages) the directory lists, in this order, two containers whose only text is a page-number stub ("- # -"), the cover ("Jerusalem, Israel and Rome, Italy"), a notes page, then the day pages from Day 1 on. The stored page preview shows the cover. A field at record +0x14 of these records (6, 0xa, 0xe, 0x12, 0x16, ...) rises in the same order in that file but not in `Club 75`, where the directory order alone matched the preview (the first content container there holds "January" and "March" columns, as the preview does).
 
 INFERENCE: the directory order of the page records is the page order, and a container whose only text has no letter or digit and that holds no picture is a master page. The opener now orders pages by the stored position of their container record and leaves such masters out. UNKNOWN: what the +0x14 field means, whether masters should be applied to the pages they serve, and facing-page layouts. Before this change the first page of that file was the page-number stub and its second the first Day page.
+
+## Frame fill colours, 2026-11-22 (donated files, local only)
+
+OBSERVATION: in the A and B files, the colour reference at record +0x22 of a text frame (layout index 8) has top byte 0x20 in 20 of the 69 frames sampled (24 donated files with the 0x012c header). With byte +0x2a = 2, the value read as bytes R, G, B, 0x20 (red in the lowest byte, the order the text colours use) agrees with the stored page preview in the files below. The previews hold only the 16 standard colours, so shades are compared by nearest colour only.
+
+| Reference (bytes) | Colour read | Frame and what the preview shows |
+| --- | --- | --- |
+| `a5 2c c3 20` | (165, 44, 195) | Wireless Flyer: the full-page frame; the preview has a purple band around the page edge. |
+| `cc cc 99 20` | (204, 204, 153) | Flyer 200201 and 200204: the tall right-hand column; the preview shows grey. |
+| `ff ff cc 20` | (255, 255, 204) | Flyer 200201 and 200204: the small box above that column; the preview shows white. |
+| `df df ef 20` | (223, 223, 239) | Wireless Flyer: the text frame at the right; the preview shows white. |
+
+INFERENCE: these frames have a solid fill of that literal colour. The opener draws it only when byte +0x2a is exactly 2 and the top byte is 0x20.
+
+UNKNOWN: the exact shades (the preview is 16 colours); fill transparency; what the small numbers 1 to 7, 0x1a, 0x1b, 0x35 and the 0x05009481 style references mean (they get no fill); and the frames whose byte +0x2a is 0x80, 0x88, 0x8a, 0x8c or 0x8e (their references, such as `66 00 99 20`, are not read, because no preview region of those frames could be checked).
+
+OBSERVATION (a visible gap, Wireless Flyer): the large left-hand text frame (layout index 10, byte +0x2a = 1, automatic reference) shows white on the preview, above the purple page frame. Nothing read so far says why it is white, so the opener leaves it unfilled and the purple shows through behind its text. Frames with byte +0x2a = 1 and the automatic reference are common (132 in the sample), so this needs a file with a coloured page frame to settle.

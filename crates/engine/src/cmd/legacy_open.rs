@@ -90,12 +90,23 @@ fn stored_rect(r: &LegacyText, seg: &designcraft_pub_legacy::Segment, w: f64, h:
 
 /// OBSERVATION (Advertisement - Hotels, 17 frames): a frame whose byte at +0x2a is 2 and whose colour reference
 /// is the "automatic" 0xC0E40000 shows as a dark band behind white text, so it is drawn with a black fill and
-/// white automatic text. Other references (small scheme numbers, literal colours) are not decoded and get no fill.
+/// white automatic text.
+///
+/// OBSERVATION (donated files, stored page previews, 20 frames with byte +0x2a = 2): a reference whose top byte
+/// is 0x20 carries a literal colour, red in the lowest byte (the byte order the text colours use). In Wireless
+/// Flyer the full-page frame `a52cc320` shows as the purple page background; in Flyer 200201 and 200204 the
+/// `cccc9920` frames show as the grey column and the `ffffcc20` frames as the white box above it. The previews
+/// hold only 16 colours, so the exact shade is not checked. INFERENCE: those frames have that literal fill.
+/// UNKNOWN: the small scheme numbers and the 0x1a/0x1b references (no fill is drawn for them), fill transparency,
+/// and the frames whose byte +0x2a has other bits set (0x8c, 0x8e): their references are not read.
 fn frame_look(f: &designcraft_pub_legacy::FrameRect) -> designcraft_pub::FrameLook {
     // A border is drawn black: its colour reference is the automatic one in every frame that has a border.
     let border = (f.border > 0).then_some(f64::from(f.border).clamp(0.25, 36.0));
     if f.fill_mode == 2 && f.color_ref == 0xC0E4_0000 {
         designcraft_pub::FrameLook { fill: Some([0, 0, 0]), text: Some([255, 255, 255]), border }
+    } else if f.fill_mode == 2 && f.color_ref >> 24 == 0x20 {
+        let [r, g, b, _] = f.color_ref.to_le_bytes();
+        designcraft_pub::FrameLook { fill: Some([r, g, b]), border, ..Default::default() }
     } else {
         designcraft_pub::FrameLook { border, ..Default::default() }
     }
@@ -549,4 +560,35 @@ fn grow_overset_frames(s: &mut Session, ids: &[u64]) -> usize {
         }
     }
     grown
+}
+
+#[cfg(test)]
+mod frame_look_tests {
+    use super::frame_look;
+    use designcraft_pub_legacy::FrameRect;
+
+    fn frame(fill_mode: u8, color_ref: u32) -> FrameRect {
+        FrameRect { record: 1, left: 0, top: 0, right: 1, bottom: 1, container: 0, fill_mode, color_ref, border: 0, container_rank: 0 }
+    }
+
+    #[test]
+    fn a_literal_reference_fills_with_red_in_the_lowest_byte() {
+        // Bytes cc cc 99 20 (little endian) are the stored reference seen in the donated flyers.
+        assert_eq!(frame_look(&frame(2, 0x2099_cccc)).fill, Some([0xcc, 0xcc, 0x99]));
+        assert_eq!(frame_look(&frame(2, 0x20c3_2ca5)).fill, Some([0xa5, 0x2c, 0xc3]));
+    }
+
+    #[test]
+    fn the_automatic_reference_keeps_its_black_fill_and_white_text() {
+        let look = frame_look(&frame(2, 0xC0E4_0000));
+        assert_eq!((look.fill, look.text), (Some([0, 0, 0]), Some([255, 255, 255])));
+    }
+
+    #[test]
+    fn unread_modes_and_references_get_no_fill() {
+        assert_eq!(frame_look(&frame(0, 0x2099_cccc)).fill, None, "mode 0: no fill flag");
+        assert_eq!(frame_look(&frame(0x8e, 0x2099_0066)).fill, None, "other mode bits are not read");
+        assert_eq!(frame_look(&frame(2, 0x0000_001a)).fill, None, "palette-like numbers are not decoded");
+        assert_eq!(frame_look(&frame(2, 0x0300_e4c0)).fill, None, "scheme numbers are not decoded");
+    }
 }
