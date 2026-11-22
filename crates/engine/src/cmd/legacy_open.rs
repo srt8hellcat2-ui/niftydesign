@@ -99,44 +99,6 @@ fn frame_to_rect(f: &designcraft_pub_legacy::FrameRect, size: designcraft_pub_le
     Some((f.container, Rect::new(l.max(0.0), t.max(0.0), rt.min(w), b.min(h))))
 }
 
-/// Add a bitmap picture as a picture frame filling `rect`.
-fn add_picture(
-    d: &mut Document,
-    layer: designcraft_doc::LayerId,
-    spread: SpreadRef,
-    rect: Rect,
-    pic: &designcraft_pub_legacy::Picture,
-) -> Result<()> {
-    let size = (f64::from(pic.width), f64::from(pic.height));
-    let asset = designcraft_doc::AssetId(d.alloc());
-    d.add_asset(designcraft_doc::Asset {
-        id: asset,
-        name: format!("picture-{}.bmp", pic.record),
-        mime: "image/bmp".into(),
-        data: std::sync::Arc::new(pic.bmp.clone()),
-        pixels: Some((pic.width, pic.height)),
-        ..Default::default()
-    });
-    let id = designcraft_doc::ItemId(d.alloc());
-    let mut item = designcraft_doc::Item::new(id, layer, designcraft_doc::Shape::Rectangle, designcraft_geom::shapes::rectangle(rect));
-    let xf = designcraft_geom::Affine::translate((rect.x0, rect.y0))
-        * designcraft_geom::Affine::scale_non_uniform(rect.width() / size.0, rect.height() / size.1);
-    item.content = designcraft_doc::Content::Graphic(designcraft_doc::Graphic {
-        layer_options: None,
-        asset,
-        size,
-        xf,
-        clip: None,
-        auto_fit: Default::default(),
-        fit_align: 4,
-        crop: [0.0; 4],
-        wrap: Default::default(),
-        fill: designcraft_doc::Fill::none(),
-    });
-    d.insert_item(spread, item, None).map_err(|e| bad("file.open", e.to_string()))?;
-    Ok(())
-}
-
 /// A rough frame height: 14.4 pt per line at about 6 pt per character, capped at the page body.
 fn frame_height(text: &str, width: f64, body: f64) -> f64 {
     let per_line = (width / 6.0).max(8.0);
@@ -234,7 +196,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
         placed.push((page, Rect::new(margin, y, margin + body_w, y + height), text));
         y += height + 8.0;
     }
-    let (pictures, picture_items) = collect_pictures(bytes, &r, page_rects, (w, h), &mut containers);
+    let (art, art_notes) = collect_art(bytes, &r, page_rects, (w, h), &mut containers);
     let positioned_pages = containers.len();
     let flow_pages = if placed.is_empty() { 0 } else { page + 1 };
     let nd = NewDocument {
@@ -248,7 +210,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     };
     let mut d = Document::new(&nd);
     let layer = d.layers.first().map(|l| l.id).ok_or_else(|| bad("file.open", "new document has no layer"))?;
-    let placed_pictures = place_pictures(&mut d, layer, &picture_items, &pictures);
+    let (placed_previews, placed_pictures) = place_art(&mut d, layer, &art);
     for (pg, rect, text, story) in &positioned {
         // Fonts, sizes, styles and alignment come from the Quill store when it has this story; any failure
         // leaves the plain recovered text in the frame instead.
@@ -280,24 +242,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
         _ => NOTICE_PARTIAL,
     };
     let mut warnings = r.warnings.clone();
-    if placed_pictures > 0 {
-        warnings.push(format!(
-            "{placed_pictures} bitmap picture(s) were read from the stored pictures and placed at their stored positions. Cropping, rotation, borders and colour changes are not applied; other pictures and shapes are not recovered."
-        ));
-    }
-    if formatted_frames > 0 {
-        warnings.push(format!(
-            "Fonts, sizes, styles and alignment were read from the stored text formatting for {formatted_frames} frame(s). Colours, pictures, shapes and other formatting are not recovered, and a font that is not installed is replaced."
-        ));
-        warnings.extend(format_notes.iter().cloned());
-        if let Some(f) = &formats {
-            for n in f.warnings() {
-                if !warnings.contains(n) {
-                    warnings.push(n.clone());
-                }
-            }
-        }
-    }
+    recovery_notes(&mut warnings, (placed_pictures, placed_previews, formatted_frames), (&art_notes, &format_notes), formats.as_ref());
     warnings.push(if size_rejected {
         "Original page size is unverified. A standard A4 recovery page is being used.".to_string()
     } else if size_status == "default-A4" {
@@ -356,44 +301,141 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     }))
 }
 
-/// Bitmap pictures at their owning object's stored rectangle, with the candidate page each belongs on
-/// (new containers get their own page after the text's pages).
-fn collect_pictures(
-    bytes: &[u8],
-    r: &LegacyText,
-    enabled: bool,
-    (w, h): (f64, f64),
-    containers: &mut Vec<u16>,
-) -> (Vec<designcraft_pub_legacy::Picture>, Vec<(usize, Rect, usize)>) {
-    let pictures = if enabled { designcraft_pub_legacy::read_pictures(bytes).unwrap_or_default() } else { Vec::new() };
-    let mut items = Vec::new();
-    let Some(size) = r.size.filter(|_| enabled) else { return (pictures, items) };
-    for (i, pic) in pictures.iter().enumerate() {
-        if let Some((container, rect)) = pic.frame.as_ref().and_then(|f| frame_to_rect(f, size, w, h)) {
-            let pg = containers.iter().position(|c| *c == container).unwrap_or_else(|| {
-                containers.push(container);
-                containers.len() - 1
-            });
-            items.push((pg, rect, i));
-        }
-    }
-    (pictures, items)
+/// A picture or an embedded object's preview drawing, placed on a candidate page.
+struct Art {
+    page: usize,
+    rect: Rect,
+    name: String,
+    mime: &'static str,
+    data: Vec<u8>,
+    pixels: (u32, u32),
+    preview: bool,
 }
 
-/// Add the collected pictures to the document; returns how many were placed.
-fn place_pictures(
-    d: &mut Document,
-    layer: designcraft_doc::LayerId,
-    items: &[(usize, Rect, usize)],
-    pictures: &[designcraft_pub_legacy::Picture],
-) -> usize {
-    let mut placed = 0usize;
-    for (pg, rect, i) in items {
-        if let Some(pic) = pictures.get(*i)
-            && add_picture(d, layer, SpreadRef::Doc(*pg), *rect, pic).is_ok()
-        {
-            placed += 1;
+/// Embedded-object previews and bitmap pictures at their owning objects' stored rectangles, with the candidate
+/// page each belongs on (new containers get their own page after the text's pages). Previews come first so
+/// pictures and text lie above them.
+fn collect_art(bytes: &[u8], r: &LegacyText, enabled: bool, (w, h): (f64, f64), containers: &mut Vec<u16>) -> (Vec<Art>, Vec<String>) {
+    let mut items = Vec::new();
+    let mut notes: Vec<String> = Vec::new();
+    let Some(size) = r.size.filter(|_| enabled) else { return (items, notes) };
+    let mut page_of = |container: u16| {
+        containers.iter().position(|c| *c == container).unwrap_or_else(|| {
+            containers.push(container);
+            containers.len() - 1
+        })
+    };
+    for pv in designcraft_pub_legacy::read_object_previews(bytes).unwrap_or_default() {
+        let Some((container, rect)) = pv.frame.as_ref().and_then(|f| frame_to_rect(f, size, w, h)) else { continue };
+        let emu = |v: u32| i32::try_from(v.saturating_mul(360)).unwrap_or(i32::MAX);
+        let Some(svg) = designcraft_pub::metafile_to_svg(&pv.wmf, (emu(pv.width), emu(pv.height))) else { continue };
+        for n in svg.warnings {
+            if !notes.contains(&n) {
+                notes.push(n);
+            }
+        }
+        items.push(Art {
+            page: page_of(container),
+            rect,
+            name: format!("object-{}.svg", pv.number),
+            mime: "image/svg+xml",
+            data: svg.data,
+            pixels: svg.size,
+            preview: true,
+        });
+    }
+    for pic in designcraft_pub_legacy::read_pictures(bytes).unwrap_or_default() {
+        let Some((container, rect)) = pic.frame.as_ref().and_then(|f| frame_to_rect(f, size, w, h)) else { continue };
+        items.push(Art {
+            page: page_of(container),
+            rect,
+            name: format!("picture-{}.bmp", pic.record),
+            mime: "image/bmp",
+            data: pic.bmp,
+            pixels: (pic.width, pic.height),
+            preview: false,
+        });
+    }
+    (items, notes)
+}
+
+/// Add one piece of art as a picture frame filling its rectangle.
+fn add_art(d: &mut Document, layer: designcraft_doc::LayerId, art: &Art) -> Result<()> {
+    let size = (f64::from(art.pixels.0.max(1)), f64::from(art.pixels.1.max(1)));
+    let asset = designcraft_doc::AssetId(d.alloc());
+    d.add_asset(designcraft_doc::Asset {
+        id: asset,
+        name: art.name.clone(),
+        mime: art.mime.into(),
+        data: std::sync::Arc::new(art.data.clone()),
+        pixels: Some(art.pixels),
+        ..Default::default()
+    });
+    let id = designcraft_doc::ItemId(d.alloc());
+    let rect = art.rect;
+    let mut item = designcraft_doc::Item::new(id, layer, designcraft_doc::Shape::Rectangle, designcraft_geom::shapes::rectangle(rect));
+    let xf = designcraft_geom::Affine::translate((rect.x0, rect.y0))
+        * designcraft_geom::Affine::scale_non_uniform(rect.width() / size.0, rect.height() / size.1);
+    item.content = designcraft_doc::Content::Graphic(designcraft_doc::Graphic {
+        layer_options: None,
+        asset,
+        size,
+        xf,
+        clip: None,
+        auto_fit: Default::default(),
+        fit_align: 4,
+        crop: [0.0; 4],
+        wrap: Default::default(),
+        fill: designcraft_doc::Fill::none(),
+    });
+    d.insert_item(SpreadRef::Doc(art.page), item, None).map_err(|e| bad("file.open", e.to_string()))?;
+    Ok(())
+}
+
+/// Add the collected art to the document; returns (previews placed, bitmaps placed).
+fn place_art(d: &mut Document, layer: designcraft_doc::LayerId, items: &[Art]) -> (usize, usize) {
+    let (mut previews, mut bitmaps) = (0usize, 0usize);
+    for art in items {
+        if add_art(d, layer, art).is_ok() {
+            if art.preview {
+                previews += 1;
+            } else {
+                bitmaps += 1;
+            }
         }
     }
-    placed
+    (previews, bitmaps)
+}
+
+/// Notes about what the recovered pictures, previews and text formatting do and do not cover.
+fn recovery_notes(
+    warnings: &mut Vec<String>,
+    (placed_pictures, placed_previews, formatted_frames): (usize, usize, usize),
+    (art_notes, format_notes): (&[String], &[String]),
+    formats: Option<&designcraft_pub::StoryFormats>,
+) {
+    if placed_pictures > 0 {
+        warnings.push(format!(
+            "{placed_pictures} bitmap picture(s) were read from the stored pictures and placed at their stored positions. Cropping, rotation, borders and colour changes are not applied; other pictures and shapes are not recovered."
+        ));
+    }
+    if placed_previews > 0 {
+        warnings.push(format!(
+            "{placed_previews} embedded object preview(s) (stored drawings of clip art, WordArt or other objects) were placed at their stored positions as pictures; they are not editable."
+        ));
+        warnings.extend(art_notes.iter().cloned());
+    }
+    if formatted_frames > 0 {
+        warnings.push(format!(
+            "Fonts, sizes, styles and alignment were read from the stored text formatting for {formatted_frames} frame(s). Colours, pictures, shapes and other formatting are not recovered, and a font that is not installed is replaced."
+        ));
+        warnings.extend(format_notes.iter().cloned());
+        if let Some(f) = formats {
+            for n in f.warnings() {
+                if !warnings.contains(n) {
+                    warnings.push(n.clone());
+                }
+            }
+        }
+    }
 }

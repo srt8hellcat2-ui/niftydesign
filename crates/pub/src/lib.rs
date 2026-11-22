@@ -47,6 +47,7 @@ mod metafile;
 mod overset;
 mod paths;
 mod presets;
+mod preview;
 mod quill;
 mod read;
 mod story;
@@ -100,6 +101,7 @@ const EMU_PER_PT: f64 = 12_700.0;
 const MAX_GROUP_DEPTH: usize = 16;
 
 /// True for an OLE2 compound file holding a Publisher `Contents` stream.
+pub use preview::{MetafileSvg, metafile_to_svg};
 pub use story::StoryFormats;
 
 pub fn is_pub(bytes: &[u8]) -> bool {

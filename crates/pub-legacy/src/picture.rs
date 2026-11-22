@@ -190,3 +190,90 @@ mod tests {
         assert!(find_dib(&[]).is_none());
     }
 }
+
+/// A stored presentation of an embedded object: the object's drawing as a standard metafile.
+///
+/// OBSERVATION (docs/pub-format/legacy-minimal-reader.md, "Embedded object previews"): a record of layout
+/// index 34 (prefix 8) whose bytes at +8 are `4D 4F` ("MO") names, in the u16 at +10, the storage
+/// `/Objects/Object N`; its parent is the owning object (rectangle at +0x06). That storage holds
+/// presentation streams (`\x02OlePres000`, `\x02OlePres001`): a presentation header followed by a metafile.
+#[derive(Clone, Debug)]
+pub struct ObjectPreview {
+    /// The `MO` record's id, and the owning object's id with its candidate rectangle.
+    pub record: u16,
+    pub object: u16,
+    pub frame: Option<FrameRect>,
+    /// The `N` of `/Objects/Object N`.
+    pub number: u16,
+    /// Stored size in 1/100 mm (HIMETRIC).
+    pub width: u32,
+    pub height: u32,
+    /// The metafile (standard header, no placeable header).
+    pub wmf: Vec<u8>,
+}
+
+/// Most metafile bytes read per object, and in all.
+pub const MAX_PREVIEW_BYTES: usize = 8 * 1024 * 1024;
+pub const MAX_PREVIEWS: usize = 1024;
+
+/// Read the metafile previews of embedded objects. Objects whose presentation cannot be vouched for are left out.
+pub fn read_object_previews(bytes: &[u8]) -> Result<Vec<ObjectPreview>, LegacyError> {
+    let container = crate::open(bytes)?;
+    let layout = Layout::parse(&container.contents, &container.clsid)?;
+    let page = layout.size_candidate().0.map(|s| (s.raw_width, s.raw_height));
+    let mut cf = crate::open_cf(bytes)?;
+    let mut out = Vec::new();
+    let mut total = 0usize;
+    for rec in &layout.records {
+        if rec.index != 34 || rec.h != 8 || out.len() >= MAX_PREVIEWS {
+            continue;
+        }
+        let Some(body) = layout.data.get(rec.r..rec.e) else { continue };
+        if body.get(8..10) != Some(&[0x4d, 0x4f]) {
+            continue;
+        }
+        let Some(number) = u16_at(body, 10) else { continue };
+        let Some(frame_page) = page else { continue };
+        let Some((width, height, wmf)) = (0..2).find_map(|k| presentation(&mut cf, number, k)) else { continue };
+        total = total.saturating_add(wmf.len());
+        if total > MAX_PREVIEW_BYTES * 8 {
+            break;
+        }
+        out.push(ObjectPreview { record: rec.id, object: rec.parent, frame: layout.frame_rect(rec.parent, frame_page), number, width, height, wmf });
+    }
+    Ok(out)
+}
+
+/// One presentation stream of `/Objects/Object N`: (width, height, metafile bytes) when it is a well-formed
+/// metafile presentation.
+fn presentation(cf: &mut crate::Cf<'_>, number: u16, which: usize) -> Option<(u32, u32, Vec<u8>)> {
+    use std::io::Read;
+    let path = format!("/Objects/Object {number}/\u{2}OlePres00{which}");
+    if !cf.is_stream(&path) {
+        return None;
+    }
+    let declared = usize::try_from(cf.entry(&path).ok()?.len()).ok()?;
+    if declared > MAX_PREVIEW_BYTES {
+        return None;
+    }
+    let mut d = Vec::new();
+    cf.open_stream(&path).ok()?.take(MAX_PREVIEW_BYTES as u64 + 1).read_to_end(&mut d).ok()?;
+    // Clipboard format marker (-1) and format 3 (metafile), then the target-device block (its size includes
+    // its own 4 bytes), then aspect, index, flags, reserved, width, height and the metafile length.
+    if u32_at(&d, 0)? != u32::MAX || u32_at(&d, 4)? != 3 {
+        return None;
+    }
+    let device = usize::try_from(u32_at(&d, 8)?).ok()?;
+    if !(4..=65_536).contains(&device) {
+        return None;
+    }
+    let head = 12usize.checked_add(device - 4)?;
+    let (width, height) = (u32_at(&d, head.checked_add(16)?)?, u32_at(&d, head.checked_add(20)?)?);
+    let size = usize::try_from(u32_at(&d, head.checked_add(24)?)?).ok()?;
+    let start = head.checked_add(28)?;
+    let wmf = d.get(start..start.checked_add(size)?)?;
+    if size < 18 || !matches!(u16_at(wmf, 0)?, 1 | 2) || width == 0 || height == 0 || width > 4_000_000 || height > 4_000_000 {
+        return None;
+    }
+    Some((width, height, wmf.to_vec()))
+}
