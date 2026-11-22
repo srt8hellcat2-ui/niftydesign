@@ -374,7 +374,11 @@ impl<'a> Layout<'a> {
         let byte = |o: usize| if rec.h > o { self.data.get(rec.r + o).copied() } else { None };
         let fill_mode = byte(0x2a).unwrap_or(0);
         let color_ref = if rec.h >= 0x26 { u32_at(self.data, rec.r + 0x22).unwrap_or(0) } else { 0 };
-        let border = if rec.index == 8 && rec.h > 0x41 { [0x2c, 0x35, 0x3b, 0x41].iter().filter_map(|o| byte(*o)).max().unwrap_or(0) } else { 0 };
+        let border = if rec.index == 8 && rec.h > 0x41 {
+            [0x2c, 0x35, 0x3b, 0x41].iter().filter_map(|o| byte(*o)).map(border_width).max().unwrap_or(0)
+        } else {
+            0
+        };
         Some(crate::FrameRect { record: id, left, top, right, bottom, container, fill_mode, color_ref, border, container_rank })
     }
 
@@ -416,5 +420,27 @@ impl<'a> Layout<'a> {
                 size.inferred_mm.0, size.inferred_mm.1
             )),
         )
+    }
+}
+
+/// OBSERVATION (donated files): the per-side border numbers of a text frame are 0 or 1 to 8 (points) on frames whose
+/// stored preview shows a border; many frames with no thick border carry 0x81, which is 1 with bit 0x80 set. The
+/// flag bit is not a width, so it is masked off; any other number above 8 has not been seen on a bordered frame and is
+/// not read as a width (UNKNOWN).
+pub(crate) fn border_width(b: u8) -> u8 {
+    let w = b & 0x7f;
+    if w <= 8 { w } else { 0 }
+}
+
+#[cfg(test)]
+mod border_tests {
+    use super::border_width;
+
+    #[test]
+    fn the_flag_bit_is_not_a_width_and_unseen_numbers_are_not_read() {
+        assert_eq!([0, 1, 4, 8].map(border_width), [0, 1, 4, 8]);
+        assert_eq!(border_width(0x81), 1, "0x81 is 1 with the flag bit, not 129");
+        assert_eq!(border_width(0x88), 8);
+        assert_eq!([9u8, 0x1c, 0x7f, 0xff].map(border_width), [0, 0, 0, 0]);
     }
 }
