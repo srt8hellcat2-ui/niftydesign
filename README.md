@@ -110,7 +110,7 @@ The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PN
 - ✅ Calendar-style files with one table per month open complete: cell text of multi-table files is placed in its cells, and a table frame shorter than its stored rows is made taller so the last rows are not cut off (checked on the issue 44 calendar)
 - ✅ Table > Calendar > Set Year retypes headings, day numbers and week rows for any year 1900 to 2200 in one undo step ([docs/calendar-year.md](docs/calendar-year.md))
 - ✅ Pictures can be selected, moved, resized and replaced (File > Place)
-- ✅ Based on DesignCraft 0.20.1
+- ✅ Based on DesignCraft 0.18.0
 - ✅ Table text
 - ✅ Save as `.designcraft` and reopen
 - ✅ Export to PDF, and printing (tested on one printer)
