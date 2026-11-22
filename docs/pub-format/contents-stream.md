@@ -107,7 +107,7 @@ Every object record is read the same way; type 0x10 additionally marks the objec
 | Key | Kind | Meaning |
 |---|---|---|
 | 0x27 | number (0x20 in samples) | **Story number**: which story in the Quill text store this object shows (it matches a story id in the Quill story-id list; see `text-store.md` §4). Absent = no text. |
-| 0x28 | number | **Position in a chain of linked text boxes** that show the same story: 0 for the first box, 1 for the next, and so on. Absent = 0. |
+| 0x28 | number | **UNCONFIRMED (no sample contains this key): position in a chain of linked text boxes** that show the same story: 0 for the first box, 1 for the next, and so on. Absent = 0. |
 | 0x35 | number (0x20 in samples) | **Vertical text alignment** in the box: 1 = middle, 2 = bottom; absent or anything else = top. |
 
 Seen but not read: 0xAA and 0xAB (kind 0x20; EMU sizes, for example 0x37CF80 = 288 pt and 0xDF3E0 = 72 pt in the first synthetic sample), 0xB7, and many others.

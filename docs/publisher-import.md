@@ -83,7 +83,7 @@ drawing was omitted. These are parser/conversion limits, not a total process-mem
 
 - Unit and synthetic-file tests in `crates/pub` and the engine run with `cargo xtask ci`.
 - Tests marked `#[ignore]` need the external samples: `PUB_CORPUS=dir` (the controlled samples)
-  and `PUB_REAL_CORPUS=dir`. They are never committed. Over the 142 controlled samples the importer
+  `PUB_REAL_CORPUS=dir` and `PUB_POI_TABLES=dir` (the eight task-scoped Apache POI table samples used by `crates/pub/tests/tables.rs`). They are never committed. Over the 142 controlled samples the importer
   opens 142/142; 111 of 111 scored shape and text positions are within 1 pt of the `truth` exports,
   52/52 texts and 111/111 styles match. Of the 24 real-world samples, 2 are refused (Publisher
   2000 and older) and 3 are reported as damaged; the rest open, 10 of them with warnings.
