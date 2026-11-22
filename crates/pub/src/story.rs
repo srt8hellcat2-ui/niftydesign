@@ -92,13 +92,7 @@ impl StoryFormats {
                 ops.push(("underline", json!(true)));
             }
             if let Some(rgb) = style.color.or(defaults.color).and_then(literal_rgb) {
-                let name = format!("R={} G={} B={}", rgb[0], rgb[1], rgb[2]);
-                if !doc.swatches.iter().any(|s| s.name == name) {
-                    let mut s = designcraft_color::Swatch::color(&name, designcraft_color::Color::rgb8(rgb[0], rgb[1], rgb[2]));
-                    s.named = false;
-                    doc.swatches.push(s);
-                }
-                ops.push(("fill", json!(name)));
+                ops.push(("fill", json!(rgb_swatch(doc, rgb))));
             }
             if let Some(value) = style.capitalization.or(defaults.capitalization) {
                 ops.push(("capitalization", json!(value)));
@@ -184,7 +178,18 @@ impl StoryFormats {
 /// 0x00BBGGRR (red in the lowest byte). Other tags (small palette numbers, 0x80 scheme/system values,
 /// 0xe0e4 markers) are not decoded and leave the colour unset.
 fn literal_rgb(v: u32) -> Option<[u8; 3]> {
-    (v >> 24 == 0x90).then(|| [(v & 0xff) as u8, ((v >> 8) & 0xff) as u8, ((v >> 16) & 0xff) as u8])
+    (v >> 24 == 0x90).then_some([(v & 0xff) as u8, ((v >> 8) & 0xff) as u8, ((v >> 16) & 0xff) as u8])
+}
+
+/// The name of the document swatch for this colour, adding it when it is not there yet.
+fn rgb_swatch(doc: &mut Document, [r, g, b]: [u8; 3]) -> String {
+    let name = format!("R={r} G={g} B={b}");
+    if !doc.swatches.iter().any(|s| s.name == name) {
+        let mut s = designcraft_color::Swatch::color(&name, designcraft_color::Color::rgb8(r, g, b));
+        s.named = false;
+        doc.swatches.push(s);
+    }
+    name
 }
 
 #[cfg(test)]
