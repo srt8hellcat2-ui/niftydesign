@@ -255,6 +255,9 @@ pub(crate) struct Recovered {
     pub warnings: Vec<String>,
 }
 
+mod picture;
+pub use picture::{MAX_PICTURE_BYTES, MAX_PICTURES, Picture, read_pictures};
+
 #[cfg(any(test, feature = "fixtures"))]
 pub mod fixtures;
 

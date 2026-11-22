@@ -83,7 +83,12 @@ fn visible(raw: &str) -> String {
 fn stored_rect(r: &LegacyText, seg: &designcraft_pub_legacy::Segment, w: f64, h: f64) -> Option<(u16, Rect)> {
     let Source::Story { records, .. } = &seg.source else { return None };
     let f = r.frames.iter().find(|f| records.contains(&f.record))?;
-    let size = r.size?;
+    frame_to_rect(f, r.size?, w, h)
+}
+
+/// A stored rectangle (centered on the page, 1/914400 inch) as a page rectangle in points, and its candidate
+/// page container. `None` unless the whole box lies on the page.
+fn frame_to_rect(f: &designcraft_pub_legacy::FrameRect, size: designcraft_pub_legacy::SizeCandidate, w: f64, h: f64) -> Option<(u16, Rect)> {
     let pt = |v: i32, half: u32| (f64::from(v) + f64::from(half) / 2.0) / 12700.0;
     let (l, t) = (pt(f.left, size.raw_width), pt(f.top, size.raw_height));
     let (rt, b) = (pt(f.right, size.raw_width), pt(f.bottom, size.raw_height));
@@ -92,6 +97,44 @@ fn stored_rect(r: &LegacyText, seg: &designcraft_pub_legacy::Segment, w: f64, h:
         return None;
     }
     Some((f.container, Rect::new(l.max(0.0), t.max(0.0), rt.min(w), b.min(h))))
+}
+
+/// Add a bitmap picture as a picture frame filling `rect`.
+fn add_picture(
+    d: &mut Document,
+    layer: designcraft_doc::LayerId,
+    spread: SpreadRef,
+    rect: Rect,
+    pic: &designcraft_pub_legacy::Picture,
+) -> Result<()> {
+    let size = (f64::from(pic.width), f64::from(pic.height));
+    let asset = designcraft_doc::AssetId(d.alloc());
+    d.add_asset(designcraft_doc::Asset {
+        id: asset,
+        name: format!("picture-{}.bmp", pic.record),
+        mime: "image/bmp".into(),
+        data: std::sync::Arc::new(pic.bmp.clone()),
+        pixels: Some((pic.width, pic.height)),
+        ..Default::default()
+    });
+    let id = designcraft_doc::ItemId(d.alloc());
+    let mut item = designcraft_doc::Item::new(id, layer, designcraft_doc::Shape::Rectangle, designcraft_geom::shapes::rectangle(rect));
+    let xf = designcraft_geom::Affine::translate((rect.x0, rect.y0))
+        * designcraft_geom::Affine::scale_non_uniform(rect.width() / size.0, rect.height() / size.1);
+    item.content = designcraft_doc::Content::Graphic(designcraft_doc::Graphic {
+        layer_options: None,
+        asset,
+        size,
+        xf,
+        clip: None,
+        auto_fit: Default::default(),
+        fit_align: 4,
+        crop: [0.0; 4],
+        wrap: Default::default(),
+        fill: designcraft_doc::Fill::none(),
+    });
+    d.insert_item(spread, item, None).map_err(|e| bad("file.open", e.to_string()))?;
+    Ok(())
 }
 
 /// A rough frame height: 14.4 pt per line at about 6 pt per character, capped at the page body.
@@ -191,6 +234,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
         placed.push((page, Rect::new(margin, y, margin + body_w, y + height), text));
         y += height + 8.0;
     }
+    let (pictures, picture_items) = collect_pictures(bytes, &r, page_rects, (w, h), &mut containers);
     let positioned_pages = containers.len();
     let flow_pages = if placed.is_empty() { 0 } else { page + 1 };
     let nd = NewDocument {
@@ -204,6 +248,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     };
     let mut d = Document::new(&nd);
     let layer = d.layers.first().map(|l| l.id).ok_or_else(|| bad("file.open", "new document has no layer"))?;
+    let placed_pictures = place_pictures(&mut d, layer, &picture_items, &pictures);
     for (pg, rect, text, story) in &positioned {
         // Fonts, sizes, styles and alignment come from the Quill store when it has this story; any failure
         // leaves the plain recovered text in the frame instead.
@@ -235,6 +280,11 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
         _ => NOTICE_PARTIAL,
     };
     let mut warnings = r.warnings.clone();
+    if placed_pictures > 0 {
+        warnings.push(format!(
+            "{placed_pictures} bitmap picture(s) were read from the stored pictures and placed at their stored positions. Cropping, rotation, borders and colour changes are not applied; other pictures and shapes are not recovered."
+        ));
+    }
     if formatted_frames > 0 {
         warnings.push(format!(
             "Fonts, sizes, styles and alignment were read from the stored text formatting for {formatted_frames} frame(s). Colours, pictures, shapes and other formatting are not recovered, and a font that is not installed is replaced."
@@ -304,4 +354,46 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
             "sourceText": source_text,
         }
     }))
+}
+
+/// Bitmap pictures at their owning object's stored rectangle, with the candidate page each belongs on
+/// (new containers get their own page after the text's pages).
+fn collect_pictures(
+    bytes: &[u8],
+    r: &LegacyText,
+    enabled: bool,
+    (w, h): (f64, f64),
+    containers: &mut Vec<u16>,
+) -> (Vec<designcraft_pub_legacy::Picture>, Vec<(usize, Rect, usize)>) {
+    let pictures = if enabled { designcraft_pub_legacy::read_pictures(bytes).unwrap_or_default() } else { Vec::new() };
+    let mut items = Vec::new();
+    let Some(size) = r.size.filter(|_| enabled) else { return (pictures, items) };
+    for (i, pic) in pictures.iter().enumerate() {
+        if let Some((container, rect)) = pic.frame.as_ref().and_then(|f| frame_to_rect(f, size, w, h)) {
+            let pg = containers.iter().position(|c| *c == container).unwrap_or_else(|| {
+                containers.push(container);
+                containers.len() - 1
+            });
+            items.push((pg, rect, i));
+        }
+    }
+    (pictures, items)
+}
+
+/// Add the collected pictures to the document; returns how many were placed.
+fn place_pictures(
+    d: &mut Document,
+    layer: designcraft_doc::LayerId,
+    items: &[(usize, Rect, usize)],
+    pictures: &[designcraft_pub_legacy::Picture],
+) -> usize {
+    let mut placed = 0usize;
+    for (pg, rect, i) in items {
+        if let Some(pic) = pictures.get(*i)
+            && add_picture(d, layer, SpreadRef::Doc(*pg), *rect, pic).is_ok()
+        {
+            placed += 1;
+        }
+    }
+    placed
 }
