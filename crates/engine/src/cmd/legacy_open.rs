@@ -318,7 +318,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
         source.with_extension("designcraft").to_string_lossy().into_owned()
     });
     let i = s.add_document(state);
-    let grown = grow_overset_frames(s, &frame_ids);
+    let grown = grow_overset_frames(s, &frame_ids, h);
     let provenance: Vec<Value> = r
         .segments
         .iter()
@@ -546,23 +546,44 @@ fn order_pages(containers: &mut Vec<u16>, ranks: &HashMap<u16, u32>, positioned:
 /// their stand-ins are usually wider, so text that fitted in Publisher can overflow; growing the frame keeps all
 /// of it visible and avoids false "overset" errors. A frame grows in small steps, at most by 360 pt in all.
 /// Returns how many frames grew.
-fn grow_overset_frames(s: &mut Session, ids: &[u64]) -> usize {
+fn grow_overset_frames(s: &mut Session, ids: &[u64], page_h: f64) -> usize {
     const STEP: f64 = 6.0;
     const MAX_STEPS: usize = 60;
+    const MAX_SHRINKS: usize = 5;
     let mut grown = 0usize;
     for id in ids {
         let mut grew = false;
+        let mut limit: Option<f64> = None;
         for _ in 0..MAX_STEPS {
             let fits = s.execute("story.get", &json!({"frame": id})).map(|r| r["overset"].is_null()).unwrap_or(true);
             if fits {
                 break;
             }
             let Some(b) = s.doc().ok().and_then(|st| st.doc.item(designcraft_doc::ItemId(*id)).map(|it| it.bounds())) else { break };
+            let floor = *limit.get_or_insert_with(|| room_below(s, *id, b, page_h));
+            let step = STEP.min(floor - b.y1);
+            if step < 0.5 {
+                break;
+            }
             let from = [b.x0, b.y0, b.x1, b.y1];
-            let to = [b.x0, b.y0, b.x1, b.y1 + STEP];
+            let to = [b.x0, b.y0, b.x1, b.y1 + step];
             if s.execute("transform.resize", &json!({"from": from, "to": to, "ids": [id]})).is_err() {
                 break;
             }
+            grew = true;
+        }
+        // Blocked by a neighbour or the page edge: shrink the type a little rather than overlap or run off the page.
+        for _ in 0..MAX_SHRINKS {
+            if s.execute("story.get", &json!({"frame": id})).map(|r| r["overset"].is_null()).unwrap_or(true) {
+                break;
+            }
+            if !shrink_text(s, *id) {
+                break;
+            }
+            grew = true;
+        }
+        // Still too tall: blank paragraphs at the very end hold no text; drop them so they cannot cause an error.
+        if s.execute("story.get", &json!({"frame": id})).map(|r| !r["overset"].is_null()).unwrap_or(false) && trim_trailing_blank_paragraphs(s, *id) {
             grew = true;
         }
         if grew {
@@ -570,6 +591,76 @@ fn grow_overset_frames(s: &mut Session, ids: &[u64]) -> usize {
         }
     }
     grown
+}
+
+/// Remove empty paragraphs at the end of a frame's story (keeping the last paragraph's text). Returns whether any went.
+fn trim_trailing_blank_paragraphs(s: &mut Session, id: u64) -> bool {
+    s.edit(|d, _| {
+        let Some(sid) = d.item(designcraft_doc::ItemId(id)).and_then(|it| match &it.content {
+            designcraft_doc::Content::Text(t) => Some(t.story),
+            _ => None,
+        }) else {
+            return Ok(false);
+        };
+        let Some(st) = d.story_mut(sid) else { return Ok(false) };
+        let len = st.text.trim_end_matches('\n').len();
+        if len == st.text.len() {
+            return Ok(false);
+        }
+        let total = st.text.len();
+        st.delete(len..total);
+        Ok(true)
+    })
+    .unwrap_or(false)
+}
+
+/// Scale every explicit type size in a frame's story down by 6 % (never below 5 pt). Returns whether anything changed.
+fn shrink_text(s: &mut Session, id: u64) -> bool {
+    s.edit(|d, _| {
+        let Some(sid) = d.item(designcraft_doc::ItemId(id)).and_then(|it| match &it.content {
+            designcraft_doc::Content::Text(t) => Some(t.story),
+            _ => None,
+        }) else {
+            return Ok(false);
+        };
+        let Some(st) = d.story_mut(sid) else { return Ok(false) };
+        let runs: Vec<(std::ops::Range<usize>, f64)> =
+            st.runs().filter_map(|(r, cf)| cf.over.size.map(|z| (r, z))).filter(|(_, z)| *z > 5.0).collect();
+        let changed = !runs.is_empty();
+        for (r, z) in runs {
+            st.format_chars(r, |cf| cf.over.size = Some((z * 0.94).max(5.0)));
+        }
+        // Lines set to an exact height must shrink with the type, or the text stays too tall.
+        for r in st.para_ranges() {
+            st.format_paras(r, |pf| {
+                if let Some(designcraft_doc::Leading::Points(p)) = pf.chars.leading {
+                    pf.chars.leading = Some(designcraft_doc::Leading::Points((p * 0.94).max(5.0)));
+                }
+            });
+        }
+        Ok(changed)
+    })
+    .unwrap_or(false)
+}
+
+/// How far down a recovered frame may grow: to just above the next object below it that shares part of its
+/// width, and never past the page bottom. Objects that already overlap the frame (backgrounds, pictures behind
+/// text) are not obstacles. The result is never above the frame's own bottom edge.
+fn room_below(s: &Session, id: u64, b: designcraft_geom::Rect, page_h: f64) -> f64 {
+    const GAP: f64 = 2.0;
+    let mut floor = page_h.max(b.y1);
+    let Ok(st) = s.doc() else { return floor };
+    for other in st.doc.all_items() {
+        if other.0 == id {
+            continue;
+        }
+        let Some(o) = st.doc.item(other).map(|it| it.bounds()) else { continue };
+        let shares_width = o.x0 < b.x1 - 1.0 && o.x1 > b.x0 + 1.0;
+        if shares_width && o.y0 >= b.y1 - 0.5 && o.y0 - GAP < floor {
+            floor = (o.y0 - GAP).max(b.y1);
+        }
+    }
+    floor
 }
 
 #[cfg(test)]
