@@ -71,7 +71,7 @@ pub(crate) fn read(c: &Container) -> Result<LegacyText, LegacyError> {
     let size = match page_size(data) {
         Ok(size) => {
             warnings.push(format!(
-                "{label}: the page size is a raw candidate (units not verified; inferred {:.1} x {:.1} mm at 36000 units per mm).",
+                "{label}: the page size is a raw candidate (read in 1/914400 inch: {:.1} x {:.1} mm; every sample file gives a standard paper size, but it is not checked against Publisher's own page setup).",
                 size.inferred_mm.0, size.inferred_mm.1
             ));
             Some(size)

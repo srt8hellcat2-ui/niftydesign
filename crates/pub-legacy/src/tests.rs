@@ -449,7 +449,7 @@ fn c06_high_bytes_are_not_decoded_but_the_other_segment_is() {
 #[test]
 fn o01_no_stronger_claim_than_the_gates_allow() {
     let r = read_legacy(&file(&ab_model(false))).unwrap();
-    assert!(warned(&r, "units not verified"));
+    assert!(warned(&r, "standard paper size"));
     assert!(warned(&r, "frames, pages, fonts and formatting are not recovered"));
 }
 

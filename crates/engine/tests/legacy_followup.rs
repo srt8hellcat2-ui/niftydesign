@@ -266,7 +266,7 @@ fn standard_positive_raw_pair_keeps_its_own_recovery_size() {
             .as_array()
             .unwrap()
             .iter()
-            .any(|w| { w.as_str().unwrap() == "Page size is estimated from stored numbers. It has not been verified." })
+            .any(|w| { w.as_str().unwrap() == "Page size is read from the file. In every sample file it is an exact standard paper size, but it has not been compared with Publisher's own page setup." })
     );
 }
 

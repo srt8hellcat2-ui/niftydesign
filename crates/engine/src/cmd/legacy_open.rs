@@ -297,7 +297,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     } else if size_status == "default-A4" {
         "Original page size is unknown. A standard A4 recovery page is being used.".to_string()
     } else {
-        "Page size is estimated from stored numbers. It has not been verified.".to_string()
+        "Page size is read from the file. In every sample file it is an exact standard paper size, but it has not been compared with Publisher's own page setup.".to_string()
     });
     if undecoded > 0 {
         warnings.push(format!("{undecoded} segment(s) could not be read and are marked in the document."));

@@ -158,6 +158,7 @@ These older files use a different format from Publisher 2002 and newer, so Nifty
 - ✅ WordArt and clip art, as non-editable pictures of the stored drawing
 - ✅ Black filled frames with white text, and black frame borders
 - ✅ Pages in the order stored in the file, with Publisher's blank master pages left out
+- ✅ Page size, read from the file: in all 28 sample files that store one it is an exact standard paper size (Letter, Legal, half-letter or a 5 x 8 in card); three Publisher 97 files store none and get A4; a note says it was not compared with Publisher's own page setup
 - ✅ Frames made tall enough to hold their text, without running into the object below or off the page
 - ✅ A note on screen says it is a recovery, and the original file is never changed
 
@@ -165,7 +166,6 @@ These older files use a different format from Publisher 2002 and newer, so Nifty
 
 - 🟡 Text size: the replacement fonts are often wider, so type can be shrunk a little, and a very long story in one frame can still show as overset
 - 🟡 Colours: only exact colours are read; colours from Publisher's colour schemes come out black or unset
-- 🟡 Page size: read from the file, and marked as an estimate
 - 🟡 The eight earliest files (an older file format) open as text only, on one A4 page, with no layout, fonts or pictures
 
 **Not yet**
