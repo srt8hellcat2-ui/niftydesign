@@ -181,7 +181,7 @@ Keep your original file, and compare the result with it before you rely on it. T
 
 ## Install
 
-1. Download the zip from the [latest release](https://github.com/srt8hellcat2-ui/niftydesign/releases) (currently `v0.21.1-nifty-alpha.7`).
+1. Download the zip from the [latest release](https://github.com/srt8hellcat2-ui/niftydesign/releases) (currently `v0.21.1-nifty-alpha.8`).
 2. Right-click the zip and choose **Extract All**.
 3. Open the new folder and double-click `designcraft.exe`.
 4. Windows may warn you because the alpha is not signed. Choose **More info**, then **Run anyway**. If Windows instead says "An Application Control policy has blocked this file", Smart App Control has blocked it and offers no Run anyway option. Trying again later sometimes helps. See [Known limitations](docs/KNOWN-LIMITATIONS.md#windows-smart-app-control-can-block-this-app).
