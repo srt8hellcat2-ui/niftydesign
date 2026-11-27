@@ -1,7 +1,7 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # NiftyDesign unsigned alpha: release notes
 
-NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer (and, experimentally and only in part, 97, 98 and 2000), lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.20.1 by the ArtCraft team, with a Publisher importer added. Publisher 97, 98 and 2000 files open through an experimental, partial recovery. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
+NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer (and, experimentally and only in part, 97, 98 and 2000), lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.21.1 by the ArtCraft team, with a Publisher importer added. Publisher 97, 98 and 2000 files open through an experimental, partial recovery. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
 
 ## What changed in alpha.7 (since 0.20.1-nifty-alpha.6)
 
@@ -40,7 +40,7 @@ The maintainer has run an earlier alpha on one Windows 11 PC with one inkjet pri
 
 ## What opening a file does
 
-Opening a .pub never modifies your original file on disk. NiftyDesign opens a converted copy as a new, unsaved document. That copy can look different from what Publisher shows. Some features are lost or simplified (table fills, borders and padding, WordArt letter shapes and spacing, numbered lists and tab stops, page numbers and dates, for example), and not every loss gives a warning. Always compare it with your original. Publisher 97, 98 and 2000 files are refused.
+Opening a .pub never modifies your original file on disk. NiftyDesign opens a converted copy as a new, unsaved document. That copy can look different from what Publisher shows. Some features are lost or simplified (table fills, borders and padding, WordArt letter shapes and spacing, numbered lists and tab stops, page numbers and dates, for example), and not every loss gives a warning. Always compare it with your original. Publisher 97, 98 and 2000 files open only through an experimental, partial recovery, and the result can look quite different from the original.
 
 ## Unsigned download, SmartScreen and Smart App Control
 
@@ -53,7 +53,7 @@ On Windows 11 PCs where Smart App Control is turned On, Windows can block an uns
 Download the zip and its separate `.zip.sha256` file into the same folder. In PowerShell, change the version below to the version you downloaded:
 
 ```powershell
-$zip = 'NiftyDesign-0.20.1-nifty-alpha.6-windows-x64.zip'
+$zip = 'NiftyDesign-0.21.1-nifty-alpha.7-windows-x64.zip'
 $line = (Get-Content -LiteralPath "$zip.sha256").Trim()
 $hash, $filename = $line -split '  ', 2
 if ($filename -ne $zip -or $hash -notmatch '^[0-9a-fA-F]{64}$' -or
@@ -67,7 +67,7 @@ The sidecar verifies the finished zip before extraction. `SHA256SUMS` inside the
 
 ## Verified and unverified
 
-This version (alpha.6): built and smoke-tested automatically on Windows by the release workflow. Its code was also run by hand on one Windows 11 PC in a developer build, where it opened all 52 donated Publisher files in the desktop window. The downloadable zip itself has not been run by hand yet, and typing into table cells and printing were not tried with it. Alpha.5 was opened by hand on that PC with the issue 44 calendar (Set Year, undo, picture moving).
+This version (alpha.7): built and smoke-tested automatically on Windows by the release workflow. Its code was also run by hand on one Windows 11 PC in a developer build, where it opened 51 of the 52 donated files in the desktop window (the 52nd is not a Publisher file). The downloadable zip itself has not been run by hand yet, and typing into table cells and printing were not tried with it. Alpha.5 was opened by hand on that PC with the issue 44 calendar (Set Year, undo, picture moving).
 
 An earlier alpha worked on the maintainer's one Windows 11 PC: launching, opening a .pub, editing, saving and reopening, PDF export, printing on one inkjet printer, and Arial and Times New Roman found as installed fonts.
 
