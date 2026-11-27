@@ -553,20 +553,26 @@ fn grow_overset_frames(s: &mut Session, ids: &[u64], page_h: f64) -> usize {
     let mut grown = 0usize;
     for id in ids {
         let mut grew = false;
-        let mut limit: Option<f64> = None;
+        let mut limit: Option<(f64, f64)> = None;
         for _ in 0..MAX_STEPS {
             let fits = s.execute("story.get", &json!({"frame": id})).map(|r| r["overset"].is_null()).unwrap_or(true);
             if fits {
                 break;
             }
             let Some(b) = s.doc().ok().and_then(|st| st.doc.item(designcraft_doc::ItemId(*id)).map(|it| it.bounds())) else { break };
-            let floor = *limit.get_or_insert_with(|| room_below(s, *id, b, page_h));
-            let step = STEP.min(floor - b.y1);
-            if step < 0.5 {
+            let (ceiling, floor) = *limit.get_or_insert_with(|| room_around(s, *id, b, page_h));
+            let down = STEP.min(floor - b.y1);
+            let up = STEP.min(b.y0 - ceiling);
+            // Grow downward first; when the neighbour or the page edge is in the way, grow upward into free space.
+            let (top, bottom) = if down >= 0.5 {
+                (b.y0, b.y1 + down)
+            } else if up >= 0.5 {
+                (b.y0 - up, b.y1)
+            } else {
                 break;
-            }
+            };
             let from = [b.x0, b.y0, b.x1, b.y1];
-            let to = [b.x0, b.y0, b.x1, b.y1 + step];
+            let to = [b.x0, top, b.x1, bottom];
             if s.execute("transform.resize", &json!({"from": from, "to": to, "ids": [id]})).is_err() {
                 break;
             }
@@ -643,24 +649,31 @@ fn shrink_text(s: &mut Session, id: u64) -> bool {
     .unwrap_or(false)
 }
 
-/// How far down a recovered frame may grow: to just above the next object below it that shares part of its
-/// width, and never past the page bottom. Objects that already overlap the frame (backgrounds, pictures behind
-/// text) are not obstacles. The result is never above the frame's own bottom edge.
-fn room_below(s: &Session, id: u64, b: designcraft_geom::Rect, page_h: f64) -> f64 {
+/// How far a recovered frame may grow, as (ceiling, floor): down to just above the next object below it that
+/// shares part of its width and never past the page bottom, and up to just below the next object above it and
+/// never past the page top. Objects that already overlap the frame (backgrounds, pictures behind text) are not
+/// obstacles. The ceiling is never below the frame's top edge, nor the floor above its bottom edge.
+fn room_around(s: &Session, id: u64, b: designcraft_geom::Rect, page_h: f64) -> (f64, f64) {
     const GAP: f64 = 2.0;
+    let mut ceiling = 0.0_f64.min(b.y0);
     let mut floor = page_h.max(b.y1);
-    let Ok(st) = s.doc() else { return floor };
+    let Ok(st) = s.doc() else { return (ceiling, floor) };
     for other in st.doc.all_items() {
         if other.0 == id {
             continue;
         }
         let Some(o) = st.doc.item(other).map(|it| it.bounds()) else { continue };
-        let shares_width = o.x0 < b.x1 - 1.0 && o.x1 > b.x0 + 1.0;
-        if shares_width && o.y0 >= b.y1 - 0.5 && o.y0 - GAP < floor {
+        if !(o.x0 < b.x1 - 1.0 && o.x1 > b.x0 + 1.0) {
+            continue;
+        }
+        if o.y0 >= b.y1 - 0.5 && o.y0 - GAP < floor {
             floor = (o.y0 - GAP).max(b.y1);
         }
+        if o.y1 <= b.y0 + 0.5 && o.y1 + GAP > ceiling {
+            ceiling = (o.y1 + GAP).min(b.y0);
+        }
     }
-    floor
+    (ceiling, floor)
 }
 
 #[cfg(test)]
