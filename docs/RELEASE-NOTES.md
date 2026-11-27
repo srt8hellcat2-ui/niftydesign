@@ -3,6 +3,13 @@
 
 NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer (and, experimentally and only in part, 97, 98 and 2000), lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.21.1 by the ArtCraft team, with a Publisher importer added. Publisher 97, 98 and 2000 files open through an experimental, partial recovery. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
 
+## What changed in alpha.8 (since 0.21.1-nifty-alpha.7)
+
+- Fixed, Publisher 97, 98 and 2000 files: a text frame that had to grow could grow over a picture or WordArt that only partly overlapped it (seen in Advertisement - Hotels.pub, where the headline text ran into the "Give Your Business Travelers" WordArt). A frame now stops at any neighbour above or below it, whether or not it overlaps the frame a little.
+- Fixed, PDF export: the stored drawings of WordArt and clip art from these files were left out of the PDF with the warning "SVG drawing exceeds the PDF area or filter budget". They are now in the PDF.
+- Checked by hand on a build of this code: all 52 donated files re-opened (51 open; the 52nd is not a Publisher file), ten of them were saved as .designcraft, edited, closed and reopened with their pages, objects, pictures and edits intact, and the Hotels PDF now shows the WordArt.
+- Not changed: shape fills and line colours, lines, tables, cropped pictures, page numbers and dates, and saving back to .pub. A very long story in one frame can still show as overset, and some text can still run a little past its frame because the replacement fonts are wider.
+
 ## What changed in alpha.7 (since 0.20.1-nifty-alpha.6)
 
 - Rebased on DesignCraft 0.21.1. Publisher files open through DesignCraft's new background-open path.
@@ -53,7 +60,7 @@ On Windows 11 PCs where Smart App Control is turned On, Windows can block an uns
 Download the zip and its separate `.zip.sha256` file into the same folder. In PowerShell, change the version below to the version you downloaded:
 
 ```powershell
-$zip = 'NiftyDesign-0.21.1-nifty-alpha.7-windows-x64.zip'
+$zip = 'NiftyDesign-0.21.1-nifty-alpha.8-windows-x64.zip'
 $line = (Get-Content -LiteralPath "$zip.sha256").Trim()
 $hash, $filename = $line -split '  ', 2
 if ($filename -ne $zip -or $hash -notmatch '^[0-9a-fA-F]{64}$' -or
@@ -67,7 +74,7 @@ The sidecar verifies the finished zip before extraction. `SHA256SUMS` inside the
 
 ## Verified and unverified
 
-This version (alpha.7): built and smoke-tested automatically on Windows by the release workflow. Its code was also run by hand on one Windows 11 PC in a developer build, where it opened 51 of the 52 donated files in the desktop window (the 52nd is not a Publisher file). The downloadable zip itself has not been run by hand yet, and typing into table cells and printing were not tried with it. Alpha.5 was opened by hand on that PC with the issue 44 calendar (Set Year, undo, picture moving).
+This version (alpha.8): built and smoke-tested automatically on Windows by the release workflow. Its code was also run by hand on one Windows 11 PC in a developer build, where it opened 51 of the 52 donated files in the desktop window (the 52nd is not a Publisher file). The downloadable zip itself has not been run by hand yet, and typing into table cells and printing were not tried with it. Alpha.5 was opened by hand on that PC with the issue 44 calendar (Set Year, undo, picture moving).
 
 An earlier alpha worked on the maintainer's one Windows 11 PC: launching, opening a .pub, editing, saving and reopening, PDF export, printing on one inkjet printer, and Arial and Times New Roman found as installed fonts.
 
