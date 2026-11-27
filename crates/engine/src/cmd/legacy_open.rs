@@ -629,9 +629,23 @@ fn shrink_text(s: &mut Session, id: u64) -> bool {
         }) else {
             return Ok(false);
         };
+        let styles = d.styles.clone();
         let Some(st) = d.story_mut(sid) else { return Ok(false) };
-        let runs: Vec<(std::ops::Range<usize>, f64)> =
-            st.runs().filter_map(|(r, cf)| cf.over.size.map(|z| (r, z))).filter(|(_, z)| *z > 5.0).collect();
+        // The size each run really has: its own, else the one its styles give. A run that takes its size from a
+        // style (the usual case for a heading) gets an explicit, smaller size.
+        let base = st.paras.first().map(|p| styles.resolve_para(p).1);
+        let runs: Vec<(std::ops::Range<usize>, f64)> = st
+            .runs()
+            .map(|(r, cf)| {
+                let size = match (cf.over.size, base.as_ref()) {
+                    (Some(z), _) => z,
+                    (None, Some(base)) => styles.resolve_char(base, cf).size,
+                    (None, None) => 12.0,
+                };
+                (r, size)
+            })
+            .filter(|(_, z)| *z > 5.0)
+            .collect();
         let changed = !runs.is_empty();
         for (r, z) in runs {
             st.format_chars(r, |cf| cf.over.size = Some((z * 0.94).max(5.0)));
