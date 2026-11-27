@@ -141,7 +141,7 @@ The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PN
 - 🔬 Table cell fills, borders, padding and the small row-position drift
 - 🔬 How Publisher bends letters in circle, wave and other WordArt
 - 🔬 Numbered lists and custom tab stops (we need sample files)
-- 🔬 Publisher 97, 98 and 2000 files (alpha.6 recovers text, fonts, pictures and WordArt previews; shapes, most fills and colours, lines, tables and symbol fonts are still research, see the [roadmap](ROADMAP.md) and the [parity plan](docs/pub-format/parity-roadmap.md))
+- 🔬 Publisher 97, 98 and 2000 files (alpha.7 recovers text, fonts, pictures and WordArt previews; shapes, most fills and colours, lines, tables and symbol fonts are still research, see the [roadmap](ROADMAP.md) and the [parity plan](docs/pub-format/parity-roadmap.md))
 
 Real-file check (re-run on the alpha.6 code): of 24 real Apache test files, 21 opened (all with notes or warnings, including the 2 Publisher 98 and 2000 files) and 3 were deliberately damaged test files that were correctly rejected; 51 of 52 donated real files opened; all 142 controlled files import. We have compared only nine test files with Publisher's own images, so none of this is a claim that files match Publisher. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
 
@@ -181,7 +181,7 @@ Keep your original file, and compare the result with it before you rely on it. T
 
 ## Install
 
-1. Download the zip from the [latest release](https://github.com/srt8hellcat2-ui/niftydesign/releases) (currently `v0.20.1-nifty-alpha.6`).
+1. Download the zip from the [latest release](https://github.com/srt8hellcat2-ui/niftydesign/releases) (currently `v0.21.1-nifty-alpha.7`).
 2. Right-click the zip and choose **Extract All**.
 3. Open the new folder and double-click `designcraft.exe`.
 4. Windows may warn you because the alpha is not signed. Choose **More info**, then **Run anyway**. If Windows instead says "An Application Control policy has blocked this file", Smart App Control has blocked it and offers no Run anyway option. Trying again later sometimes helps. See [Known limitations](docs/KNOWN-LIMITATIONS.md#windows-smart-app-control-can-block-this-app).
