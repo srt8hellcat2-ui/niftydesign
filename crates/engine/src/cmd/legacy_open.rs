@@ -666,10 +666,17 @@ fn room_around(s: &Session, id: u64, b: designcraft_geom::Rect, page_h: f64) -> 
         if !(o.x0 < b.x1 - 1.0 && o.x1 > b.x0 + 1.0) {
             continue;
         }
-        if o.y0 >= b.y1 - 0.5 && o.y0 - GAP < floor {
+        // An object that contains the whole frame is a background, not a neighbour.
+        if o.x0 <= b.x0 + 1.0 && o.x1 >= b.x1 - 1.0 && o.y0 <= b.y0 + 0.5 && o.y1 >= b.y1 - 0.5 {
+            continue;
+        }
+        // A neighbour below: it starts under the frame's top and reaches its bottom edge or beyond. One that only
+        // overlaps the frame's lower part leaves no room (the floor stays at the frame's own bottom).
+        if o.y0 > b.y0 + 0.5 && o.y1 > b.y1 - 0.5 && o.y0 - GAP < floor {
             floor = (o.y0 - GAP).max(b.y1);
         }
-        if o.y1 <= b.y0 + 0.5 && o.y1 + GAP > ceiling {
+        // A neighbour above, likewise: it starts at or above the frame's top and ends above its bottom.
+        if o.y0 < b.y0 + 0.5 && o.y1 < b.y1 - 0.5 && o.y1 + GAP > ceiling {
             ceiling = (o.y1 + GAP).min(b.y0);
         }
     }
