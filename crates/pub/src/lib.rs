@@ -1000,7 +1000,7 @@ impl<'a> Builder<'a> {
                     id,
                     name: format!("picture-{pib}.svg"),
                     mime: "image/svg+xml".into(),
-                    data: Arc::new(svg.data),
+                    data: designcraft_doc::AssetData::embedded(svg.data),
                     pixels: Some(svg.size),
                     ..Default::default()
                 }));
@@ -1022,7 +1022,7 @@ impl<'a> Builder<'a> {
             id,
             name: format!("picture-{pib}.{ext}"),
             mime: mime.into(),
-            data: Arc::new(data),
+            data: designcraft_doc::AssetData::embedded(data),
             pixels: Some(pixels),
             ..Default::default()
         }))

@@ -94,7 +94,7 @@ These are screenshots of the NiftyDesign window itself, opening Publisher test f
 
 The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PNG](docs/demo/alpha4/alpha4-flyer.png) and an [editable `.designcraft` file](docs/demo/alpha4/alpha4-flyer.designcraft). The saved copy of the Sample2 file is [here](docs/demo/alpha4/alpha4-sample2-copy.designcraft); the original `.pub` is never changed. The earlier coffee-shop flyer and business card are still in `docs/demo/coffee-shop`.
 
-## Where NiftyDesign stands (alpha.6)
+## Where NiftyDesign stands (alpha.7)
 
 **Done**
 
@@ -110,7 +110,7 @@ The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PN
 - ✅ Calendar-style files with one table per month open complete: cell text of multi-table files is placed in its cells, and a table frame shorter than its stored rows is made taller so the last rows are not cut off (checked on the issue 44 calendar)
 - ✅ Table > Calendar > Set Year retypes headings, day numbers and week rows for any year 1900 to 2200 in one undo step ([docs/calendar-year.md](docs/calendar-year.md))
 - ✅ Pictures can be selected, moved, resized and replaced (File > Place)
-- ✅ Based on DesignCraft 0.20.1
+- ✅ Based on DesignCraft 0.21.1
 - ✅ Publisher 97, 98 and 2000 files open with experimental partial recovery (new in alpha.6; see the table above for what is and is not recovered)
 - ✅ Table text
 - ✅ Save as `.designcraft` and reopen
@@ -144,6 +144,40 @@ The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PN
 - 🔬 Publisher 97, 98 and 2000 files (alpha.6 recovers text, fonts, pictures and WordArt previews; shapes, most fills and colours, lines, tables and symbol fonts are still research, see the [roadmap](ROADMAP.md) and the [parity plan](docs/pub-format/parity-roadmap.md))
 
 Real-file check (re-run on the alpha.6 code): of 24 real Apache test files, 21 opened (all with notes or warnings, including the 2 Publisher 98 and 2000 files) and 3 were deliberately damaged test files that were correctly rejected; 51 of 52 donated real files opened; all 142 controlled files import. We have compared only nine test files with Publisher's own images, so none of this is a claim that files match Publisher. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
+
+## Publisher 97, 98 and 2000 files: what works and what does not
+
+These older files use a different format from Publisher 2002 and newer, so NiftyDesign reads them with a separate, experimental reader. It builds a **new, editable document** from what it can read. It is not the original layout, and it is not a replacement for opening the file in Publisher. Checked on 52 real files donated for testing: 51 open (32 through this reader, 19 through the normal importer), and 1 does not open because it is not a Publisher file.
+
+**Works**
+
+- ✅ Text, in editable text frames, at the stored position and size of each frame
+- ✅ Fonts, sizes, bold, italic, underline and alignment (a font that is not installed is replaced by a similar one)
+- ✅ Text colours that Publisher stored as an exact colour
+- ✅ Bitmap pictures (photos and scans), at their stored positions
+- ✅ WordArt and clip art, as non-editable pictures of the stored drawing
+- ✅ Black filled frames with white text, and black frame borders
+- ✅ Pages in the order stored in the file, with Publisher's blank master pages left out
+- ✅ Frames made tall enough to hold their text, without running into the object below or off the page
+- ✅ A note on screen says it is a recovery, and the original file is never changed
+
+**Partly**
+
+- 🟡 Text size: the replacement fonts are often wider, so type can be shrunk a little, and a very long story in one frame can still show as overset
+- 🟡 Colours: only exact colours are read; colours from Publisher's colour schemes come out black or unset
+- 🟡 Page size: read from the file, and marked as an estimate
+- 🟡 The eight earliest files (an older file format) open as text only, on one A4 page, with no layout, fonts or pictures
+
+**Not yet**
+
+- ⬜ Shapes, lines and arrows (arrows can appear as plain boxes)
+- ⬜ Shape fill and line colours
+- ⬜ Tables, and cropped pictures
+- ⬜ Symbol-font characters (they can show as boxes)
+- ⬜ Page numbers and dates
+- ⬜ Saving back to `.pub`
+
+Keep your original file, and compare the result with it before you rely on it. The details, with the evidence for each, are in [docs/pub-format/legacy-minimal-reader.md](docs/pub-format/legacy-minimal-reader.md).
 
 ## Install
 

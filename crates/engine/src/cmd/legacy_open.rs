@@ -432,7 +432,7 @@ fn add_art(d: &mut Document, layer: designcraft_doc::LayerId, art: &Art) -> Resu
         id: new_id,
         name: art.name.clone(),
         mime: art.mime.into(),
-        data: std::sync::Arc::new(art.data.clone()),
+        data: designcraft_doc::AssetData::embedded(art.data.clone()),
         pixels: Some(art.pixels),
         ..Default::default()
     });
