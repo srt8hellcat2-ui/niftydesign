@@ -3,7 +3,17 @@
 
 NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer (and, experimentally and only in part, 97, 98 and 2000), lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.20.1 by the ArtCraft team, with a Publisher importer added. Publisher 97, 98 and 2000 files open through an experimental, partial recovery. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
 
-## What changed since 0.18.0-nifty-alpha.5
+## What changed in alpha.7 (since 0.20.1-nifty-alpha.6)
+
+- Rebased on DesignCraft 0.21.1. Publisher files open through DesignCraft's new background-open path.
+- Publisher 97, 98 and 2000 recovery: a frame that has to grow to hold its text now stops at the next object below it and at the bottom of the page, and grows upward into free space when it cannot grow down, so recovered text no longer runs into neighbouring objects or off the page.
+- When a frame still cannot hold its text, the type is made slightly smaller (up to five steps of 6 %), and empty paragraphs at the very end of a story are dropped, instead of reporting an overset error for text that is visible.
+- A story that is still too long for its frame after that (for example the long price table in Bonus Bonaza.pub) still shows as overset. That is deliberate: we do not shrink it to an unreadable size.
+- All 52 donated test files were re-run in the desktop app on this build: 51 open (32 through the 97/98/2000 reader, 19 through the Publisher 2002+ importer); the one that does not open is not a Publisher file.
+- Not changed: shape fills and line colours, lines, tables, cropped pictures, page numbers and dates, and saving back to .pub in Publisher 97, 98 and 2000 files, and table fills, borders and padding, numbered lists and tab stops, and other WordArt shapes in newer files.
+- Checked on this code: formatting, lint, the asset and layering checks, the web build and the test suite pass, except two of DesignCraft's linked-file tests that compare Windows paths written with different separators; they fail on Windows because of how the tests are written, not because of Publisher code, and were skipped.
+
+## What changed in alpha.6 (since 0.18.0-nifty-alpha.5)
 
 - Rebased on DesignCraft 0.20.1.
 - NEW, experimental: Publisher 97, 98 and 2000 files now open instead of being refused. They open as a new document with the text where it was stored (where that can be read), with fonts and sizes, bitmap pictures, the stored drawings of WordArt and clip art, and some frame fills. Some older files open as text only on one A4 page, with their page size read from the file when it is there. Shapes, lines, tables, most colours and the exact page order are not recovered, symbol-font characters can show as boxes, and the result can look quite different from the original. A notice on every such file says so.
