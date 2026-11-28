@@ -117,9 +117,28 @@ fn scheme_fill(f: &designcraft_pub_legacy::FrameRect, scheme: Option<&designcraf
 fn frame_look_in_scheme(f: &designcraft_pub_legacy::FrameRect, scheme: Option<&designcraft_pub_legacy::Scheme>) -> designcraft_pub::FrameLook {
     let mut look = frame_look(f);
     if look.fill.is_none() {
-        look.fill = scheme_fill(f, scheme);
+        look.fill = scheme_fill(f, scheme).or_else(|| direct_fill(f));
+    }
+    // Light text on a dark fill: black text on navy is unreadable and Publisher's automatic text colour is light there.
+    if look.text.is_none() && look.fill.is_some_and(is_dark) {
+        look.text = Some([255, 255, 255]);
     }
     look
+}
+
+/// Whether a colour is dark enough that text on it should be light (relative luminance below about 0.4).
+fn is_dark([r, g, b]: [u8; 3]) -> bool {
+    0.299 * f64::from(r) + 0.587 * f64::from(g) + 0.114 * f64::from(b) < 100.0
+}
+
+/// OBSERVATION (docs/pub-format/office-standard-palette.md): a fill reference that is a bare number from 1 to 39
+/// is a position in the Office standard 40-colour grid (the fill-colour drop-down). The only number checked against a
+/// preview is 26 (Yellow) in `IHEC Postcards`.
+fn direct_fill(f: &designcraft_pub_legacy::FrameRect) -> Option<[u8; 3]> {
+    if f.fill_mode != 2 || f.color_ref == 0 || f.color_ref >= 40 {
+        return None;
+    }
+    designcraft_pub_legacy::grid_color(f.color_ref)
 }
 
 /// OBSERVATION (Advertisement - Hotels, 17 frames): a frame whose byte at +0x2a is 2 and whose colour reference
@@ -274,7 +293,10 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     let mut d = Document::new(&nd);
     let layer = d.layers.first().map(|l| l.id).ok_or_else(|| bad("file.open", "new document has no layer"))?;
     // Backgrounds and panels first, so the pictures and the text lie above them.
-    let placed_decor = decor.iter().filter(|dc| add_decor(&mut d, layer, dc)).count();
+    // A text frame that holds no text and has a fill is a panel too: it belongs under the pictures, not over them.
+    let (under, positioned): (Vec<_>, Vec<_>) = positioned.into_iter().partition(|p| p.4.fill.is_some() && !p.2.chars().any(char::is_alphanumeric));
+    let placed_decor = decor.iter().filter(|dc| add_decor(&mut d, layer, dc)).count()
+        + under.iter().filter(|p| add_decor(&mut d, layer, &Decor { page: p.0, rect: p.1, look: p.4 })).count();
     let (placed_previews, placed_pictures) = place_art(&mut d, layer, &art);
     let mut frame_ids: Vec<u64> = Vec::new();
     for (pg, rect, text, story, look) in &positioned {
@@ -800,6 +822,19 @@ mod frame_look_tests {
         let s = scheme();
         assert_eq!(frame_look_in_scheme(&frame(2, 0xC0E4_0003), Some(&s)).fill, Some([0xd6, 0xeb, 0xff]));
         assert_eq!(frame_look_in_scheme(&frame(2, 0xC0E4_0001), Some(&s)).fill, Some([0x33, 0x99, 0xff]));
+    }
+
+    #[test]
+    fn a_bare_fill_number_is_a_position_in_the_standard_grid_and_dark_fills_get_light_text() {
+        // 26 is Yellow (the strips in IHEC Postcards); 27 is Bright Green; 5 is Dark Blue, which is dark.
+        assert_eq!(frame_look_in_scheme(&frame(2, 26), None).fill, Some([0xff, 0xff, 0x00]));
+        assert_eq!(frame_look_in_scheme(&frame(2, 27), None).fill, Some([0x00, 0xff, 0x00]));
+        let dark = frame_look_in_scheme(&frame(2, 5), None);
+        assert_eq!((dark.fill, dark.text), (Some([0x00, 0x00, 0x80]), Some([255, 255, 255])));
+        // A light fill leaves the text colour alone, and numbers outside the grid or without a fill give nothing.
+        assert_eq!(frame_look_in_scheme(&frame(2, 26), None).text, None);
+        assert_eq!(frame_look_in_scheme(&frame(2, 40), None).fill, None);
+        assert_eq!(frame_look_in_scheme(&frame(0, 26), None).fill, None);
     }
 
     #[test]

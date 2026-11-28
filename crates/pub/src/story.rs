@@ -223,7 +223,9 @@ pub fn solid_fill(doc: &mut Document, id: ItemId, rgb: [u8; 3]) {
 /// "automatic" colour (top half 0xe0e4).
 fn run_color(style: &quill::CharStyle, defaults: &quill::CharStyle, fallback: Option<[u8; 3]>) -> Option<[u8; 3]> {
     match style.color.or(defaults.color) {
-        Some(v) => literal_rgb(v).or(fallback.filter(|_| v >> 16 == 0xe0e4)),
+        // A literal colour wins. The "automatic" reference (top half 0xe0e4) and the small palette numbers are not decoded;
+        // on a frame that gives text a fallback colour (a dark fill, so light text) they take it.
+        Some(v) => literal_rgb(v).or(fallback.filter(|_| v >> 16 == 0xe0e4 || v < 0x100)),
         None => fallback,
     }
 }

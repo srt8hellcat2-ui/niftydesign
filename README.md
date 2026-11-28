@@ -166,7 +166,7 @@ These older files use a different format from Publisher 2002 and newer, so Nifty
 **Partly**
 
 - 🟡 Text size: the replacement fonts are often wider, so type can be shrunk a little, and a very long story in one frame can still show as overset
-- 🟡 Colours: exact colours, black, and panel fills from the document's colour scheme (its entries 1 to 5, where the swatch is known) are read; text colours from schemes, the other scheme entries and the fill numbers on some frames are not
+- 🟡 Colours: exact colours, black, panel fills from the document's colour scheme (entries 1 to 5, where the swatch is known) and the fill numbers of the standard colour grid are read; text on a dark fill is made light; text colours taken from schemes, the other scheme entries and the 17 greys are not
 - 🟡 The eight earliest files (an older file format) open as text only, on one A4 page, with no layout, fonts or pictures
 
 **Not yet**

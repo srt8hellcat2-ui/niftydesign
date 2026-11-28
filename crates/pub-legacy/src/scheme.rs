@@ -114,3 +114,22 @@ mod tests {
         assert_eq!(SchemeColor::Other.rgb(), None);
     }
 }
+
+/// The Office 97-2003 standard colour grid (the 40 colours of the fill-colour drop-down), in reading order:
+/// five rows of eight. Names and order are public (the chart "Microsoft Office colour charts" lists them); the
+/// values are the long-published standard values. OBSERVATION: a direct fill number below 40 in a frame record is
+/// a position in this grid: in `IHEC Postcards` the number 26 is Yellow, and the strips are yellow on the stored
+/// preview. The same number in `Hotels` and `Super Bowl` (27 and 5) is not yet checked against a preview.
+const STANDARD_GRID: [u32; 40] = [
+    0x000000, 0x993300, 0x333300, 0x003300, 0x003366, 0x000080, 0x333399, 0x333333, //
+    0x800000, 0xFF6600, 0x808000, 0x008000, 0x008080, 0x0000FF, 0x666699, 0x808080, //
+    0xFF0000, 0xFF9900, 0x99CC00, 0x339966, 0x33CCCC, 0x3366FF, 0x800080, 0x969696, //
+    0xFF00FF, 0xFFCC00, 0xFFFF00, 0x00FF00, 0x00FFFF, 0x00CCFF, 0x993366, 0xC0C0C0, //
+    0xFF99CC, 0xFFCC99, 0xFFFF99, 0xCCFFCC, 0xCCFFFF, 0x99CCFF, 0xCC99FF, 0xFFFFFF,
+];
+
+/// The colour of a direct fill number (0 to 39) of the standard grid.
+pub fn grid_color(n: u32) -> Option<[u8; 3]> {
+    let v = *STANDARD_GRID.get(usize::try_from(n).ok()?)?;
+    Some([(v >> 16) as u8, (v >> 8) as u8, v as u8])
+}
