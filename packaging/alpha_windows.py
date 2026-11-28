@@ -12,7 +12,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '0.21.1-nifty-alpha.8'
+VERSION = '0.21.1-nifty-alpha.9'
 
 
 def digest(path):

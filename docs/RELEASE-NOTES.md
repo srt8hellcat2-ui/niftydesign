@@ -3,6 +3,15 @@
 
 NiftyDesign is an unofficial alpha that opens Microsoft Publisher (.pub) files from Publisher 2002 and newer (and, experimentally and only in part, 97, 98 and 2000), lets you edit their content, and exports PDF. It is the full DesignCraft desktop app, built from DesignCraft 0.21.1 by the ArtCraft team, with a Publisher importer added. Publisher 97, 98 and 2000 files open through an experimental, partial recovery. It is not affiliated with or supported by ArtCraft or Microsoft. This download is for Windows x64.
 
+## What changed in alpha.9 (since 0.21.1-nifty-alpha.8)
+
+- Publisher 97, 98 and 2000 files: empty panels, bands and backgrounds are now recovered. Many frames carry no text and exist only as a fill; they were thrown away and are now drawn behind the pictures and the text (for example the purple page background and the lavender text panel of one flyer).
+- Colours: the document's colour scheme (its name and palette) is now read, and frame fills that point at scheme colours 1 to 5 use the scheme's own colours where the swatch is known. Fill numbers from 1 to 39 are read as positions in the Office standard 40-colour grid (the yellow headline strips of one postcard, the green and navy direction cards of another). Text whose colour is not decoded becomes light on a dark fill, so it stays readable.
+- The page size of these files is no longer called an estimate: in all 28 sample files that store one it is an exact standard paper size (a note says it was not compared with Publisher's own page setup).
+- Text that takes its size from a style now also shrinks when its frame cannot grow, which clears some overset errors.
+- Checked on this build: all 52 donated files re-run in the desktop app (51 open; the 52nd is not a Publisher file), and the same files that were saved, edited and reopened in alpha.8 behave the same. Formatting, lint, the asset and layering checks, the web build and the test suite pass.
+- Not done, and shown as such in the README: shapes and lines are not recovered; colours that come from colour schemes on text, scheme entries 0, 6 and 7, the 17 greys and the numbers of tinted fills are not decoded; a table stored in a frame (two of the 52 files) is still shown as one overset text frame; the eight earliest files (a different, older layout format) still open as text only on one A4 page.
+
 ## What changed in alpha.8 (since 0.21.1-nifty-alpha.7)
 
 - Fixed, Publisher 97, 98 and 2000 files: a text frame that had to grow could grow over a picture or WordArt that only partly overlapped it (seen in Advertisement - Hotels.pub, where the headline text ran into the "Give Your Business Travelers" WordArt). A frame now stops at any neighbour above or below it, whether or not it overlaps the frame a little.
@@ -60,7 +69,7 @@ On Windows 11 PCs where Smart App Control is turned On, Windows can block an uns
 Download the zip and its separate `.zip.sha256` file into the same folder. In PowerShell, change the version below to the version you downloaded:
 
 ```powershell
-$zip = 'NiftyDesign-0.21.1-nifty-alpha.8-windows-x64.zip'
+$zip = 'NiftyDesign-0.21.1-nifty-alpha.9-windows-x64.zip'
 $line = (Get-Content -LiteralPath "$zip.sha256").Trim()
 $hash, $filename = $line -split '  ', 2
 if ($filename -ne $zip -or $hash -notmatch '^[0-9a-fA-F]{64}$' -or
@@ -74,7 +83,7 @@ The sidecar verifies the finished zip before extraction. `SHA256SUMS` inside the
 
 ## Verified and unverified
 
-This version (alpha.8): built and smoke-tested automatically on Windows by the release workflow. Its code was also run by hand on one Windows 11 PC in a developer build, where it opened 51 of the 52 donated files in the desktop window (the 52nd is not a Publisher file). The downloadable zip itself has not been run by hand yet, and typing into table cells and printing were not tried with it. Alpha.5 was opened by hand on that PC with the issue 44 calendar (Set Year, undo, picture moving).
+This version (alpha.9): built and smoke-tested automatically on Windows by the release workflow. Its code was also run by hand on one Windows 11 PC in a developer build, where it opened 51 of the 52 donated files in the desktop window (the 52nd is not a Publisher file). The downloadable zip itself has not been run by hand yet, and typing into table cells and printing were not tried with it. Alpha.5 was opened by hand on that PC with the issue 44 calendar (Set Year, undo, picture moving).
 
 An earlier alpha worked on the maintainer's one Windows 11 PC: launching, opening a .pub, editing, saving and reopening, PDF export, printing on one inkjet printer, and Arial and Times New Roman found as installed fonts.
 

@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Alpha version matching Cargo.toml (e.g. 0.21.1-nifty-alpha.8)'
+        description: 'Alpha version matching Cargo.toml (e.g. 0.21.1-nifty-alpha.9)'
         type: string
         required: true
       draft_release:

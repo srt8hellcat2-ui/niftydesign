@@ -94,7 +94,7 @@ These are screenshots of the NiftyDesign window itself, opening Publisher test f
 
 The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PNG](docs/demo/alpha4/alpha4-flyer.png) and an [editable `.designcraft` file](docs/demo/alpha4/alpha4-flyer.designcraft). The saved copy of the Sample2 file is [here](docs/demo/alpha4/alpha4-sample2-copy.designcraft); the original `.pub` is never changed. The earlier coffee-shop flyer and business card are still in `docs/demo/coffee-shop`.
 
-## Where NiftyDesign stands (alpha.8)
+## Where NiftyDesign stands (alpha.9)
 
 **Done**
 
@@ -141,7 +141,7 @@ The flyer is also available as a [PDF](docs/demo/alpha4/alpha4-flyer.pdf), a [PN
 - 🔬 Table cell fills, borders, padding and the small row-position drift
 - 🔬 How Publisher bends letters in circle, wave and other WordArt
 - 🔬 Numbered lists and custom tab stops (we need sample files)
-- 🔬 Publisher 97, 98 and 2000 files (alpha.8 recovers text, fonts, pictures and WordArt previews; shapes, most fills and colours, lines, tables and symbol fonts are still research, see the [roadmap](ROADMAP.md) and the [parity plan](docs/pub-format/parity-roadmap.md))
+- 🔬 Publisher 97, 98 and 2000 files (alpha.9 recovers text, fonts, pictures and WordArt previews; shapes, most fills and colours, lines, tables and symbol fonts are still research, see the [roadmap](ROADMAP.md) and the [parity plan](docs/pub-format/parity-roadmap.md))
 
 Real-file check (re-run on the alpha.6 code): of 24 real Apache test files, 21 opened (all with notes or warnings, including the 2 Publisher 98 and 2000 files) and 3 were deliberately damaged test files that were correctly rejected; 51 of 52 donated real files opened; all 142 controlled files import. We have compared only nine test files with Publisher's own images, so none of this is a claim that files match Publisher. Follow along in [the tracking issue](https://github.com/srt8hellcat2-ui/niftydesign/issues/2).
 
