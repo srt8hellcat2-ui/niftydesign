@@ -88,11 +88,38 @@ fn visible(raw: &str) -> String {
 /// The stored rectangle of a story's first positioned record, converted to page points (stored values are
 /// centered on the page, in 1/914400 inch), and the candidate page container. `None` unless the whole box
 /// lies on the page, so a bad number can never put a frame off the page.
-fn stored_rect(r: &LegacyText, seg: &designcraft_pub_legacy::Segment, w: f64, h: f64) -> Option<(u16, Rect, designcraft_pub::FrameLook)> {
+fn stored_rect(
+    r: &LegacyText,
+    seg: &designcraft_pub_legacy::Segment,
+    w: f64,
+    h: f64,
+    scheme: Option<&designcraft_pub_legacy::Scheme>,
+) -> Option<(u16, Rect, designcraft_pub::FrameLook)> {
     let Source::Story { records, .. } = &seg.source else { return None };
     let f = r.frames.iter().find(|f| records.contains(&f.record))?;
     let (container, rect) = frame_to_rect(f, r.size?, w, h)?;
-    Some((container, rect, frame_look(f)))
+    Some((container, rect, frame_look_in_scheme(f, scheme)))
+}
+
+/// OBSERVATION (docs/pub-format/legacy-minimal-reader.md, "The colour scheme record"; three files agree): a fill
+/// reference 0xC0E4_000N with N from 1 to 5 is the Nth entry of the document's colour scheme. In `Wireless Flyer`
+/// the panels with N = 3 are pale on the stored preview where the scheme's third entry is `d6ebff`; in the Dark Blue
+/// files they are silver where it is `cccce6`. N = 0 is the automatic (black) reference, N = 6 and 7 are not read.
+fn scheme_fill(f: &designcraft_pub_legacy::FrameRect, scheme: Option<&designcraft_pub_legacy::Scheme>) -> Option<[u8; 3]> {
+    let n = usize::try_from(f.color_ref & 0xffff).ok()?;
+    if f.fill_mode != 2 || f.color_ref >> 16 != 0xC0E4 || !(1..=5).contains(&n) {
+        return None;
+    }
+    scheme?.entries.get(n)?.rgb()
+}
+
+/// [`frame_look`], plus the fill a colour-scheme reference gives when the scheme says which colour it is.
+fn frame_look_in_scheme(f: &designcraft_pub_legacy::FrameRect, scheme: Option<&designcraft_pub_legacy::Scheme>) -> designcraft_pub::FrameLook {
+    let mut look = frame_look(f);
+    if look.fill.is_none() {
+        look.fill = scheme_fill(f, scheme);
+    }
+    look
 }
 
 /// OBSERVATION (Advertisement - Hotels, 17 frames): a frame whose byte at +0x2a is 2 and whose colour reference
@@ -184,6 +211,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     let mut containers: Vec<u16> = Vec::new();
     let mut ranks: HashMap<u16, u32> = r.frames.iter().map(|f| (f.container, f.container_rank)).collect();
     let page_rects = size_status == "inferred-from-raw";
+    let scheme = designcraft_pub_legacy::read_scheme(bytes).ok().flatten();
     for (index, seg) in r.segments.iter().enumerate() {
         let text = match &seg.text {
             Some(t) => {
@@ -210,7 +238,7 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
             }
             None => PLACEHOLDER.to_string(),
         };
-        if page_rects && let Some((container, rect, look)) = stored_rect(&r, seg, w, h) {
+        if page_rects && let Some((container, rect, look)) = stored_rect(&r, seg, w, h, scheme.as_ref()) {
             let pg = containers.iter().position(|c| *c == container).unwrap_or_else(|| {
                 containers.push(container);
                 containers.len() - 1
@@ -230,8 +258,8 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
         placed.push((page, Rect::new(margin, y, margin + body_w, y + height), text));
         y += height + 8.0;
     }
-    let (mut art, art_notes) = collect_art(bytes, &r, page_rects, (w, h), &mut containers, &mut ranks);
-    order_pages(&mut containers, &ranks, &mut positioned, &mut art);
+    let (mut art, art_notes, mut decor) = collect_art(bytes, &r, page_rects, (w, h), &mut containers, &mut ranks, scheme.as_ref());
+    order_pages(&mut containers, &ranks, &mut positioned, &mut art, &mut decor);
     let positioned_pages = containers.len();
     let flow_pages = if placed.is_empty() { 0 } else { page + 1 };
     let nd = NewDocument {
@@ -245,6 +273,8 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     };
     let mut d = Document::new(&nd);
     let layer = d.layers.first().map(|l| l.id).ok_or_else(|| bad("file.open", "new document has no layer"))?;
+    // Backgrounds and panels first, so the pictures and the text lie above them.
+    let placed_decor = decor.iter().filter(|dc| add_decor(&mut d, layer, dc)).count();
     let (placed_previews, placed_pictures) = place_art(&mut d, layer, &art);
     let mut frame_ids: Vec<u64> = Vec::new();
     for (pg, rect, text, story, look) in &positioned {
@@ -290,6 +320,11 @@ pub(crate) fn open_legacy(s: &mut Session, p: &Value, bytes: &[u8], title: Strin
     };
     let mut warnings = r.warnings.clone();
     recovery_notes(&mut warnings, (placed_pictures, placed_previews, formatted_frames), (&art_notes, &format_notes), formats.as_ref());
+    if placed_decor > 0 {
+        warnings.push(format!(
+            "{placed_decor} frame(s) without text were recovered as empty panels with the fill (black or an exact colour) and border read from the file. Fills taken from colour schemes, shapes and lines are not recovered."
+        ));
+    }
     warnings.push(if size_rejected {
         "Original page size is unverified. A standard A4 recovery page is being used.".to_string()
     } else if size_status == "text-only-A4" {
@@ -363,6 +398,13 @@ struct Art {
     preview: bool,
 }
 
+/// A frame without text that has a fill or a border we can draw (a panel, band or background).
+struct Decor {
+    page: usize,
+    rect: Rect,
+    look: designcraft_pub::FrameLook,
+}
+
 /// Embedded-object previews and bitmap pictures at their owning objects' stored rectangles, with the candidate
 /// page each belongs on (new containers get their own page after the text's pages). Previews come first so
 /// pictures and text lie above them.
@@ -373,10 +415,12 @@ fn collect_art(
     (w, h): (f64, f64),
     containers: &mut Vec<u16>,
     ranks: &mut HashMap<u16, u32>,
-) -> (Vec<Art>, Vec<String>) {
+    scheme: Option<&designcraft_pub_legacy::Scheme>,
+) -> (Vec<Art>, Vec<String>, Vec<Decor>) {
     let mut items = Vec::new();
     let mut notes: Vec<String> = Vec::new();
-    let Some(size) = r.size.filter(|_| enabled) else { return (items, notes) };
+    let mut decor: Vec<Decor> = Vec::new();
+    let Some(size) = r.size.filter(|_| enabled) else { return (items, notes, decor) };
     let mut page_of = |container: u16| {
         containers.iter().position(|c| *c == container).unwrap_or_else(|| {
             containers.push(container);
@@ -420,7 +464,18 @@ fn collect_art(
             preview: false,
         });
     }
-    (items, notes)
+    // Frames without text that have a fill or border we can draw: panels, bands and backgrounds.
+    let linked: Vec<u16> = r.frames.iter().map(|f| f.record).collect();
+    for f in designcraft_pub_legacy::read_decor_frames(bytes, &linked).unwrap_or_default() {
+        let look = frame_look_in_scheme(&f, scheme);
+        if look.fill.is_none() && look.border.is_none() {
+            continue;
+        }
+        ranks.entry(f.container).or_insert(f.container_rank);
+        let Some((container, rect)) = frame_to_rect(&f, size, w, h) else { continue };
+        decor.push(Decor { page: page_of(container), rect, look });
+    }
+    (items, notes, decor)
 }
 
 /// Add one piece of art as a picture frame filling its rectangle.
@@ -458,6 +513,18 @@ fn add_art(d: &mut Document, layer: designcraft_doc::LayerId, art: &Art) -> Resu
 }
 
 /// Add the collected art to the document; returns (previews placed, bitmaps placed).
+/// Add an empty frame with the fill and border of a panel, band or background.
+fn add_decor(d: &mut Document, layer: designcraft_doc::LayerId, dc: &Decor) -> bool {
+    let Ok((id, _)) = d.add_text_frame(SpreadRef::Doc(dc.page), dc.rect, layer, "", ParaFormat::default()) else { return false };
+    if let Some(rgb) = dc.look.fill {
+        designcraft_pub::solid_fill(d, id, rgb);
+    }
+    if let Some(weight) = dc.look.border {
+        designcraft_pub::solid_border(d, id, weight);
+    }
+    true
+}
+
 fn place_art(d: &mut Document, layer: designcraft_doc::LayerId, items: &[Art]) -> (usize, usize) {
     let (mut previews, mut bitmaps) = (0usize, 0usize);
     for art in items {
@@ -512,7 +579,7 @@ type Positioned = (usize, Rect, String, Option<u32>, designcraft_pub::FrameLook)
 /// OBSERVATION (Isreal - Rome Vacation, Club 75): records directly below the root are stored in page order,
 /// which put the stored page preview's page first; a container whose only text is a page-number stub
 /// ("- # -") and that holds no picture is a master page, not a document page.
-fn order_pages(containers: &mut Vec<u16>, ranks: &HashMap<u16, u32>, positioned: &mut Vec<Positioned>, art: &mut Vec<Art>) {
+fn order_pages(containers: &mut Vec<u16>, ranks: &HashMap<u16, u32>, positioned: &mut Vec<Positioned>, art: &mut Vec<Art>, decor: &mut Vec<Decor>) {
     let has_content: Vec<bool> = (0..containers.len())
         .map(|i| positioned.iter().any(|p| p.0 == i && p.2.chars().any(char::is_alphanumeric)) || art.iter().any(|a| a.page == i))
         .collect();
@@ -535,6 +602,14 @@ fn order_pages(containers: &mut Vec<u16>, ranks: &HashMap<u16, u32>, positioned:
     art.retain_mut(|a| match new_index.get(a.page).copied().flatten() {
         Some(n) => {
             a.page = n;
+            true
+        }
+        None => false,
+    });
+    // A page that holds only panels and no text or picture is not a page of its own (masters hold such frames).
+    decor.retain_mut(|dc| match new_index.get(dc.page).copied().flatten() {
+        Some(n) => {
+            dc.page = n;
             true
         }
         None => false,
@@ -699,8 +774,45 @@ fn room_around(s: &Session, id: u64, b: designcraft_geom::Rect, page_h: f64) -> 
 
 #[cfg(test)]
 mod frame_look_tests {
-    use super::frame_look;
-    use designcraft_pub_legacy::FrameRect;
+    use super::{frame_look, frame_look_in_scheme};
+    use designcraft_pub_legacy::{FrameRect, Scheme, SchemeColor};
+
+    fn scheme() -> Scheme {
+        // Island's entries: black, blue, lime, pale blue, silver, a grey number, hyperlink, a grey number.
+        let lit = |r, g, b| SchemeColor::Literal([r, g, b]);
+        Scheme {
+            name: "Island".into(),
+            entries: [
+                SchemeColor::Index(0),
+                lit(0x33, 0x99, 0xff),
+                lit(0xcc, 0xff, 0x00),
+                lit(0xd6, 0xeb, 0xff),
+                lit(0xcc, 0xcc, 0xcc),
+                SchemeColor::Index(14),
+                lit(0x66, 0, 0xcc),
+                SchemeColor::Index(1),
+            ],
+        }
+    }
+
+    #[test]
+    fn a_scheme_reference_takes_the_fill_of_its_entry_in_the_files_own_scheme() {
+        let s = scheme();
+        assert_eq!(frame_look_in_scheme(&frame(2, 0xC0E4_0003), Some(&s)).fill, Some([0xd6, 0xeb, 0xff]));
+        assert_eq!(frame_look_in_scheme(&frame(2, 0xC0E4_0001), Some(&s)).fill, Some([0x33, 0x99, 0xff]));
+    }
+
+    #[test]
+    fn a_scheme_reference_without_a_known_colour_gets_no_fill() {
+        let s = scheme();
+        // No scheme, a grey number (not read), the entries 6 and 7 (not read), a tinted reference, and mode 0.
+        assert_eq!(frame_look_in_scheme(&frame(2, 0xC0E4_0003), None).fill, None);
+        assert_eq!(frame_look_in_scheme(&frame(2, 0xC0E4_0005), Some(&s)).fill, None);
+        assert_eq!(frame_look_in_scheme(&frame(2, 0xC0E4_0006), Some(&s)).fill, None);
+        assert_eq!(frame_look_in_scheme(&frame(2, 0xC0E4_0007), Some(&s)).fill, None);
+        assert_eq!(frame_look_in_scheme(&frame(2, 0x819E_0003), Some(&s)).fill, None);
+        assert_eq!(frame_look_in_scheme(&frame(0, 0xC0E4_0003), Some(&s)).fill, None);
+    }
 
     fn frame(fill_mode: u8, color_ref: u32) -> FrameRect {
         FrameRect {

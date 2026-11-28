@@ -278,3 +278,26 @@ fn presentation(cf: &mut crate::Cf<'_>, number: u16, which: usize) -> Option<(u3
     }
     Some((width, height, wmf.to_vec()))
 }
+
+/// The most frames without text that are returned.
+pub const MAX_DECOR: usize = 4096;
+
+/// Frames of the layout (index 8 and 10) that no recovered text is linked to and that have a fill or a border:
+/// panels, bands and backgrounds. `linked` are the record ids of the frames that carry text. Only the rectangle
+/// and the fill and border fields are read; whether the fill colour is known is up to the caller.
+pub fn read_decor_frames(bytes: &[u8], linked: &[u16]) -> Result<Vec<FrameRect>, LegacyError> {
+    let container = crate::open(bytes)?;
+    let layout = Layout::parse(&container.contents, &container.clsid)?;
+    let Some(page) = layout.size_candidate().0.map(|s| (s.raw_width, s.raw_height)) else { return Ok(Vec::new()) };
+    let mut out = Vec::new();
+    for rec in &layout.records {
+        if !matches!(rec.index, 8 | 10) || linked.contains(&rec.id) || out.len() >= MAX_DECOR {
+            continue;
+        }
+        let Some(f) = layout.frame_rect(rec.id, page) else { continue };
+        if f.fill_mode == 2 || f.border > 0 {
+            out.push(f);
+        }
+    }
+    Ok(out)
+}

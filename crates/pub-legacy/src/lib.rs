@@ -283,7 +283,12 @@ pub(crate) struct Recovered {
 }
 
 mod picture;
-pub use picture::{MAX_PICTURE_BYTES, MAX_PICTURES, MAX_PREVIEW_BYTES, MAX_PREVIEWS, ObjectPreview, Picture, read_object_previews, read_pictures};
+mod scheme;
+pub use picture::{
+    MAX_DECOR, MAX_PICTURE_BYTES, MAX_PICTURES, MAX_PREVIEW_BYTES, MAX_PREVIEWS, ObjectPreview, Picture, read_decor_frames, read_object_previews,
+    read_pictures,
+};
+pub use scheme::{Scheme, SchemeColor, read_scheme, standard_color};
 
 #[cfg(any(test, feature = "fixtures"))]
 pub mod fixtures;
