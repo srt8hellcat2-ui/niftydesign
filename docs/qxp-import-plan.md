@@ -44,9 +44,8 @@ reported would be presenting guesses as fact.
 
 ## Plan
 
-1. **Samples.** Obtain real files with provenance recorded (see below). Aim for several files per
-   QuarkXPress version, each with a tiny known content (one text frame with known text, one box with a
-   known colour and size), so the bytes can be matched to known values.
+1. **Samples.** Read the private files only through a served folder (see below), never copy them into the
+   repository. Record only generic findings.
 2. **Format notes** in `docs/qxp-format/`, written only from those bytes and cited public documents, each
    note marked "confirmed in <file>".
 3. **Detector crate** (`crates/qxp`): identify the format and version from the header and return a typed
@@ -61,9 +60,10 @@ reported would be presenting guesses as fact.
 
 The user's QuarkXPress samples live on an `E:\` drive. The cloud session's folder list shows only
 `GameMachine/Projects` and `GameMachine/NiftyDesign`, both marked "not available", so they cannot be reached.
-Either:
+The samples are donated, private files for the owner's use only. They must not be committed, uploaded,
+quoted or put in fixtures, issues, PRs or logs. They may be read only through a folder served to the cloud
+session, and anything recorded from them stays generic (structure, byte layout, version markers; no file
+names, text or images). Committed tests use tiny synthetic inputs built by us, with provenance recorded.
 
-- add a few small, non-private `.qxp` files to the repository with their provenance recorded (and the
-  QuarkXPress version that made each, if known); or
-- serve the sample folder to cloud sessions through the Claude desktop app (Settings, Claude Code,
-  Remote Control; the app may need updating).
+So the one way forward is to serve the sample folder to cloud sessions through the Claude desktop app
+(Settings, Claude Code, Remote Control; the app may need updating).
