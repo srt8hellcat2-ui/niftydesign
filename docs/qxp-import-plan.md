@@ -1,7 +1,7 @@
 <!-- Copyright (c) 2026 srt8hellcat2-ui. SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # Opening QuarkXPress files (.qxp): investigation and plan
 
-Status: **planning only. No reader exists and no QXP file has been examined.**
+Status: **investigation. No reader exists yet. Three donated QuarkXPress 7.x documents and their exported PDFs were examined locally on 2026-11-28; the generic findings are in [qxp-format/observations.md](qxp-format/observations.md). The "Unknown" rows below describe what was known when this plan was written.**
 
 ## Request
 
